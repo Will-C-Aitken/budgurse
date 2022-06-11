@@ -1,8 +1,11 @@
 #include "budgurse.h"
+#include "entries.h"
 
 int main(int argc, char* argv[]) {
     sqlite3 *db;
     printf("return code: %d\n", open_db(db));
+
+    
 
     return(0);
 }
