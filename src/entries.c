@@ -102,3 +102,7 @@ void list_to_string(const entry_list_t* el) {
     } while(cur->next != NULL); 
 
 }
+
+entry_t* get_tail(entry_list_t* el) {
+    return(el->tail->data);
+}
