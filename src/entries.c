@@ -56,11 +56,11 @@ entry_list_t* init_entry_list() {
 }
 
 
-void append_to_tail(const entry_list_t* el, const entry_node_t* nd) {
+void append_to_tail(entry_list_t* el, entry_node_t* nd) {
 
     el->num_nodes++;
     
-    if(el->num_nodes == 0) {
+    if(el->num_nodes == 1) {
 	el->head = nd;
 	el->tail = nd;
 	return;
@@ -71,7 +71,7 @@ void append_to_tail(const entry_list_t* el, const entry_node_t* nd) {
 }
 
 
-void free_head(const entry_list_t* el) {
+void free_head(entry_list_t* el) {
 
     if(el->num_nodes == 0)
 	return;
@@ -82,30 +82,23 @@ void free_head(const entry_list_t* el) {
     free_entry(temp->data);
     free(temp);
 
-    return
+    return;
 }
 
-typedef struct entry {
-    char* name;
-    float amount;
-    char* category;
-    char* subcategory;
-    char* note;
-} entry_t;
 
 void list_to_string(const entry_list_t* el) {
 
     if(el->head == NULL) {
-	printf("Empty List"); 
+	printf("Empty List\n"); 
 	return;
     }
 
     entry_node_t* cur = el->head;
 
-    while(cur->next != NULL) {
-	printf("%s %d %s %s %s\n", *cur->data->name, cur->data->amount, 
-		*cur->data->category, *cur->data->subcategory, 
-		*cur->data->note)
-    }
+    do {
+	printf("%s %0.2f %s %s %s\n", cur->data->name, cur->data->amount, 
+		cur->data->category, cur->data->subcategory, 
+		cur->data->note);
+    } while(cur->next != NULL); 
 
 }

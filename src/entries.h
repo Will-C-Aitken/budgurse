@@ -1,3 +1,10 @@
+#ifndef ENTRIES_H
+#define ENTRIES_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 // data entry for purchase or reimbursement
 typedef struct entry {
@@ -35,6 +42,8 @@ entry_node_t* init_entry_node(entry_t* e);
 
 // entry list declarations
 entry_list_t* init_entry_list();
-void append_to_tail(const entry_list_t* el, const entry_node_t* nd);
-void free_head(const entry_list_t* el);
+void append_to_tail(entry_list_t* el, entry_node_t* nd);
+void free_head(entry_list_t* el);
 void list_to_string(const entry_list_t* el);
+
+#endif
