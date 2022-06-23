@@ -66,6 +66,7 @@ void append_to_tail(entry_list_t* el, entry_node_t* nd) {
 	return;
     }
 
+    el->tail->next = nd;
     nd->prev = el->tail;
     el->tail = nd;
 }
@@ -75,14 +76,22 @@ void free_head(entry_list_t* el) {
 
     if(el->num_nodes == 0)
 	return;
-    
 
-    entry_node_t* temp = el->tail;
-    el->tail = el->tail->prev;
+
+    entry_node_t* temp = el->head;
+    el->head = temp->next;
+    el->num_nodes--;
+    
     free_entry(temp->data);
     free(temp);
 
+    if(el->num_nodes == 0)
+	return;
+
+    el->head->prev = NULL;
     return;
+
+
 }
 
 
@@ -99,7 +108,8 @@ void list_to_string(const entry_list_t* el) {
 	printf("%s %0.2f %s %s %s\n", cur->data->name, cur->data->amount, 
 		cur->data->category, cur->data->subcategory, 
 		cur->data->note);
-    } while(cur->next != NULL); 
+	cur = cur->next;
+    } while(cur != NULL); 
 
 }
 

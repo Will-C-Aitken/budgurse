@@ -15,6 +15,7 @@ OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 TEST_DIR = test
 TEST_EXE = $(TEST_DIR)/test
 TEST_SRC = $(TEST_DIR)/test.c
+TEST_FILTER = $(OBJ_DIR)/budgurse.o
 
 all: $(EXE)
 
@@ -25,10 +26,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 test: $(TEST_EXE)
-	./$(TEST_EXE)
+	valgrind ./$(TEST_EXE)
 
 
-$(TEST_EXE): $(TEST_SRC) $(OBJ_DIR)/entries.o
+$(TEST_EXE): $(TEST_SRC) $(filter-out $(TEST_FILTER),$(OBJ))
 	$(CC) $(CFLAGS) $^ -I$(SRC_DIR) $(LDLIBS) -o $@
 
 $(BIN_DIR) $(OBJ_DIR):
