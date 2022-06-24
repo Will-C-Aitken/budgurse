@@ -1,5 +1,9 @@
 #include "entries.h"
 
+// ---------------------------------------------------------------------------
+// Entry Definitions
+// ---------------------------------------------------------------------------
+
 entry_t* init_entry(char* name, float amount, char* category, 
     char* subcategory, char* note) {
 
@@ -26,6 +30,9 @@ void free_entry(entry_t* e) {
 
 }
 
+// ---------------------------------------------------------------------------
+// Entry Node Definitions
+// ---------------------------------------------------------------------------
 
 entry_node_t* init_entry_node(entry_t* e) {
 
@@ -37,6 +44,15 @@ entry_node_t* init_entry_node(entry_t* e) {
 
     return nd;
     
+}
+
+
+void free_entry_node(entry_node_t* e) {
+
+    free_entry(e->data);
+    free(e);
+    return;
+
 }
 
 
@@ -82,8 +98,7 @@ void free_head(entry_list_t* el) {
     el->head = temp->next;
     el->num_nodes--;
     
-    free_entry(temp->data);
-    free(temp);
+    free_entry_node(temp);
 
     if(el->num_nodes == 0)
 	return;
@@ -93,6 +108,15 @@ void free_head(entry_list_t* el) {
 
 
 }
+
+
+void free_list(entry_list_t* el) {
+    while(el->num_nodes > 0)
+	free_head(el);
+    free(el);
+    return;
+}
+
 
 
 void list_to_string(const entry_list_t* el) {
@@ -112,6 +136,7 @@ void list_to_string(const entry_list_t* el) {
     } while(cur != NULL); 
 
 }
+
 
 entry_t* get_tail(entry_list_t* el) {
     return(el->tail->data);

@@ -39,11 +39,13 @@ void free_entry(entry_t* e);
 
 // entry node declarations
 entry_node_t* init_entry_node(entry_t* e);
+void free_entry_node(entry_node_t* e);
 
 // entry list declarations
 entry_list_t* init_entry_list();
 void append_to_tail(entry_list_t* el, entry_node_t* nd);
 void free_head(entry_list_t* el);
+void free_list(entry_list_t* el);
 void list_to_string(const entry_list_t* el);
 entry_t* get_tail(entry_list_t* el);
 

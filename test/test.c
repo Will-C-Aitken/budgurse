@@ -46,10 +46,29 @@ char* free_head_002() {
 
 }
 
+char* free_list_003() {
+    entry_list_t* test_list = init_entry_list();
+
+    entry_t* test_entry1 = init_entry("Starbucks", -12.00, "Food", 
+	    "Coffee Shop", "this was fun");
+    entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
+    append_to_tail(test_list, test_entry_node1);
+
+    entry_t* test_entry2 = init_entry("Tims", -12.00, "Food", 
+	    "Coffee Shop", "this was fun");
+    entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
+    append_to_tail(test_list, test_entry_node2);
+
+    free_list(test_list);
+
+    return 0;
+
+}
 
 static char* all_tests() {
     mu_run_test(test_append_to_tail_001);
     mu_run_test(free_head_002);
+    mu_run_test(free_list_003);
     return 0;
 }
 
