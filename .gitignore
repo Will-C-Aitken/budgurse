@@ -1,3 +1,6 @@
 data/
 obj/
 budgurse
+test/test
+*/*.db
+

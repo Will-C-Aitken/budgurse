@@ -1,10 +1,16 @@
 #include "budgurse.h"
 
 int main(int argc, char* argv[]) {
+
     sqlite3 *db = NULL;
     int result = init_db(&db);
-    printf("Result: %d\n", result);
 
+    if(result)
+	exit(1);
+
+    entry_list_t* entries = init_entry_list();
+    result = load_db(db, entries);
+    
     return 0;
 }
 

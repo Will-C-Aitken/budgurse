@@ -14,9 +14,10 @@
 
 int init_callback(void*, int, char**, char**);
 
-void load_db(sqlite3* db, entry_list_t* el);
+int load_db(sqlite3* db, entry_list_t* el);
 int init_db(sqlite3** db);
 
+int write_entry(sqlite3* db, entry_t* e);
 
 #endif
 

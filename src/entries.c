@@ -4,11 +4,12 @@
 // Entry Definitions
 // ---------------------------------------------------------------------------
 
-entry_t* init_entry(char* name, float amount, char* category, 
-    char* subcategory, char* note) {
+entry_t* init_entry(char* name, time_t date, float amount, 
+	char* category, char* subcategory, char* note) {
 
     entry_t* e = malloc(sizeof(entry_t));
 
+    e->date = date;
     e->amount = amount;
     e->name = strdup(name);
     e->category = strdup(category);
@@ -28,6 +29,29 @@ void free_entry(entry_t* e) {
     free(e);
     return;
 
+}
+
+char* entry_to_sql_insert(entry_t* e) {
+
+    char* sql = malloc(sizeof(char));
+    sql[0] = '\0';
+    // strcat(sql, "INSERT INTO ENTRIES VALUES ('");
+
+    // char amount_str[10];
+    // sprintf(amount_str, "%0.2f", e->amount);
+
+    // strcat(sql, e->name);
+    // strcat(sql, "', ");
+    // strcat(sql, amount_str);
+    // strcat(sql, ", '");
+    // strcat(sql, e->category);
+    // strcat(sql, "', '");
+    // strcat(sql, e->subcategory);
+    // strcat(sql, "', '");
+    // strcat(sql, e->note);
+    // strcat(sql, "');");
+
+    return sql;
 }
 
 // ---------------------------------------------------------------------------
@@ -129,7 +153,8 @@ void list_to_string(const entry_list_t* el) {
     entry_node_t* cur = el->head;
 
     do {
-	printf("%s %0.2f %s %s %s\n", cur->data->name, cur->data->amount, 
+	printf("%s %d %0.2f %s %s %s\n", cur->data->name, 
+		cur->data->date, cur->data->amount, 
 		cur->data->category, cur->data->subcategory, 
 		cur->data->note);
 	cur = cur->next;
