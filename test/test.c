@@ -2,6 +2,7 @@
 
 int tests_run = 0;
 
+
 char* test_append_to_tail_001() {
     entry_list_t* test_list = init_entry_list();
 
@@ -96,9 +97,9 @@ char* entry_to_sql_insert_004() {
 	    "Coffee Shop", "this was fun");
 
     char* sql = entry_to_sql_insert(test_entry1);
-    char* expected_statement = "INSERT INTO ENTRIES VALUES ('Starbucks', \
-				-12.00, 'Food', 'Coffee Shop', \
-				'this was fun');";
+    char* expected_statement = "INSERT INTO ENTRIES VALUES ('Starbucks', "
+			       "1644642000, -12.00, 'Food', 'Coffee Shop', " 
+			       "'this was fun');"; 
 
     mu_assert("Failure in 004-01", strcmp(sql, expected_statement) == 0);
     free_entry(test_entry1);
@@ -112,7 +113,7 @@ static char* all_tests() {
     mu_run_test(test_append_to_tail_001);
     mu_run_test(free_head_002);
     mu_run_test(free_list_003);
-    // mu_run_test(entry_to_sql_insert_004);
+    mu_run_test(entry_to_sql_insert_004);
     return 0;
 }
 

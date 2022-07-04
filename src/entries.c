@@ -33,26 +33,49 @@ void free_entry(entry_t* e) {
 
 char* entry_to_sql_insert(entry_t* e) {
 
-    char* sql = malloc(sizeof(char));
+    char* sql_to_append = "INSERT INTO ENTRIES VALUES ('";
+
+    char* sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
-    // strcat(sql, "INSERT INTO ENTRIES VALUES ('");
+    strcat(sql, sql_to_append);
 
-    // char amount_str[10];
-    // sprintf(amount_str, "%0.2f", e->amount);
 
-    // strcat(sql, e->name);
-    // strcat(sql, "', ");
-    // strcat(sql, amount_str);
-    // strcat(sql, ", '");
-    // strcat(sql, e->category);
-    // strcat(sql, "', '");
-    // strcat(sql, e->subcategory);
-    // strcat(sql, "', '");
-    // strcat(sql, e->note);
-    // strcat(sql, "');");
+    sql_to_append = "', ";
+    append_to_sql(&sql, sql_to_append, e->name);
+
+    sql_to_append = ", ";
+    char date_str[10];
+    sprintf(date_str, "%ld", e->date);
+    append_to_sql(&sql, sql_to_append, date_str);
+
+    sql_to_append = ", '";
+    char amount_str[10];
+    sprintf(amount_str, "%0.2f", e->amount);
+    append_to_sql(&sql, sql_to_append, amount_str);
+
+    sql_to_append = "', '";
+    append_to_sql(&sql, sql_to_append, e->category);
+    append_to_sql(&sql, sql_to_append, e->subcategory);
+
+    sql_to_append = "');";
+    append_to_sql(&sql, sql_to_append, e->note);
 
     return sql;
 }
+
+
+void append_to_sql(char** cur_sql, const char* sql_to_append, 
+	const char* data_to_append) {
+    
+    *cur_sql = realloc(*cur_sql, 1 + 
+	    (sizeof(char) * (strlen(sql_to_append) +
+			     strlen(*cur_sql) +
+			     strlen(data_to_append))));
+    strcat(*cur_sql, data_to_append);
+    strcat(*cur_sql, sql_to_append);
+    return;
+}
+
 
 // ---------------------------------------------------------------------------
 // Entry Node Definitions
@@ -153,13 +176,12 @@ void list_to_string(const entry_list_t* el) {
     entry_node_t* cur = el->head;
 
     do {
-	printf("%s %d %0.2f %s %s %s\n", cur->data->name, 
+	printf("%s %ld %0.2f %s %s %s\n", cur->data->name, 
 		cur->data->date, cur->data->amount, 
 		cur->data->category, cur->data->subcategory, 
 		cur->data->note);
 	cur = cur->next;
     } while(cur != NULL); 
-
 }
 
 
