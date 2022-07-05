@@ -109,11 +109,35 @@ char* entry_to_sql_insert_004() {
 }
 
 
+char* write_entry_005() {
+    
+    // sec, min, hour, day, month, year, is_dst
+    struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
+    time_t test_date = mktime(&test_time_tm1);
+    entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, "Food", 
+	    "Coffee Shop", "this was fun");
+
+    sqlite3 *db = NULL;
+    int result = init_db(&db, "test/test.db");
+    mu_assert("Failure in 005-01", result == SQLITE_OK);
+
+    result = write_entry(db, test_entry1);
+    mu_assert("Failure in 005-02", result);
+    
+    result = sqlite3_close(db);
+    mu_assert("Failure in 005-03", result == SQLITE_OK);
+    free_entry(test_entry1);
+
+    return 0;
+}
+
+
 static char* all_tests() {
     mu_run_test(test_append_to_tail_001);
     mu_run_test(free_head_002);
     mu_run_test(free_list_003);
     mu_run_test(entry_to_sql_insert_004);
+    mu_run_test(write_entry_005);
     return 0;
 }
 

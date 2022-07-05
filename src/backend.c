@@ -18,11 +18,11 @@ int load_callback(void *el, int argc, char **argv, char **azColName) {
 }
 
 
-int init_db(sqlite3** db) {
+int init_db(sqlite3** db, const char* file) {
 
     char* err_msg;
     mkdir("data/", 0777);
-    int rc = sqlite3_open("data/budgurse.db", db);
+    int rc = sqlite3_open(file, db);
     
     if (rc) {
 	printf("Can't open database: %s\n", sqlite3_errmsg(*db));
@@ -39,6 +39,8 @@ int init_db(sqlite3** db) {
 		    note TEXT);";
 
     rc = sqlite3_exec(*db, sql, 0, 0, &err_msg);
+    sqlite3_free(err_msg);
+
     return rc;
 }
 
@@ -49,11 +51,21 @@ int load_db(sqlite3* db, entry_list_t* el) {
     char* sql = "SELECT * from ENTRIES";
 
     int rc = sqlite3_exec(db, sql, load_callback, el, &err_msg);
+    sqlite3_free(err_msg);
 
     return rc;
 }
 
 
 int write_entry(sqlite3* db, entry_t* e) {
-    return 1;
+
+    char* err_msg;
+    char* sql = entry_to_sql_insert(e);
+    
+    int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    sqlite3_free(err_msg);
+    free(sql);
+
+    return rc;
 }
