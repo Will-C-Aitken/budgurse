@@ -33,7 +33,9 @@ void free_entry(entry_t* e) {
 
 char* entry_to_sql_insert(entry_t* e) {
 
-    char* sql_to_append = "INSERT INTO ENTRIES VALUES ('";
+    char* sql_to_append = "INSERT INTO entries (name, date, amount, "
+			  "category, subcategory, note) "
+			  "VALUES ('";
 
     char* sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';

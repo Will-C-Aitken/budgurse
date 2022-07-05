@@ -97,9 +97,10 @@ char* entry_to_sql_insert_004() {
 	    "Coffee Shop", "this was fun");
 
     char* sql = entry_to_sql_insert(test_entry1);
-    char* expected_statement = "INSERT INTO ENTRIES VALUES ('Starbucks', "
-			       "1644642000, -12.00, 'Food', 'Coffee Shop', " 
-			       "'this was fun');"; 
+    char* expected_statement = "INSERT INTO entries (name, date, amount, " 
+			       "category, subcategory, note) VALUES "
+			       "('Starbucks', 1644642000, -12.00, 'Food', "
+			       "'Coffee Shop', 'this was fun');"; 
 
     mu_assert("Failure in 004-01", strcmp(sql, expected_statement) == 0);
     free_entry(test_entry1);
@@ -118,15 +119,43 @@ char* write_entry_005() {
 	    "Coffee Shop", "this was fun");
 
     sqlite3 *db = NULL;
-    int result = init_db(&db, "test/test.db");
-    mu_assert("Failure in 005-01", result == SQLITE_OK);
+    int result = init_db(&db, "data/test.db");
+    mu_assert("Failure in 005-01", result == 0);
 
     result = write_entry(db, test_entry1);
-    mu_assert("Failure in 005-02", result);
+    mu_assert("Failure in 005-02", result == 0);
     
     result = sqlite3_close(db);
     mu_assert("Failure in 005-03", result == SQLITE_OK);
     free_entry(test_entry1);
+
+    return 0;
+}
+
+
+char* load_db_006() {
+
+    sqlite3 *db = NULL;
+    int result = init_db(&db, "data/test.db");
+    mu_assert("Failure in 006-01", result == 0);
+    
+    entry_list_t* entries = init_entry_list();
+    result = load_db(db, entries);
+    mu_assert("Failure in 006-02", result == SQLITE_OK);
+    mu_assert("Failure in 006-03", entries->num_nodes == 1);
+
+    entry_t* tail = entries->tail->data;
+    mu_assert("Failure in 006-04", strcmp(tail->name, "Starbucks") == 0);
+    mu_assert("Failure in 006-05", tail->amount == -12.00);
+
+    struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
+    time_t test_time1 = mktime(&test_time_tm1);
+    mu_assert("Failure in 006-06", difftime(test_time1, tail->date) == 0.0);
+
+    free_list(entries);
+
+    result = sqlite3_close(db);
+    mu_assert("Failure in 006-07", result == SQLITE_OK);
 
     return 0;
 }
@@ -138,6 +167,7 @@ static char* all_tests() {
     mu_run_test(free_list_003);
     mu_run_test(entry_to_sql_insert_004);
     mu_run_test(write_entry_005);
+    mu_run_test(load_db_006);
     return 0;
 }
 
