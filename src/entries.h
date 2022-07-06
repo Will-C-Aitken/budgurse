@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 
@@ -38,9 +39,6 @@ typedef struct entry_list {
 entry_t* init_entry(char* name, time_t date, float amount, 
 	char* category, char* subcategory, char* note);
 void free_entry(entry_t* e);
-char* entry_to_sql_insert(entry_t* e);
-void append_to_sql(char** cur_sql, const char* sql_to_append, 
-	const char* data_to_append);
 
 
 // entry node declarations

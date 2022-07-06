@@ -13,8 +13,16 @@ entry_t* init_entry(char* name, time_t date, float amount,
     e->amount = amount;
     e->name = strdup(name);
     e->category = strdup(category);
-    e->subcategory = strdup(subcategory);
-    e->note = strdup(note);
+
+    if (subcategory != NULL)
+	e->subcategory = strdup(subcategory);
+    else
+	e->subcategory = NULL;
+
+    if (note != NULL)
+	e->note = strdup(note);
+    else
+	e->note = NULL;
 
     return e;
 }   
@@ -29,53 +37,6 @@ void free_entry(entry_t* e) {
     free(e);
     return;
 
-}
-
-char* entry_to_sql_insert(entry_t* e) {
-
-    char* sql_to_append = "INSERT INTO entries (name, date, amount, "
-			  "category, subcategory, note) "
-			  "VALUES ('";
-
-    char* sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
-    sql[0] = '\0';
-    strcat(sql, sql_to_append);
-
-
-    sql_to_append = "', ";
-    append_to_sql(&sql, sql_to_append, e->name);
-
-    sql_to_append = ", ";
-    char date_str[10];
-    sprintf(date_str, "%ld", e->date);
-    append_to_sql(&sql, sql_to_append, date_str);
-
-    sql_to_append = ", '";
-    char amount_str[10];
-    sprintf(amount_str, "%0.2f", e->amount);
-    append_to_sql(&sql, sql_to_append, amount_str);
-
-    sql_to_append = "', '";
-    append_to_sql(&sql, sql_to_append, e->category);
-    append_to_sql(&sql, sql_to_append, e->subcategory);
-
-    sql_to_append = "');";
-    append_to_sql(&sql, sql_to_append, e->note);
-
-    return sql;
-}
-
-
-void append_to_sql(char** cur_sql, const char* sql_to_append, 
-	const char* data_to_append) {
-    
-    *cur_sql = realloc(*cur_sql, 1 + 
-	    (sizeof(char) * (strlen(sql_to_append) +
-			     strlen(*cur_sql) +
-			     strlen(data_to_append))));
-    strcat(*cur_sql, data_to_append);
-    strcat(*cur_sql, sql_to_append);
-    return;
 }
 
 
