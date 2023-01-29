@@ -110,8 +110,27 @@ char* entry_to_sql_insert_004() {
 }
 
 
+char* load_empty_db_005() {
+
+    sqlite3 *db = NULL;
+    int result = init_db(&db, "data/test.db");
+    mu_assert("Failure in 005-01", result == 0);
+    
+    entry_list_t* entries = init_entry_list();
+    result = load_db(db, entries);
+    mu_assert("Failure in 005-02", result == SQLITE_OK);
+    mu_assert("Failure in 005-03", entries->num_nodes == 0);
+
+    free_list(entries);
+    result = sqlite3_close(db);
+    mu_assert("Failure in 006-04", result == SQLITE_OK);
+
+    return 0;
+}
+
+
 // First write normal entry, then entry with NULL members
-char* write_entry_005() {
+char* write_entry_006() {
 
     // sec, min, hour, day, month, year, is_dst
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
@@ -121,20 +140,20 @@ char* write_entry_005() {
 
     sqlite3 *db = NULL;
     int result = init_db(&db, "data/test.db");
-    mu_assert("Failure in 005-01", result == 0);
+    mu_assert("Failure in 006-01", result == 0);
 
     result = write_entry(db, test_entry1);
-    mu_assert("Failure in 005-02", result == 0);
+    mu_assert("Failure in 006-02", result == 0);
 
     // NULL subcategory and note 
     entry_t* test_entry2 = init_entry("Tim Horton's", test_date, -11.00, "Food", 
             NULL, NULL);
     
     result = write_entry(db, test_entry2);
-    mu_assert("Failure in 005-03", result == 0);
+    mu_assert("Failure in 006-03", result == 0);
 
     result = sqlite3_close(db);
-    mu_assert("Failure in 005-04", result == SQLITE_OK);
+    mu_assert("Failure in 006-04", result == SQLITE_OK);
     free_entry(test_entry1);
     free_entry(test_entry2);
 
@@ -142,39 +161,39 @@ char* write_entry_005() {
 }
 
 
-char* load_db_006() {
+char* load_db_007() {
 
     sqlite3 *db = NULL;
     int result = init_db(&db, "data/test.db");
-    mu_assert("Failure in 006-01", result == 0);
+    mu_assert("Failure in 007-01", result == 0);
     
     entry_list_t* entries = init_entry_list();
     result = load_db(db, entries);
-    mu_assert("Failure in 006-02", result == SQLITE_OK);
-    mu_assert("Failure in 006-03", entries->num_nodes == 2);
+    mu_assert("Failure in 007-02", result == SQLITE_OK);
+    mu_assert("Failure in 007-03", entries->num_nodes == 2);
 
     // check tail
     entry_t* tail = entries->tail->data;
-    mu_assert("Failure in 006-04", strcmp(tail->name, "Tim Horton's") == 0);
-    mu_assert("Failure in 006-05", tail->amount == -11.00);
+    mu_assert("Failure in 007-04", strcmp(tail->name, "Tim Horton's") == 0);
+    mu_assert("Failure in 007-05", tail->amount == -11.00);
 
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_time1 = mktime(&test_time_tm1);
-    mu_assert("Failure in 006-06", difftime(test_time1, tail->date) == 0.0);
+    mu_assert("Failure in 007-06", difftime(test_time1, tail->date) == 0.0);
 
     // check head 
     entry_t* head = entries->head->data;
-    mu_assert("Failure in 006-07", strcmp(head->name, "Starbucks") == 0);
-    mu_assert("Failure in 006-08", head->amount == -12.00);
+    mu_assert("Failure in 007-07", strcmp(head->name, "Starbucks") == 0);
+    mu_assert("Failure in 007-08", head->amount == -12.00);
 
     struct tm test_time_tm2 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_time2 = mktime(&test_time_tm2);
-    mu_assert("Failure in 006-09", difftime(test_time2, head->date) == 0.0);
+    mu_assert("Failure in 007-09", difftime(test_time2, head->date) == 0.0);
 
     free_list(entries);
 
     result = sqlite3_close(db);
-    mu_assert("Failure in 006-10", result == SQLITE_OK);
+    mu_assert("Failure in 007-10", result == SQLITE_OK);
 
     return 0;
 }
@@ -185,8 +204,9 @@ static char* all_tests() {
     mu_run_test(free_head_002);
     mu_run_test(free_list_003);
     mu_run_test(entry_to_sql_insert_004);
-    mu_run_test(write_entry_005);
-    mu_run_test(load_db_006);
+    mu_run_test(load_empty_db_005);
+    mu_run_test(write_entry_006);
+    mu_run_test(load_db_007);
     return 0;
 }
 
