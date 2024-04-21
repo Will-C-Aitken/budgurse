@@ -14,6 +14,11 @@ int main(int argc, char* argv[]) {
     if(result)
 	exit(1);
 
+    // start ncurses
+    initscr();
+    getch();
+    endwin();
+
     result = sqlite3_close(db);
 
     if(result)

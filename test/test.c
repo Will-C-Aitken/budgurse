@@ -17,7 +17,7 @@ char* test_append_to_tail_001() {
     time_t test_date = mktime(&test_time_tm1);
 
     entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, "Food",
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(test_list, test_entry_node1);
 
@@ -39,12 +39,12 @@ char* free_head_002() {
     time_t test_date = mktime(&test_time_tm1);
 
     entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, "Food", 
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(test_list, test_entry_node1);
 
     entry_t* test_entry2 = init_entry("Tims", test_date, -12.00, "Food", 
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
     entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
     append_to_tail(test_list, test_entry_node2);
 
@@ -70,12 +70,12 @@ char* free_list_003() {
     time_t test_date = mktime(&test_time_tm1);
 
     entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, "Food", 
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(test_list, test_entry_node1);
 
     entry_t* test_entry2 = init_entry("Tims", test_date, -12.00, "Food", 
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
     entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
     append_to_tail(test_list, test_entry_node2);
 
@@ -94,13 +94,13 @@ char* entry_to_sql_insert_004() {
     time_t test_date = mktime(&test_time_tm1);
 
     entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, "Food", 
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
 
     char* sql = entry_to_sql_insert(test_entry1);
     char* expected_statement = "INSERT INTO entries (name, date, amount, " 
         		       "category, subcategory, note) VALUES "
         		       "('Starbucks', 1644642000, -12.00, 'Food', "
-        		       "'Coffee Shop', 'this was fun');"; 
+        		       "'Cafe', 'this was fun');"; 
 
     mu_assert("Failure in 004-01", strcmp(sql, expected_statement) == 0);
     free_entry(test_entry1);
@@ -136,7 +136,7 @@ char* write_entry_006() {
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
     entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, "Food", 
-	    "Coffee Shop", "this was fun");
+	    "Cafe", "this was fun");
 
     sqlite3 *db = NULL;
     int result = init_db(&db, "data/test.db");

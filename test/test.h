@@ -1,3 +1,5 @@
+// from https://jera.com/techinfo/jtns/jtn002
+
 #include <stdio.h>
 #include "entries.h"
 #include "backend.h"

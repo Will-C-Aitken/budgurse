@@ -103,7 +103,6 @@ void free_head(entry_list_t* el) {
     if(el->num_nodes == 0)
 	return;
 
-
     entry_node_t* temp = el->head;
     el->head = temp->next;
     el->num_nodes--;
