@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g
 CPPFLAGS = -MMD -MP
-LDLIBS = -lsqlite3
+LDLIBS = -lsqlite3 -lncurses
 
 
 SRC_DIR = src
