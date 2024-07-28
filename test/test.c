@@ -3,7 +3,7 @@
 int tests_run = 0;
 
 
-char* test_append_to_tail_001() {
+char* append_to_tail_001() {
     entry_list_t* test_list = init_entry_list();
 
     struct tm test_time_tm1 = {.tm_sec = 0,
@@ -200,7 +200,7 @@ char* load_db_007() {
 
 
 static char* all_tests() {
-    mu_run_test(test_append_to_tail_001);
+    mu_run_test(append_to_tail_001);
     mu_run_test(free_head_002);
     mu_run_test(free_list_003);
     mu_run_test(entry_to_sql_insert_004);

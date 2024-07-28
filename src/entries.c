@@ -4,10 +4,10 @@
 // Entry Definitions
 // ---------------------------------------------------------------------------
 
-entry_t* init_entry(char* name, time_t date, float amount, 
-	char* category, char* subcategory, char* note) {
+entry_t *init_entry(char *name, time_t date, float amount, 
+	char* category, char *subcategory, char *note) {
 
-    entry_t* e = malloc(sizeof(entry_t));
+    entry_t *e = malloc(sizeof(entry_t));
 
     e->date = date;
     e->amount = amount;
@@ -28,7 +28,7 @@ entry_t* init_entry(char* name, time_t date, float amount,
 }   
 
 
-void free_entry(entry_t* e) {
+void free_entry(entry_t *e) {
 
     free(e->name);
     free(e->category);
@@ -44,9 +44,9 @@ void free_entry(entry_t* e) {
 // Entry Node Definitions
 // ---------------------------------------------------------------------------
 
-entry_node_t* init_entry_node(entry_t* e) {
+entry_node_t *init_entry_node(entry_t *e) {
 
-    entry_node_t* nd = malloc(sizeof(entry_node_t));
+    entry_node_t *nd = malloc(sizeof(entry_node_t));
 
     nd->next = NULL;
     nd->prev = NULL;
@@ -57,7 +57,7 @@ entry_node_t* init_entry_node(entry_t* e) {
 }
 
 
-void free_entry_node(entry_node_t* e) {
+void free_entry_node(entry_node_t *e) {
 
     free_entry(e->data);
     free(e);
@@ -70,9 +70,9 @@ void free_entry_node(entry_node_t* e) {
 // Entry List Definitions
 // ---------------------------------------------------------------------------
 
-entry_list_t* init_entry_list() {
+entry_list_t *init_entry_list() {
 
-    entry_list_t* el = malloc(sizeof(entry_list_t));
+    entry_list_t *el = malloc(sizeof(entry_list_t));
 
     el->head = NULL;
     el->tail = NULL;
@@ -82,7 +82,7 @@ entry_list_t* init_entry_list() {
 }
 
 
-void append_to_tail(entry_list_t* el, entry_node_t* nd) {
+void append_to_tail(entry_list_t *el, entry_node_t *nd) {
 
     el->num_nodes++;
     
@@ -98,12 +98,12 @@ void append_to_tail(entry_list_t* el, entry_node_t* nd) {
 }
 
 
-void free_head(entry_list_t* el) {
+void free_head(entry_list_t *el) {
 
     if(el->num_nodes == 0)
 	return;
 
-    entry_node_t* temp = el->head;
+    entry_node_t *temp = el->head;
     el->head = temp->next;
     el->num_nodes--;
     
@@ -119,7 +119,7 @@ void free_head(entry_list_t* el) {
 }
 
 
-void free_list(entry_list_t* el) {
+void free_list(entry_list_t *el) {
     while(el->num_nodes > 0)
 	free_head(el);
     free(el);
@@ -128,14 +128,14 @@ void free_list(entry_list_t* el) {
 
 
 
-void list_to_string(const entry_list_t* el) {
+void list_to_string(const entry_list_t *el) {
 
     if(el->head == NULL) {
 	printf("Empty List\n"); 
 	return;
     }
 
-    entry_node_t* cur = el->head;
+    entry_node_t *cur = el->head;
 
     do {
 	printf("%s %ld %0.2f %s %s %s\n", cur->data->name, 
@@ -147,6 +147,6 @@ void list_to_string(const entry_list_t* el) {
 }
 
 
-entry_t* get_tail(entry_list_t* el) {
+entry_t *get_tail(entry_list_t *el) {
     return(el->tail->data);
 }

@@ -2,23 +2,23 @@
 
 int load_callback(void *el, int argc, char **argv, char **azColName) {
 
-    entry_t* entry = init_entry(argv[1], 
+    entry_t *entry = init_entry(argv[1], 
 				(time_t)strtol(argv[2], NULL, 10),
 				strtof(argv[3], NULL), 
 				argv[4],
 				argv[5],
 				argv[6]);
 
-    entry_node_t* entry_node = init_entry_node(entry);
+    entry_node_t *entry_node = init_entry_node(entry);
     append_to_tail(el, entry_node);
 
     return 0;
 }
 
 
-int init_db(sqlite3** db, const char* file) {
+int init_db(sqlite3 **db, const char *file) {
 
-    char* err_msg;
+    char *err_msg;
     mkdir("data/", 0777);
     int rc = sqlite3_open(file, db);
     
@@ -27,7 +27,7 @@ int init_db(sqlite3** db, const char* file) {
 	return 1;
     }
 
-    char* sql = "CREATE TABLE IF NOT EXISTS ENTRIES( \
+    char *sql = "CREATE TABLE IF NOT EXISTS ENTRIES( \
 		    id INTEGER PRIMARY KEY, \
 		    name TEXT NOT NULL, \
 		    date INTEGER NOT NULL, \
@@ -43,10 +43,10 @@ int init_db(sqlite3** db, const char* file) {
 }
 
 
-int load_db(sqlite3* db, entry_list_t* el) {
+int load_db(sqlite3 *db, entry_list_t *el) {
 
-    char* err_msg;
-    char* sql = "SELECT * from ENTRIES";
+    char *err_msg;
+    char *sql = "SELECT * from ENTRIES";
 
     int rc = sqlite3_exec(db, sql, load_callback, el, &err_msg);
     sqlite3_free(err_msg);
@@ -55,10 +55,10 @@ int load_db(sqlite3* db, entry_list_t* el) {
 }
 
 
-int write_entry(sqlite3* db, entry_t* e) {
+int write_entry(sqlite3 *db, entry_t *e) {
 
-    char* err_msg;
-    char* sql = entry_to_sql_insert(e);
+    char *err_msg;
+    char *sql = entry_to_sql_insert(e);
     
     int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
@@ -75,13 +75,13 @@ int write_entry(sqlite3* db, entry_t* e) {
 }
 
 
-char* entry_to_sql_insert(entry_t* e) {
+char *entry_to_sql_insert(entry_t *e) {
 
-    char* sql_to_append = "INSERT INTO entries (name, date, amount, "
+    char *sql_to_append = "INSERT INTO entries (name, date, amount, "
 			  "category, subcategory, note) "
 			  "VALUES (";
 
-    char* sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
+    char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
@@ -109,17 +109,17 @@ char* entry_to_sql_insert(entry_t* e) {
 }
 
 
-void append_to_sql(char** cur_sql, const char* sql_to_append, 
-	const char* data_to_append, bool data_is_str_type) {
+void append_to_sql(char **cur_sql, const char *sql_to_append, 
+	const char *data_to_append, bool data_is_str_type) {
     
-    char* format_str;
+    char *format_str;
     if (data_is_str_type)
 	format_str = "%Q";
     else
 	format_str = "%s";
 	
 
-    char* sql_casted_data = sqlite3_mprintf(format_str, data_to_append);
+    char *sql_casted_data = sqlite3_mprintf(format_str, data_to_append);
 
     int sql_len;
     if (sql_to_append == NULL)
