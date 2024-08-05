@@ -9,8 +9,7 @@ int load_callback(void *el, int argc, char **argv, char **azColName) {
 				argv[5],
 				argv[6]);
 
-    entry_node_t *entry_node = init_entry_node(entry);
-    append_to_tail(el, entry_node);
+    append_to_tail(el, entry);
 
     return 0;
 }

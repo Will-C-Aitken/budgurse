@@ -7,7 +7,7 @@ void draw_browser(WINDOW *browser_win, const entry_list_t *el) {
     int max_col = getmaxx(browser_win);
 
     box(browser_win, 0, 0);
-    browser_draw_header(browser_win, max_col);
+    browser_draw_header(browser_win);
 
     // draw hline after column headers
     int row = 2;
@@ -18,70 +18,69 @@ void draw_browser(WINDOW *browser_win, const entry_list_t *el) {
     waddch(browser_win, ACS_RTEE);
 
     // draw entry list
-    entry_node_t *temp = el->head;
+    entry_t *temp = el->head;
     while(temp) {
-	browser_draw_entry(browser_win, temp->data, row++, max_col);
+	browser_draw_entry(browser_win, temp, row++);
 	temp = temp->next;
     }
 }
 
 
-void browser_draw_header(WINDOW *browser_win, int max_col) {
+void browser_draw_header(WINDOW *browser_win) {
     int col = 2;
-    int col_lens[] = {10, 20, 10, 15, 15, 15};
     char *col_names[] = {"Date", "Name", "Amount", "Category", 
-		       "Subcategory", "Notes"};
+		       "Subcategory"};
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 5; i++) {
 	wmove(browser_win, 1, col);
-	browser_draw_string(browser_win, col_names[i], &col, col_lens[i]);
+	browser_draw_string(browser_win, col_names[i], &col, 
+		browser_col_widths[i]);
     }
 }
 
 
-void browser_draw_entry(WINDOW *browser_win, const entry_t *e, int row, 
-	int max_col){
+void browser_draw_entry(WINDOW *browser_win, const entry_t *e, int row) {
 
     int col = 2;
+    int i = 0;
     wmove(browser_win, row, col);
 
-    browser_draw_date(browser_win, e->date, &col);
+    browser_draw_date(browser_win, e->date, &col, browser_col_widths[i++]);
     wmove(browser_win, row, col);
 
-    browser_draw_string(browser_win, e->name, &col, 20);
+    browser_draw_string(browser_win, e->name, &col, browser_col_widths[i++]);
     wmove(browser_win, row, col);
 
-    browser_draw_amount(browser_win, e->amount, &col);
+    browser_draw_amount(browser_win, e->amount, &col, browser_col_widths[i++]);
     wmove(browser_win, row, col);
 
-    browser_draw_string(browser_win, e->category, &col, 15);
+    browser_draw_string(browser_win, e->category, &col, 
+	    browser_col_widths[i++]);
     wmove(browser_win, row, col);
 
     if (e->subcategory)
-	browser_draw_string(browser_win, e->subcategory, &col, 15);
+	browser_draw_string(browser_win, e->subcategory, &col, 
+		browser_col_widths[i++]);
     else
-	browser_draw_string(browser_win, "", &col, 15);
-    wmove(browser_win, row, col);
-
-    if (e->note)
-	browser_draw_string(browser_win, e->note, &col, 15);
-    else
-	browser_draw_string(browser_win, "", &col, 15);
+	browser_draw_string(browser_win, "", &col, browser_col_widths[i++]);
     wmove(browser_win, row, col);
 }
 
 
-void browser_draw_date(WINDOW *browser_win, time_t date, int *col){
+void browser_draw_date(WINDOW *browser_win, time_t date, int *col, 
+	int max_width){
+
     struct tm *tmp_date = gmtime(&date);
     wprintw(browser_win, "%02d/%02d/%04d", tmp_date->tm_mon, 
 	    tmp_date->tm_mday, tmp_date->tm_year + 1900);
-    *col += 10;
+    *col += max_width;
 }
 
 
 void browser_draw_string(WINDOW* browser_win, const char *str, int *col, 
-	int max_len){
+	int max_width){
 
+    // only draw " | " if not first col
     if (*col > 2) {
 	waddch(browser_win, ' ');
 	waddch(browser_win, ACS_VLINE);
@@ -89,20 +88,48 @@ void browser_draw_string(WINDOW* browser_win, const char *str, int *col,
     }
 
     wprintw(browser_win, "%s", str);
-    *col += max_len;
+    *col += max_width;
 }
 
 
-void browser_draw_amount(WINDOW *browser_win, float amount, int *col){
+void browser_draw_amount(WINDOW *browser_win, float amount, int *col,
+	int max_width){
+
     waddch(browser_win, ' ');
     waddch(browser_win, ACS_VLINE);
     waddch(browser_win, ' ');
 
-    int num_left_space = 10;
-    if (amount < 0)
-	wprintw(browser_win, "-$%'.2f", -amount);
-    else
-	wprintw(browser_win, " $%'.2f", amount);
+    // to right align
+    int num_spaces, num_dig, thousands;
+    num_dig = num_places_in_amount((int)amount);
+    num_spaces = max_width - 8 - num_dig;
+    thousands = abs((int)amount / 1000);
 
-    *col += 10; 
+    // for comma
+    if (thousands) 
+	num_spaces--;
+    while (num_spaces-- > 0) 
+	waddch(browser_win, ' ');
+
+    // print negative (if necessary) and dollar sign 
+    if (amount < 0) 
+	waddstr(browser_win, "-$");
+    else 
+	waddstr(browser_win, " $");
+    amount = fabs(amount);
+
+    // print comma in thousands
+    if (thousands) 
+	wprintw(browser_win, "%d,%0.2f", thousands, amount - (thousands*1000));
+    else
+	wprintw(browser_win, "%0.2f", amount);
+
+    *col += max_width; 
+}
+
+
+int num_places_in_amount (int n) {
+    if (n < 0) return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
+    if (n < 10) return 1;
+    return 1 + num_places_in_amount(n / 10);
 }
