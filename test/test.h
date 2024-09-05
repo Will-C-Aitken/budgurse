@@ -5,6 +5,9 @@
 #include "backend.h"
 #include "browser.h"
 
+
+void test_gui();
+
 // Unit tests
 
 #define mu_assert(message, test) do { if (!(test)) return message; } while (0)
@@ -21,11 +24,5 @@ char* entry_to_sql_insert_004();
 char* load_empty_db_005();
 char* write_entry_006();
 char* load_db_007();
-
-// GUI tests
-
-void test_draw_browse();
-void test_gui();
-
-
+char* where_in_list_008();
 

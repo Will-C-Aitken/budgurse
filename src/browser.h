@@ -9,7 +9,14 @@
 // widths for data, name, amount, category, and subcategory respectively
 static const int browser_col_widths[] = {10, 25, 14, 15, 15};
 
-void draw_browser(WINDOW *browser_win, const entry_list_t *el);
+// subset of entire entry list currently being displayed
+typedef struct browser_buffer {
+    entry_list *buffer_el;
+    int sel_pos;
+} browse_buffer_t
+
+void draw_browser(WINDOW *browser_win, const entry_list_t *el, 
+	entry_t *sel_entry);
 void browser_draw_header(WINDOW *browser_win);
 void browser_draw_entry(WINDOW *browser_win, const entry_t *e, int row);
 void browser_draw_date(WINDOW *browser_win, time_t date, int *col, 

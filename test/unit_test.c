@@ -11,6 +11,7 @@ char* all_tests() {
     mu_run_test(load_empty_db_005);
     mu_run_test(write_entry_006);
     mu_run_test(load_db_007);
+    mu_run_test(where_in_list_008);
     return 0;
 }
 
@@ -200,6 +201,51 @@ char* load_db_007() {
 
     result = sqlite3_close(db);
     mu_assert("Failure in 007-10", result == SQLITE_OK);
+
+    return 0;
+}
+
+
+char* where_in_list_008() {
+
+    int result;
+
+    entry_list_t* entries = init_entry_list();
+    struct tm test_time_tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
+    time_t test_date1 = mktime(&test_time_tm1);
+    entry_t* test_entry1 = init_entry("Starbucks", test_date1, -20.99, "Food",
+	    "Cafe", "Zionist scum!");
+
+    // empty list, so test_entry1 can't be in it
+    result = where_in_list(entries, test_entry1);
+    mu_assert("Failure in 008-1", result == -1);
+
+    append_to_tail(entries, test_entry1);
+
+    // test_entry1 is in list at position 0
+    result = where_in_list(entries, test_entry1);
+    mu_assert("Failure in 008-2", result == 0);
+
+    struct tm test_time_tm2 = {.tm_mday=2, .tm_mon=1, .tm_year=2022 - 1900};
+    time_t test_date2 = mktime(&test_time_tm2);
+    entry_t* test_entry2 = init_entry("Metro", test_date2, -20.99, "Food",
+            "Groceries", NULL);
+    
+    // test_entry2 is not in list
+    result = where_in_list(entries, test_entry2);
+    mu_assert("Failure in 008-3", result == -1);
+
+    append_to_tail(entries, test_entry2);
+
+    // test_entry1 is still in list
+    result = where_in_list(entries, test_entry1);
+    mu_assert("Failure in 008-4", result == 0);
+
+    // test_entry2 is now in list at position 1
+    result = where_in_list(entries, test_entry2);
+    mu_assert("Failure in 008-5", result == 1);
+
+    free_list(entries);
 
     return 0;
 }

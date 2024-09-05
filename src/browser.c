@@ -1,12 +1,16 @@
 #include "browser.h"
 
 
-void draw_browser(WINDOW *browser_win, const entry_list_t *el) {
+void draw_browser(WINDOW *browser_win, const entry_list_t *el,
+	entry_t *sel_entry) {
 
-    // -2 for border a space
-    int max_col = getmaxx(browser_win);
-
+    clear();
     box(browser_win, 0, 0);
+
+    // -2 for border space
+    int max_row, max_col;
+    getmaxyx(browser_win, max_row, max_col);
+
     browser_draw_header(browser_win);
 
     // draw hline after column headers
@@ -17,11 +21,15 @@ void draw_browser(WINDOW *browser_win, const entry_list_t *el) {
     wmove(browser_win, row++, max_col - 1);
     waddch(browser_win, ACS_RTEE);
 
-    // draw entry list
-    entry_t *temp = el->head;
-    while(temp) {
-	browser_draw_entry(browser_win, temp, row++);
-	temp = temp->next;
+    // Determine how many entries to print (excluding borders and header)
+    int count = (el->num_nodes < (max_row - 4)) ? el->num_nodes : max_row - 4;
+    row = count + 2;
+
+    entry_t *temp = sel_entry;
+    while(count) {
+	browser_draw_entry(browser_win, temp, row--);
+	temp = temp->prev;
+	count--;
     }
 }
 
@@ -87,7 +95,10 @@ void browser_draw_string(WINDOW* browser_win, const char *str, int *col,
 	waddch(browser_win, ' ');
     }
 
-    wprintw(browser_win, "%s", str);
+    // trunacte string
+    char trunc_str[max_width];
+    snprintf(trunc_str, max_width, "%s", str);
+    wprintw(browser_win, "%s", trunc_str);
     *col += max_width;
 }
 

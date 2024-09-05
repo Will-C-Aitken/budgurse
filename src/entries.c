@@ -125,3 +125,21 @@ void list_to_string(const entry_list_t *el) {
 entry_t *get_tail(entry_list_t *el) {
     return(el->tail);
 }
+
+
+// Return what place entry e is in in el. Return -1 if absent
+int where_in_list(const entry_list_t *el, const entry_t *e){
+    if (!el->num_nodes)
+	return(-1);
+
+    int place = el->num_nodes;
+    entry_t *temp = el->tail;
+
+    while (place > 0) {
+        place--;
+        if (temp == e)
+            return(place);
+        temp = temp->prev;
+    }
+    return(-1);
+}

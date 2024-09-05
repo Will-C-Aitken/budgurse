@@ -33,13 +33,12 @@ typedef struct entry_list {
     int num_nodes;
 } entry_list_t;
 
-
 // entry declarations
 entry_t *init_entry(char *name, time_t date, float amount, 
 	char *category, char *subcategory, char *note);
 void free_entry(entry_t *e);
 
-//
+
 // entry list declarations
 entry_list_t *init_entry_list();
 void append_to_tail(entry_list_t *el, entry_t *e);
@@ -47,5 +46,6 @@ void free_head(entry_list_t *el);
 void free_list(entry_list_t *el);
 void list_to_string(const entry_list_t *el);
 entry_t *get_tail(entry_list_t *el);
+int where_in_list(const entry_list_t *el, const entry_t *e);
 
 #endif
