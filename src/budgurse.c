@@ -17,10 +17,15 @@ int main(int argc, char *argv[]) {
     // start ncurses
     initscr();
     curs_set(0);
-    draw_browser(stdscr, entries);
+
+    int max_row = getmaxy(stdscr);
+    browser_buf_t* browser_entries = init_browser_buf(entries, max_row);
+    draw_browser(stdscr, browser_entries);
+
     getch();
     endwin();
 
+    free_entry_list(entries);
     result = sqlite3_close(db);
 
     if(result)

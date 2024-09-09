@@ -17,12 +17,13 @@ extern int tests_run;
 
 char* all_tests();
 
-char* append_to_tail_001();
-char* free_head_002();
-char* free_list_003();
-char* entry_to_sql_insert_004();
-char* load_empty_db_005();
-char* write_entry_006();
-char* load_db_007();
-char* where_in_list_008();
+char *entry_list_push_001();
+char *entry_list_pop_002();
+char *free_entry_list_003();
+char *entry_to_sql_insert_004();
+char *load_empty_db_005();
+char *write_entry_006();
+char *load_db_007();
+char *where_in_list_008();
+char *browser_buffer_009();
 
