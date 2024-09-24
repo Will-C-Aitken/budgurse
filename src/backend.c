@@ -11,7 +11,7 @@ int load_callback(void *el, int argc, char **argv, char **azColName) {
 
 
     entry_node_t *en = init_entry_node(entry);
-    entry_list_push(el, en);
+    append_to_tail(el, en);
 
     return 0;
 }

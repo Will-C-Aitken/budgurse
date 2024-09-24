@@ -1,64 +1,91 @@
 #include "browser.h"
 
-
-browser_buf_t* init_browser_buf(const entry_list_t *el, int num_browser_rows){
-
-    browser_buf_t *bb = malloc(sizeof(browser_buf_t));
-
-    // empty el or NULL el passed or not enough rows
-    if (!el || (!el->num_nodes) || (num_browser_rows < 5)) {
-	bb->buf_entries = NULL;
-	bb->buf_len = 0;
-	bb->sel_pos = -1;
-	return bb;
+int browser_handle_key(browser_t* b, int ch) {
+    switch (ch) {
+    case 'j':
+    case KEY_DOWN:
+	browser_scroll(b, 1, DOWN);
+	break;
+    case 'k':
+    case KEY_UP:
+	browser_scroll(b, 1, UP);
+	break;
+    case 'q':
+	return 0;
     }
-
-    int num_entries = browser_max_entries(el->num_nodes, num_browser_rows);
-    bb->buf_entries = malloc(sizeof(entry_t *) * num_entries);
-   
-    // assume last row is head if el is given
-    entry_node_t *temp = el->head;
-    for (int i = num_entries - 1; i >= 0; i--) {
-	bb->buf_entries[i] = temp->data;
-	temp = temp->next;
-    }
-    
-    bb->buf_len = num_entries;
-    bb->sel_pos = num_entries - 1; 
-
-    return bb;
+    return 1;
 }
 
 
-// void browser_buf_go_to(browser_buf_t* bb, entry_t *dest) {
+browser_t* init_browser(const entry_list_t *el, int num_browser_rows){
+
+    browser_t *b = malloc(sizeof(browser_t));
+    b->max_num_entries = num_browser_rows - 4;
+
+    if (!el || (!el->num_nodes) || (b->max_num_entries < 1)) {
+	b->start = b->sel = b->end = NULL;
+	b->num_entries = 0;
+	return b;
+    }
+
+    // select tail at startup
+    b->end = b->sel = b->start = el->tail;
+    b->num_entries = 1;
+    while (num_browser_rows > 5 && !is_head(b->start)) {
+	b->start = b->start->prev;
+	num_browser_rows--;
+	b->num_entries++;
+    }
+
+    return b;
+}
+
+
+void browser_scroll(browser_t* b, int num_times, direction_t dir) {
+    while (num_times > 0) {
+
+	// break if at either end of list
+ 	if ((is_head(b->sel) && dir == UP) || (is_tail(b->sel) && dir == DOWN))
+ 	    return;
+
+	// move start and end points if at end of current context 
+	if ((b->sel == b->start && dir == UP) ||
+	    (b->sel == b->end && dir == DOWN)) {
+	    entry_node_traverse(&b->end, dir);
+	    entry_node_traverse(&b->start, dir);
+	}
+
+	entry_node_traverse(&b->sel, dir);
+
+	num_times--;
+    }
+}
+
+// int browser_go_to(browser_t* b, entry_t *dest, direction_t dir) {
+//     
+//     while (b->sel_node->data != dest) {
+// 	// we've reached either end of the list and should go no further
+// 	if (!entry_node_traverse(b->sel_node, dir))
+// 	    return 1;
 // 
-//     // return if destination is already selected
-//     if (bb->buf_entries[bb->sel_pos] == dest)
-// 	return;
-// 
-//     // check if dest is already in buffer
-//     for (int i = 0; i < bb->buf_entries; i++) {
-// 	if (bb->buf_entries[i] == dest) {
-// 	    bb->sel_pos = i;
-// 	    return;
-// 	}
+// 	b->sel_node = entry_node_traverse(b->sel_node, dir);
+// 	if (entry_node_traverse(b->start_node, dir))
+// 	    b->start_node = entry_node_traverse(b->start_node, dir);
+// 	b->end_node = entry_node_traverse(b->prev_node, dir);
 //     }
 // 
-//     // if not, realloc with destination inside 
-// 
+//     return 0;
 // }
 
-void free_browser_buf(browser_buf_t* bb) {
-    // don't need to free the entries themselves because they are still 
-    // in main entry list
-    free(bb->buf_entries);
-    free(bb);
+
+void free_browser(browser_t* b) {
+    free(b);
 }
 
 
-void draw_browser(WINDOW *browser_win, const browser_buf_t *bb) {
+void draw_browser(WINDOW *browser_win, const browser_t *b) {
 
-    clear();
+    //clear();
     box(browser_win, 0, 0);
 
     // -2 for border space
@@ -75,15 +102,24 @@ void draw_browser(WINDOW *browser_win, const browser_buf_t *bb) {
     wmove(browser_win, row++, max_col - 1);
     waddch(browser_win, ACS_RTEE);
 
-    for (int i = 0; i < bb->buf_len; i++) {
-        browser_draw_entry(browser_win, bb->buf_entries[i], row++);
-    }
+    if (!b->start)
+	return;
+
+    entry_node_t* temp = b->start;
+    while (temp != b->end->next) {
+	if (temp == b->sel)
+	    attron(A_REVERSE);
+        browser_draw_entry(browser_win, temp->data, row++);
+	if (temp == b->sel)
+	    attroff(A_REVERSE);
+	temp = temp->next;
+    } 
 }
 
 
 void browser_draw_header(WINDOW *browser_win) {
     int col = 2;
-    char *col_names[] = {"Date", "Name", "Amount", "Category", 
+    char *col_names[] = {"Date", "Name", "     Amount", "Category", 
 		       "Subcategory"};
 
     for (int i = 0; i < 5; i++) {
@@ -96,8 +132,11 @@ void browser_draw_header(WINDOW *browser_win) {
 
 void browser_draw_entry(WINDOW *browser_win, const entry_t *e, int row) {
 
-    int col = 2;
+    int col = 1;
     int i = 0;
+    wmove(browser_win, row, col);
+    addch(' ');
+    col++;
     wmove(browser_win, row, col);
 
     browser_draw_date(browser_win, e->date, &col, browser_col_widths[i++]);
@@ -118,7 +157,10 @@ void browser_draw_entry(WINDOW *browser_win, const entry_t *e, int row) {
 		browser_col_widths[i++]);
     else
 	browser_draw_string(browser_win, "", &col, browser_col_widths[i++]);
+
+    // pad with blank spaces
     wmove(browser_win, row, col);
+    browser_draw_string(browser_win, "", &col, getmaxx(browser_win) - col - 3);
 }
 
 
@@ -135,16 +177,14 @@ void browser_draw_date(WINDOW *browser_win, time_t date, int *col,
 void browser_draw_string(WINDOW* browser_win, const char *str, int *col, 
 	int max_width){
 
-    // only draw " | " if not first col
+    // only draw "   " if not first col
     if (*col > 2) {
-	waddch(browser_win, ' ');
-	waddch(browser_win, ACS_VLINE);
-	waddch(browser_win, ' ');
+	waddstr(browser_win, "   ");
     }
 
     // trunacte string
     char trunc_str[max_width];
-    snprintf(trunc_str, max_width, "%s", str);
+    snprintf(trunc_str, max_width, "%-*s", max_width, str);
     wprintw(browser_win, "%s", trunc_str);
     *col += max_width;
 }
@@ -153,9 +193,7 @@ void browser_draw_string(WINDOW* browser_win, const char *str, int *col,
 void browser_draw_amount(WINDOW *browser_win, float amount, int *col,
 	int max_width){
 
-    waddch(browser_win, ' ');
-    waddch(browser_win, ACS_VLINE);
-    waddch(browser_win, ' ');
+    waddstr(browser_win, "   ");
 
     // to right align
     int num_spaces, num_dig, thousands;

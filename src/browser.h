@@ -10,19 +10,22 @@
 static const int browser_col_widths[] = {10, 25, 14, 15, 15};
 
 // subset of entire entry list currently being displayed
-typedef struct browser_buf {
-    entry_t **buf_entries;
-    int sel_pos;
-    int buf_len;
-} browser_buf_t;
+typedef struct browser {
+    entry_node_t* start;
+    entry_node_t* sel;
+    entry_node_t* end;
+    int num_entries;
+    int max_num_entries;
+} browser_t;
 
-browser_buf_t* init_browser_buf(const entry_list_t *el, int max_len);
-// void browser_scroll(browser_buf_t* bb, int rows_to_scroll);
-// void browser_buf_go_to(browser_buf_t* bb, entry_t *dest); 
-void free_browser_buf(browser_buf_t* bb);
+int browser_handle_key(browser_t* b, int ch);
+
+browser_t* init_browser(const entry_list_t *el, int num_browser_rows);
+void browser_scroll(browser_t* b, int num_times, direction_t dir);
+void free_browser(browser_t* b);
 
 // drawing functions
-void draw_browser(WINDOW *browser_win, const browser_buf_t *bb);
+void draw_browser(WINDOW *browser_win, const browser_t *b);
 void browser_draw_header(WINDOW *browser_win);
 void browser_draw_entry(WINDOW *browser_win, const entry_t *e, int row);
 void browser_draw_date(WINDOW *browser_win, time_t date, int *col, 

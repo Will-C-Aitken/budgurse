@@ -15,15 +15,18 @@ void test_gui();
                             if (message) return message; } while (0)
 extern int tests_run;
 
-char* all_tests();
+char *all_tests();
 
-char *entry_list_push_001();
-char *entry_list_pop_002();
+char *append_to_tail_001();
+char *free_tail_002();
 char *free_entry_list_003();
 char *entry_to_sql_insert_004();
 char *load_empty_db_005();
 char *write_entry_006();
 char *load_db_007();
 char *where_in_list_008();
-char *browser_buffer_009();
+char *browser_init_009();
+char *is_end_node_010();
+char *entry_node_traverse_011();
+char *browser_scroll_012();
 

@@ -61,7 +61,7 @@ $(BIN_DIR) $(OBJ_DIR):
 
 
 count_lines:
-	wc -l $(SRC) $(HDR) $(TEST_SRC) $(TEST_HDR) Makefile
+	wc -l $(SRC) $(HDR) $(GUI_TEST_SRC) $(UNIT_TEST_SRC) $(TEST_HDR) Makefile
 
 
 clean:

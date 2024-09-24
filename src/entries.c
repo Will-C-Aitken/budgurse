@@ -45,15 +45,36 @@ entry_node_t *init_entry_node(entry_t *e) {
     entry_node_t *nd = malloc(sizeof(entry_node_t));
     
     nd->next = NULL;
+    nd->prev = NULL;
     nd->data = e;
 
     return nd;
+}
+
+void *entry_node_traverse(entry_node_t **curr, direction_t dir) {
+    if (dir == DOWN && (*curr)->next) *curr = (*curr)->next;
+    if (dir == UP && (*curr)->prev) *curr = (*curr)->prev;
 }
 
 
 void free_entry_node(entry_node_t *en) {
     free_entry(en->data);
     free(en);
+}
+
+bool is_end_node(const entry_node_t* curr) {
+    if (is_head(curr) || is_tail(curr)) return true;
+    return false;
+}
+
+bool is_head (const entry_node_t* curr) {
+    if (!curr->prev) return true;
+    return false;
+}
+
+bool is_tail (const entry_node_t* curr) {
+    if (!curr->next) return true;
+    return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,55 +86,66 @@ entry_list_t *init_entry_list() {
     entry_list_t *el = malloc(sizeof(entry_list_t));
 
     el->head = NULL;
+    el->tail = NULL;
     el->num_nodes = 0;
     
     return el;
 }
 
 
-void entry_list_push(entry_list_t *el, entry_node_t *en) {
+void append_to_tail(entry_list_t *el, entry_node_t *en) {
 
     el->num_nodes++;
     
-    if(el->num_nodes == 1) {
+    if (el->num_nodes == 1) {
+	el->tail = en;
 	el->head = en;
 	return;
     }
 
-    en->next = el->head;
-    el->head = en;
+    en->prev = el->tail;
+    el->tail->next = en;
+    el->tail = en;
 }
 
 
-entry_node_t *entry_list_pop(entry_list_t *el) {
+void free_tail(entry_list_t *el) {
 
-    entry_node_t *popped_entry_node = NULL;
-    if(el->num_nodes == 0)
-	return popped_entry_node;
+    if (el->num_nodes == 0)
+        return;
 
-    popped_entry_node = el->head;
-    el->head = popped_entry_node->next;
+    entry_node_t *temp = el->tail;
+    el->tail = temp->prev;
     el->num_nodes--;
     
-    return popped_entry_node;
+    free_entry_node(temp);
+
+    if (el->num_nodes == 0) {
+	el->head = NULL;
+	el->tail = NULL;
+        return;
+    }
+
+    el->tail->next = NULL;
+
+    if (el->num_nodes == 1) {
+	el->head = el->tail;
+	el->head->next = NULL;
+	el->tail->prev = NULL;
+    }
 }
 
 
 void free_entry_list(entry_list_t *el) {
-
-    entry_node_t* head = entry_list_pop(el);
-    while(head) {
-	free_entry_node(head);
-	head = entry_list_pop(el);
-    }
-
+    while(el->num_nodes > 0)
+	free_tail(el);
     free(el);
-    return;
 }
 
 
 // Return what place entry e is in in el. Return -1 if absent
 int where_in_list(const entry_list_t *el, const entry_t *e){
+
     if (!el->num_nodes)
 	return(-1);
 
