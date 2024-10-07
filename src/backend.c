@@ -1,73 +1,93 @@
 #include "backend.h"
 
-int load_callback(void *el, int argc, char **argv, char **azColName) {
+sqlite3 *g_db = NULL;
 
-    entry_t *entry = init_entry(argv[1], 
-				(time_t)strtol(argv[2], NULL, 10),
-				strtof(argv[3], NULL), 
-				argv[4],
-				argv[5],
-				argv[6]);
+static int load_categories_callback(void *_, int argc, char **argv, 
+	char **azColName) {
 
-
-    entry_node_t *en = init_entry_node(entry);
-    append_to_tail(el, en);
-
+    category_t *c = init_category(strtol(argv[0], NULL, 10), 
+				  strtol(argv[1], NULL, 10), 
+				  argv[2]);
+    append_to_cat_array(g_categories, c);
     return 0;
 }
 
 
-int init_db(sqlite3 **db, const char *file) {
+static int load_entries_callback(void *_, int argc, char **argv, 
+	char **azColName) {
+
+    entry_t *entry = init_entry(argv[1], 
+				(time_t)strtol(argv[2], NULL, 10),
+				strtof(argv[3], NULL), 
+				strtol(argv[4], NULL, 10), 
+				argv[5]);
+
+    entry_node_t *en = init_entry_node(entry);
+    append_to_tail(g_entries, en);
+    return 0;
+}
+
+
+void init_db(const char *file_name) {
 
     char *err_msg;
     mkdir("data/", 0777);
-    int rc = sqlite3_open(file, db);
+    int rc = sqlite3_open(file_name, &g_db);
     
-    if (rc) {
-	fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(*db));
-	return 1;
-    }
+    EXIT_IF(rc, "Failed to open database with error message: %s\n", 
+	    sqlite3_errstr(rc));
+    
+    char *sql = "CREATE TABLE IF NOT EXISTS ENTRIES( "
+        	    "id INTEGER NOT NULL, "
+        	    "name TEXT NOT NULL, "
+        	    "date INTEGER NOT NULL, "
+        	    "amount REAL NOT NULL, "
+		    "category_id INTEGER NOT NULL, "
+        	    "note TEXT, "
+		    "PRIMARY KEY (id), "
+        	    "FOREIGN KEY (category_id) REFERENCES CATEGORIES(id)); "
+		"CREATE TABLE IF NOT EXISTS CATEGORIES( "
+		    "id INTEGER NOT NULL, "
+		    "parent_id INTEGER, "
+		    "name TEXT NOT NULL, "
+		    "PRIMARY KEY (id), "
+		    "FOREIGN KEY (parent_id) REFERENCES CATEGORIES(id));";
 
-    char *sql = "CREATE TABLE IF NOT EXISTS ENTRIES( \
-		    id INTEGER PRIMARY KEY, \
-		    name TEXT NOT NULL, \
-		    date INTEGER NOT NULL, \
-		    amount REAL NOT NULL, \
-		    category TEXT NOT NULL, \
-		    subcategory TEXT, \
-		    note TEXT);";
+    rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
 
-    rc = sqlite3_exec(*db, sql, 0, 0, &err_msg);
+    EXIT_IF(rc, "Failed to initialize database with error message: %s\n", 
+	    err_msg);
+    
     sqlite3_free(err_msg);
-
-    return rc;
 }
 
 
-int load_db(sqlite3 *db, entry_list_t *el) {
-
+void load_db() {
+    
+    int rc;
     char *err_msg;
-    char *sql = "SELECT * from ENTRIES";
+    char *sql = "SELECT * from CATEGORIES";
+    rc = sqlite3_exec(g_db, sql, load_categories_callback, NULL, &err_msg);
+    EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
+	    err_msg);
 
-    int rc = sqlite3_exec(db, sql, load_callback, el, &err_msg);
+    sql = "SELECT * from ENTRIES";
+    rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
+    EXIT_IF(rc, "Failed to load entries with error message: %s\n", 
+	    err_msg);
+
     sqlite3_free(err_msg);
-
-    return rc;
 }
 
 
-int write_entry(sqlite3 *db, entry_t *e) {
+int write_entry(entry_t *e) {
 
     char *err_msg;
     char *sql = entry_to_sql_insert(e);
     
-    int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
-
-    if (rc) {
-	fprintf(stderr, "Can't write %s to database: %s\n", 
-		sql, sqlite3_errmsg(db));
-	return 1;
-    }
+    int rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
+    EXIT_IF(rc, "Failed to write entry to database with error message: %s\n", 
+	    err_msg);
 
     sqlite3_free(err_msg);
     free(sql);
@@ -75,11 +95,10 @@ int write_entry(sqlite3 *db, entry_t *e) {
     return rc;
 }
 
-
 char *entry_to_sql_insert(entry_t *e) {
 
     char *sql_to_append = "INSERT INTO entries (name, date, amount, "
-			  "category, subcategory, note) "
+			  "category_id, note) "
 			  "VALUES (";
 
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
@@ -99,8 +118,10 @@ char *entry_to_sql_insert(entry_t *e) {
     sprintf(amount_str, "%0.2f", e->amount);
     append_to_sql(&sql, sql_to_append, amount_str, false);
 
-    append_to_sql(&sql, sql_to_append, e->category, true);
-    append_to_sql(&sql, sql_to_append, e->subcategory, true);
+    char category_id_str[2];
+    sprintf(category_id_str, "%d", e->category_id);
+    append_to_sql(&sql, sql_to_append, category_id_str, false);
+
     append_to_sql(&sql, sql_to_append, e->note, true);
 
     sql_to_append = ");";

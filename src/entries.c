@@ -1,23 +1,19 @@
 #include "entries.h"
-
 // ---------------------------------------------------------------------------
 // Entry Definitions
 // ---------------------------------------------------------------------------
 
+entry_list_t *g_entries = NULL;
+
 entry_t *init_entry(char *name, time_t date, float amount, 
-	char* category, char *subcategory, char *note) {
+	int category_id, char *note) {
 
     entry_t *e = malloc(sizeof(entry_t));
 
     e->date = date;
     e->amount = amount;
     e->name = strdup(name);
-    e->category = strdup(category);
-
-    if (subcategory != NULL)
-	e->subcategory = strdup(subcategory);
-    else
-	e->subcategory = NULL;
+    e->category_id = category_id;
 
     if (note != NULL)
 	e->note = strdup(note);
@@ -30,8 +26,6 @@ entry_t *init_entry(char *name, time_t date, float amount,
 
 void free_entry(entry_t *e) {
     free(e->name);
-    free(e->category);
-    free(e->subcategory);
     free(e->note);
     free(e);
 }
@@ -51,7 +45,7 @@ entry_node_t *init_entry_node(entry_t *e) {
     return nd;
 }
 
-void *entry_node_traverse(entry_node_t **curr, direction_t dir) {
+void entry_node_traverse(entry_node_t **curr, direction_t dir) {
     if (dir == DOWN && (*curr)->next) *curr = (*curr)->next;
     if (dir == UP && (*curr)->prev) *curr = (*curr)->prev;
 }
@@ -63,7 +57,7 @@ void free_entry_node(entry_node_t *en) {
 }
 
 bool is_end_node(const entry_node_t* curr) {
-    if (is_head(curr) || is_tail(curr)) return true;
+    if (curr == NULL || is_head(curr) || is_tail(curr)) return true;
     return false;
 }
 
@@ -137,6 +131,9 @@ void free_tail(entry_list_t *el) {
 
 
 void free_entry_list(entry_list_t *el) {
+    if (!el)
+	return;
+
     while(el->num_nodes > 0)
 	free_tail(el);
     free(el);

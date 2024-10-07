@@ -10,8 +10,8 @@
 #define ENTRIES_H
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -19,8 +19,7 @@ typedef struct entry {
     char *name;
     time_t date;
     float amount;
-    char *category;
-    char *subcategory;
+    int category_id;
     char *note;
 } entry_t;
 
@@ -42,14 +41,16 @@ typedef struct entry_list {
     int num_nodes;
 } entry_list_t;
 
+extern entry_list_t *g_entries;
+
 // entry declarations
-entry_t *init_entry(char *name, time_t date, float amount, 
-	char *category, char *subcategory, char *note);
+entry_t *init_entry(char *name, time_t date, float amount, int category_id, 
+	char *note);
 void free_entry(entry_t *e);
 
 // entry node declarations
 entry_node_t *init_entry_node(entry_t *e);
-void *entry_node_traverse(entry_node_t **curr, direction_t dir);
+void entry_node_traverse(entry_node_t **curr, direction_t dir);
 bool is_end_node(const entry_node_t* curr);
 bool is_head(const entry_node_t* curr);
 bool is_tail(const entry_node_t* curr);
