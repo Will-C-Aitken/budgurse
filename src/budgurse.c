@@ -1,6 +1,7 @@
 #include "budgurse.h"
 
-state_t state;
+state_t state = BROWSER;
+int curses_mode = 1;
 
 int main(int argc, char *argv[]) {
 

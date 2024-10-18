@@ -3,8 +3,14 @@
 
 #include "budgurse.h"
 
-// widths for data, name, amount, category, and subcategory respectively
-static const int browser_col_widths[] = {10, 25, 14, 15, 15};
+#define DATE_STR_LEN 10
+#define NAME_STR_LEN 25
+#define AMOUNT_STR_LEN 14
+#define CAT_STR_LEN 15
+#define SUBCAT_STR_LEN 15
+
+static const int browser_col_widths[] = {DATE_STR_LEN, NAME_STR_LEN, 
+    AMOUNT_STR_LEN, CAT_STR_LEN, SUBCAT_STR_LEN};
 
 // subset of entire entry list currently being displayed
 typedef struct browser {
@@ -20,6 +26,7 @@ extern browser_t *g_browser;
 browser_t* init_browser(entry_list_t* el, int max_num_entries);
 int browser_handle_key(int ch);
 void browser_scroll(int num_times, direction_t dir);
+void browser_add_entry();
 void free_browser(browser_t* b);
 
 // drawing functions

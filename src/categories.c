@@ -62,13 +62,12 @@ int append_to_cat_array(cat_array_t *ca, category_t *c) {
 	}
 
 	if (rc)
-	    return rc;
+	    return 1;
     }
 
     ca->num_cats++;
     ca->array = realloc(ca->array, ca->num_cats * sizeof(category_t));
     ca->array[ca->num_cats-1] = c;
-
     return rc;
 }
 
@@ -92,6 +91,18 @@ void cat_id_to_names(const cat_array_t *ca, int cat_id, char** cat_name,
 }
 
 
+int cat_name_to_id(const cat_array_t *ca, const char* name, bool is_main_cat) {
+    for (int i = 0; i < ca->num_cats; i++) {
+	if (strcmp(name, ca->array[i]->name) == 0) {
+	    if ((is_main_cat && ca->array[i]->parent_id == 0) ||
+		     (!is_main_cat && ca->array[i]->parent_id != 0))
+		return ca->array[i]->id;
+	}
+    }
+    return 0;
+}
+
+
 category_t* get_cat(const cat_array_t *ca, int cat_id) {
     for (int i = 0; i < ca->num_cats; i++) {
 	if (ca->array[i]->id == cat_id)
@@ -101,10 +112,22 @@ category_t* get_cat(const cat_array_t *ca, int cat_id) {
 }
 
 
-int cat_name_to_id(const cat_array_t *ca, const char* name) {
+// If cat_id is subcat of p_cat_id, return true. Note that all main categories
+// are subcategories of p_cat_id 0
+int is_sub_cat(const cat_array_t *ca, int cat_id, int p_cat_id) {
+    int found = 0;
     for (int i = 0; i < ca->num_cats; i++) {
-	if (strcmp(name, ca->array[i]->name) == 0)
-	    return ca->array[i]->id;
+	if (ca->array[i]->id == cat_id &&
+		ca->array[i]->parent_id == p_cat_id) {
+	    found = 1;
+	}
     }
-    return 0;
+    return found;
 }
+
+int get_next_id(const cat_array_t *ca) {
+    if (ca->num_cats > 0)
+	return (ca->array[ca->num_cats - 1]->id + 1);
+    return 1;
+}
+

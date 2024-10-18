@@ -1,4 +1,4 @@
-#include "browser.h"
+#include "browser.h" 
 
 browser_t *g_browser = NULL;
 
@@ -31,6 +31,9 @@ browser_t* init_browser(entry_list_t* el, int max_num_entries){
 
 int browser_handle_key(int ch) {
     switch (ch) {
+	case 'a':
+	    browser_add_entry();
+	    break;
 	case 'j':
 	case KEY_DOWN:
 	    browser_scroll(1, DOWN);
@@ -42,6 +45,7 @@ int browser_handle_key(int ch) {
 	case 'q':
 	    return 0;
     }
+    draw_browser();
     return 1;
 }
 
@@ -59,10 +63,6 @@ void browser_scroll(int num_times, direction_t dir) {
 	    (is_tail(g_browser->sel) && dir == DOWN))
  	    return;
 
-	wprintw(g_wins[PROMPT].win, "Here");
-	wrefresh(g_wins[PROMPT].win);
-
-
 	// move start and end points if at end of current context 
 	if ((g_browser->sel == g_browser->start && dir == UP) ||
 	    (g_browser->sel == g_browser->end && dir == DOWN)) {
@@ -75,6 +75,26 @@ void browser_scroll(int num_times, direction_t dir) {
 	num_times--;
     }
 }
+
+
+void browser_add_entry() {
+    if (prompt_new_entry() == BUDGURSE_FAILURE)
+	return;
+
+    // go to new entry in browser
+    g_browser->sel = g_browser->end = g_entries->tail;
+    
+    // if all entries still fit in window don't change start pos
+    if (g_browser->num_entries < g_browser->max_num_entries - 1) {
+	g_browser->start = g_entries->head;
+	g_browser->num_entries++;
+	return;
+    }
+
+    // otherwise move start to tail - max_num_entries
+    for (int i = 0; i < g_browser->max_num_entries - 1; i++)
+	entry_node_traverse(&g_browser->start, UP);
+ }
 
 // int browser_go_to(browser_t* b, entry_t *dest, direction_t dir) {
 //     

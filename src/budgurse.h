@@ -12,12 +12,25 @@
 #include <sqlite3.h>
 #include <ncurses.h>
 
+#define TIME_T_32 (sizeof(time_t) == 4)
+
+#define BUDGURSE_FAILURE 1
+#define BUDGURSE_SUCCESS 0
+
+#define MAX_NAME_BYTES 64
+#define MAX_CAT_BYTES 32
+#define MAX_NOTE_BYTES 1024
+
+#define MAX_AMOUNT_VAL 999999.99
+#define MIN_AMOUNT_VAL -99999.99
+
 typedef enum state {
     BROWSER,
     PROMPT,
 } state_t;
 
 extern state_t state;
+extern int curses_mode;
 
 // the following three macros are adapted from calcurse/src/calcurse.h
 #define ERROR_MSG(...) do {                                                  \
@@ -30,7 +43,10 @@ extern state_t state;
 
 #define EXIT(...) do {							     \
     ERROR_MSG(__VA_ARGS__);                                                  \
-    end_budgurse(EXIT_FAILURE);                                              \
+    if (curses_mode)							     \
+	end_budgurse(EXIT_FAILURE);                                          \
+    else								     \
+	exit(EXIT_FAILURE);						     \
 } while (0)
 
 #define EXIT_IF(cond, ...) do {                                              \
