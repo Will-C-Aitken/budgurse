@@ -19,6 +19,7 @@ win_t init_browser_win() {
     bw.y = 0;
     bw.x = 0;
     bw.win = newwin(bw.h, bw.w, bw.y, bw.x);
+    keypad(bw.win, true);
     return bw;
 }
 
@@ -29,5 +30,6 @@ win_t init_prompt_win() {
     pw.y= LINES - pw.h;
     pw.x= 0;
     pw.win = newwin(pw.h, pw.w, pw.y, pw.x);
+    keypad(pw.win, true);
     return pw;
 }

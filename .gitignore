@@ -2,5 +2,7 @@ data/
 obj/
 budgurse
 test/test
+test/unit_test
+test/gui_test
 */*.db
 

@@ -34,6 +34,17 @@ int browser_handle_key(int ch) {
 	case 'a':
 	    browser_add_entry();
 	    break;
+	case 'd': {
+	    entry_node_t *en_to_del = browser_del_entry();
+	    if (en_to_del) {
+		db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
+		del_entry(g_entries, en_to_del);
+	    }
+	    break;
+	}
+	case 'e':
+	    browser_edit_entry();
+	    break;
 	case 'j':
 	case KEY_DOWN:
 	    browser_scroll(1, DOWN);
@@ -52,6 +63,9 @@ int browser_handle_key(int ch) {
 void browser_scroll(int num_times, direction_t dir) {
 
     EXIT_IF(!g_browser, "Browser not initialized");
+
+    if (g_browser->num_entries < 1)
+	return;
 
     while (num_times > 0) {
 
@@ -85,9 +99,9 @@ void browser_add_entry() {
     g_browser->sel = g_browser->end = g_entries->tail;
     
     // if all entries still fit in window don't change start pos
-    if (g_browser->num_entries < g_browser->max_num_entries - 1) {
+    g_browser->num_entries++;
+    if (g_browser->num_entries <= g_browser->max_num_entries) {
 	g_browser->start = g_entries->head;
-	g_browser->num_entries++;
 	return;
     }
 
@@ -95,6 +109,56 @@ void browser_add_entry() {
     for (int i = 0; i < g_browser->max_num_entries - 1; i++)
 	entry_node_traverse(&g_browser->start, UP);
  }
+
+void browser_edit_entry() {
+    if (g_browser->num_entries > 0) 
+	prompt_edit_entry(g_browser->sel);
+}
+
+entry_node_t *browser_del_entry() {
+
+    // if already empty, cannot delete
+    if (g_browser->num_entries == 0)
+	return NULL;
+
+    entry_node_t *temp = g_browser->sel;
+
+    // check if removed entry will be replaced by another in browser (i.e.
+    // there's more nodes that aren't visible). In this case we want to move UP
+    if (g_entries->num_nodes > g_browser->num_entries) {
+	// start needs to go up to show next node
+	entry_node_traverse(&g_browser->start, UP);
+
+	// tail only moves up if it's being deleted
+	if (g_browser->sel == g_browser->end) 
+	    entry_node_traverse(&g_browser->end, UP);
+	
+	entry_node_traverse(&g_browser->sel, UP);
+    }
+
+    // otherwise all nodes are visible and deleting should move sel DOWN 
+    else {
+	// in this case deleting an entry decreases number in browser as well
+	g_browser->num_entries--;
+
+	// only touch start if it's being deleted
+	if (g_browser->sel == g_browser->start)
+	    entry_node_traverse(&g_browser->start, DOWN);
+	
+	// tail (and sel now) only moves up if it's being deleted 
+	if (g_browser->sel == g_browser->end) {
+	    entry_node_traverse(&g_browser->end, UP);
+	    entry_node_traverse(&g_browser->sel, UP);
+	}
+	else
+	    entry_node_traverse(&g_browser->sel, DOWN);
+    }
+    
+    if (g_browser->num_entries == 0)
+	g_browser->sel = g_browser->end = g_browser->start = NULL;
+
+    return temp;
+}
 
 // int browser_go_to(browser_t* b, entry_t *dest, direction_t dir) {
 //     
@@ -123,6 +187,7 @@ void free_browser(browser_t* b) {
 
 void draw_browser() {
 
+    werase(g_wins[BROWSER].win);
     box(g_wins[BROWSER].win, 0, 0);
 
     browser_draw_header();
@@ -206,7 +271,7 @@ void browser_draw_entry(const entry_t *e, int row) {
 void browser_draw_date(time_t date, int *col, int max_width){
 
     struct tm *tmp_date = gmtime(&date);
-    wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", tmp_date->tm_mon, 
+    wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", ++(tmp_date->tm_mon), 
 	    tmp_date->tm_mday, tmp_date->tm_year + 1900);
     *col += max_width;
 }

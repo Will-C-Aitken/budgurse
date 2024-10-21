@@ -17,7 +17,7 @@ int static amount_eq(float candidate, float actual) {
 
 char* all_tests() {
     mu_run_test(append_to_tail_001);
-    mu_run_test(free_tail_002);
+    mu_run_test(del_tail_002);
     mu_run_test(free_entry_list_003);
     mu_run_test(entry_to_sql_insert_004);
     mu_run_test(load_empty_db_005);
@@ -34,6 +34,11 @@ char* all_tests() {
     mu_run_test(amount_proc_016);
     mu_run_test(cat_proc_017);
     mu_run_test(cat_to_sql_insert_018);
+    mu_run_test(del_head_019);
+    mu_run_test(del_entry_020);
+    mu_run_test(del_entry_to_sql_021);
+    mu_run_test(browser_del_entry_022);
+    // mu_run_test(edit_entry_to_sql_update_023);
     return 0;
 }
 
@@ -52,7 +57,7 @@ char* append_to_tail_001() {
 
     time_t test_date = mktime(&test_time_tm1);
 
-    entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, 
+    entry_t* test_entry1 = init_entry(0, "Starbucks", test_date, -12.00, 
 	    category_id, "this was fun");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(test_list, test_entry_node1);
@@ -68,7 +73,7 @@ char* append_to_tail_001() {
     mu_assert("Failure in 001-5", test_list->tail == test_entry_node1);
     mu_assert("Failure in 001-6", test_list->head == test_entry_node1);
 
-    entry_t* test_entry2 = init_entry("Tims", test_date, -12.00, category_id, 
+    entry_t* test_entry2 = init_entry(1, "Tims", test_date, -12.00, category_id, 
 	    "this was fun");
     entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
     append_to_tail(test_list, test_entry_node2);
@@ -87,24 +92,24 @@ char* append_to_tail_001() {
 }
  
 
-char* free_tail_002() {
+char* del_tail_002() {
     int category_id = 1;
     entry_list_t* test_list = init_entry_list();
 
     // sec, min, hour, day, month, year, is_dst
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
-    entry_t* test_entry1 = init_entry("Starbucks", test_date, -1.00, 
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -1.00, 
 	    category_id, "this was fun");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(test_list, test_entry_node1);
 
-    entry_t* test_entry2 = init_entry("Tims", test_date, -12.00, category_id, 
+    entry_t* test_entry2 = init_entry(2, "Tims", test_date, -12.00, category_id, 
 	    "this was fun");
     entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
     append_to_tail(test_list, test_entry_node2);
 
-    free_tail(test_list);
+    del_tail(test_list);
     mu_assert("Failure in 002-01", test_list->num_nodes == 1);
     mu_assert("Failure in 002-02", !test_list->tail->next);
     mu_assert("Failure in 002-03", !test_list->tail->prev);
@@ -112,12 +117,12 @@ char* free_tail_002() {
     mu_assert("Failure in 002-05", !test_list->head->prev);
     mu_assert("Failure in 002-06", test_list->head == test_list->tail);
 
-    free_tail(test_list);
+    del_tail(test_list);
     mu_assert("Failure in 002-07", test_list->num_nodes == 0);
     mu_assert("Failure in 002-08", !test_list->head);
     mu_assert("Failure in 002-09", !test_list->tail);
 
-    free_tail(test_list);
+    del_tail(test_list);
     free(test_list);
 
     return 0;
@@ -134,12 +139,12 @@ char* free_entry_list_003() {
 
     time_t test_date = mktime(&test_time_tm1);
 
-    entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, cat_id, 
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -12.00, cat_id, 
 	    "this was fun");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(test_list, test_entry_node1);
 
-    entry_t* test_entry2 = init_entry("Tims", test_date, -12.00, cat_id, 
+    entry_t* test_entry2 = init_entry(2, "Tims", test_date, -12.00, cat_id, 
 	    "this was fun");
     entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
     append_to_tail(test_list, test_entry_node2);
@@ -158,11 +163,11 @@ char* entry_to_sql_insert_004() {
 
     time_t test_date = mktime(&test_time_tm1);
 
-    entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, cat_id, 
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -12.00, cat_id, 
 	    "this was fun");
 
     char* sql = entry_to_sql_insert(test_entry1);
-    char* expected_statement = "INSERT INTO ENTRIES (name, date, amount, " 
+    char* expected_statement = "INSERT INTO Entries (name, date, amount, " 
         		       "category_id, note) VALUES "
         		       "('Starbucks', 1644642000, -12.00, 1, "
         		       "'this was fun');"; 
@@ -199,7 +204,7 @@ char* write_entry_006() {
     // sec, min, hour, day, month, year, is_dst
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
-    entry_t* test_entry1 = init_entry("Starbucks", test_date, -12.00, cat_id, 
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -12.00, cat_id, 
 	    "this was fun");
 
     init_db("data/test.db");
@@ -208,7 +213,7 @@ char* write_entry_006() {
     mu_assert("Failure in 006-01", result == 0);
 
     // NULL subcategory and note 
-    entry_t* test_entry2 = init_entry("Tim Horton's", test_date, -11.00, cat_id, 
+    entry_t* test_entry2 = init_entry(2, "Tim Horton's", test_date, -11.00, cat_id, 
             NULL);
     
     result = db_exec(test_entry2, (gen_sql_fn_t)entry_to_sql_insert);
@@ -258,7 +263,7 @@ char* where_in_list_008() {
     g_entries = init_entry_list();
     struct tm test_time_tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
     time_t test_date1 = mktime(&test_time_tm1);
-    entry_t* test_entry1 = init_entry("Starbucks", test_date1, -20.99, cat_id,
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date1, -20.99, cat_id,
 	    "Zionist scum!");
 
     // empty list, so test_entry1 can't be in it
@@ -274,7 +279,7 @@ char* where_in_list_008() {
 
     struct tm test_time_tm2 = {.tm_mday=2, .tm_mon=1, .tm_year=2022 - 1900};
     time_t test_date2 = mktime(&test_time_tm2);
-    entry_t* test_entry2 = init_entry("Metro", test_date2, -20.99, cat_id,
+    entry_t* test_entry2 = init_entry(2, "Metro", test_date2, -20.99, cat_id,
             NULL);
     
     // test_entry2 is not in list
@@ -320,7 +325,7 @@ char *browser_init_009() {
     // list with one item but not enough rows to fit it
     struct tm test_time_tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
     time_t test_date1 = mktime(&test_time_tm1);
-    entry_t* test_entry1 = init_entry("Starbucks", test_date1, -20.99, cat_id,
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date1, -20.99, cat_id,
 	    "Zionist scum!");
     entry_node_t* test_entry_node1 = init_entry_node(test_entry1);
     append_to_tail(g_entries, test_entry_node1);
@@ -341,7 +346,7 @@ char *browser_init_009() {
     // two items but only room for 1
     struct tm test_time_tm2 = {.tm_mday=2, .tm_mon=1, .tm_year=2022 - 1900};
     time_t test_date2 = mktime(&test_time_tm2);
-    entry_t* test_entry2 = init_entry("Metro", test_date2, -20.99, cat_id,
+    entry_t* test_entry2 = init_entry(2, "Metro", test_date2, -20.99, cat_id,
             NULL);
     entry_node_t* test_entry_node2 = init_entry_node(test_entry2);
     append_to_tail(g_entries, test_entry_node2);
@@ -373,14 +378,14 @@ char *is_end_node_010() {
 
     struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
     time_t d1 = mktime(&tm1);
-    entry_t* e1 = init_entry("Starbucks", d1, -0.21, cat_id,
+    entry_t* e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id,
 	"Zionist scum!");
     entry_node_t* en1 = init_entry_node(e1);
     append_to_tail(g_entries, en1);
 
     mu_assert("Failure in 010-1", is_end_node(en1));
 
-    entry_t* e2 = init_entry("Starbucks", d1, -0.21, cat_id,
+    entry_t* e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id,
 	"Zionist scum!");
     entry_node_t* en2 = init_entry_node(e2);
     append_to_tail(g_entries, en2);
@@ -389,7 +394,7 @@ char *is_end_node_010() {
     mu_assert("Failure in 010-2", is_end_node(en2));
     mu_assert("Failure in 010-3", is_end_node(en1));
 
-    entry_t* e3 = init_entry("Starbucks", d1, -0.31, cat_id,
+    entry_t* e3 = init_entry(3, "Starbucks", d1, -0.31, cat_id,
 	"Zionist scum!");
     entry_node_t* en3 = init_entry_node(e3);
     append_to_tail(g_entries, en3);
@@ -412,17 +417,17 @@ char *entry_node_traverse_011() {
 
     struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
     time_t d1 = mktime(&tm1);
-    entry_t* e1 = init_entry("Starbucks", d1, -0.21, cat_id,
+    entry_t* e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id,
 	"Zionist scum!");
     entry_node_t* en1 = init_entry_node(e1);
     append_to_tail(g_entries, en1);
 
-    entry_t* e2 = init_entry("Starbucks", d1, -0.21, cat_id,
+    entry_t* e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id,
 	"Zionist scum!");
     entry_node_t* en2 = init_entry_node(e2);
     append_to_tail(g_entries, en2);
 
-    entry_t* e3 = init_entry("Starbucks", d1, -0.31, cat_id,
+    entry_t* e3 = init_entry(3, "Starbucks", d1, -0.31, cat_id,
 	"Zionist scum!");
     entry_node_t* en3 = init_entry_node(e3);
     append_to_tail(g_entries, en3);
@@ -454,17 +459,17 @@ char *browser_scroll_012() {
 
     struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
     time_t d1 = mktime(&tm1);
-    entry_t* e1 = init_entry("Starbucks", d1, -0.21, cat_id,
+    entry_t* e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id,
 	"Zionist scum!");
     entry_node_t* en1 = init_entry_node(e1);
     append_to_tail(g_entries, en1);
 
-    entry_t* e2 = init_entry("Starbucks", d1, -0.21, cat_id,
+    entry_t* e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id,
 	"Zionist scum!");
     entry_node_t* en2 = init_entry_node(e2);
     append_to_tail(g_entries, en2);
 
-    entry_t* e3 = init_entry("Starbucks", d1, -0.31, cat_id,
+    entry_t* e3 = init_entry(3, "Starbucks", d1, -0.31, cat_id,
 	"Zionist scum!");
     entry_node_t* en3 = init_entry_node(e3);
     append_to_tail(g_entries, en3);
@@ -768,7 +773,7 @@ char* cat_to_sql_insert_018() {
     category_t *c = init_category(1, 0, "Food");
 
     char* sql = cat_to_sql_insert(c);
-    char* expected_statement = "INSERT INTO CATEGORIES (id, parent_id, name) "
+    char* expected_statement = "INSERT INTO Categories (id, parent_id, name) "
         		       "VALUES (1, 0, 'Food');";
 
     mu_assert("Failure in 018-01", strcmp(sql, expected_statement) == 0);
@@ -778,6 +783,238 @@ char* cat_to_sql_insert_018() {
     return 0;
 }
 
+char *del_head_019() {
+    int cat_id = 1;
+
+    g_entries = init_entry_list();
+
+    struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
+    time_t d1 = mktime(&tm1);
+    entry_t* e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t* en1 = init_entry_node(e1);
+    append_to_tail(g_entries, en1);
+
+    entry_t* e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t* en2 = init_entry_node(e2);
+    append_to_tail(g_entries, en2);
+    
+    entry_t* e3 = init_entry(3, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t* en3 = init_entry_node(e3);
+    append_to_tail(g_entries, en3);
+
+    del_head(g_entries);
+    mu_assert("Failure in 019-01", en2 == g_entries->head);
+    mu_assert("Failure in 019-02", en2->prev == NULL);
+    mu_assert("Failure in 019-03", g_entries->num_nodes == 2);
+
+    del_head(g_entries);
+    mu_assert("Failure in 019-04", g_entries->head == en3);
+    mu_assert("Failure in 019-05", g_entries->tail == en3);
+    mu_assert("Failure in 019-06", en3->prev == NULL);
+    mu_assert("Failure in 019-07", g_entries->num_nodes == 1);
+
+    del_head(g_entries);
+    mu_assert("Failure in 019-08", g_entries->head == NULL);
+    mu_assert("Failure in 019-09", g_entries->tail == NULL);
+    mu_assert("Failure in 019-10", g_entries->num_nodes == 0);
+
+    free_entry_list(g_entries);
+    return 0;
+}
+
+
+char *del_entry_020() {
+    int cat_id = 1;
+
+    g_entries = init_entry_list();
+
+    struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
+    time_t d1 = mktime(&tm1);
+    entry_t *e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t *en1 = init_entry_node(e1);
+    append_to_tail(g_entries, en1);
+
+    entry_t *e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t *en2 = init_entry_node(e2);
+    append_to_tail(g_entries, en2);
+
+    entry_t *e3 = init_entry(3, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t *en3 = init_entry_node(e3);
+    append_to_tail(g_entries, en3);
+
+    del_entry(g_entries, en2);
+    mu_assert("Failure in 020-01", en1->next == en3);
+    mu_assert("Failure in 020-02", en3->prev == en1);
+    mu_assert("Failure in 020-03", g_entries->num_nodes == 2);
+
+    del_entry(g_entries, en3);
+    mu_assert("Failure in 020-04", g_entries->head == en1);
+    mu_assert("Failure in 020-05", g_entries->tail == en1);
+    mu_assert("Failure in 020-04", en1->next == NULL);
+    mu_assert("Failure in 020-07", en1->prev == NULL);
+    mu_assert("Failure in 020-08", g_entries->num_nodes == 1);
+
+    del_entry(g_entries, en1);
+    mu_assert("Failure in 020-09", g_entries->head == NULL);
+    mu_assert("Failure in 020-010", g_entries->tail == NULL);
+    mu_assert("Failure in 020-011", g_entries->num_nodes == 0);
+
+    free_entry_list(g_entries);
+    return 0;
+}
+
+char *del_entry_to_sql_021() {
+    int cat_id = 1;
+    int id = 1;
+    struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
+    time_t d1 = mktime(&tm1);
+    entry_t *e = init_entry(id, "Starbucks", d1, -0.21, cat_id, NULL);
+
+    char *sql = del_entry_to_sql(e);
+    char *expected_statement = "DELETE FROM Entries WHERE id=1;";
+
+    mu_assert("Failure in 021-01", strcmp(sql, expected_statement) == 0);
+    free_entry(e);
+    free(sql);
+
+    return 0;
+}
+
+
+char *browser_del_entry_022() {
+
+    int cat_id = 1;
+
+    g_entries = init_entry_list();
+
+    struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
+    time_t d1 = mktime(&tm1);
+    entry_t *e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t *en1 = init_entry_node(e1);
+    append_to_tail(g_entries, en1);
+
+    entry_t *e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t *en2 = init_entry_node(e2);
+    append_to_tail(g_entries, en2);
+
+    entry_t *e3 = init_entry(3, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_node_t *en3 = init_entry_node(e3);
+    append_to_tail(g_entries, en3);
+
+    // ------------------------------------------------------------------------
+    // Browser size > num nodes
+    // ------------------------------------------------------------------------
+
+    g_browser = init_browser(g_entries, 12);
+
+    // delete middle
+    // move selected to middle
+    entry_node_traverse(&g_browser->sel, UP);
+    // delete selected 
+    browser_del_entry();
+
+    mu_assert("Failure in 022-01", g_browser->sel == en3);
+    mu_assert("Failure in 022-02", g_browser->end == en3);
+    mu_assert("Failure in 022-03", g_browser->start == en1);
+    mu_assert("Failure in 022-04", g_browser->num_entries == 2);
+
+    // reset browser
+    entry_node_traverse(&g_browser->sel, DOWN);
+    entry_node_traverse(&g_browser->end, DOWN);
+    g_browser->num_entries++;
+    // el tail
+    browser_del_entry();
+
+    mu_assert("Failure in 022-05", g_browser->sel == en2);
+    mu_assert("Failure in 022-06", g_browser->end == en2);
+    mu_assert("Failure in 022-07", g_browser->start == en1);
+    mu_assert("Failure in 022-08", g_browser->num_entries == 2);
+
+    // reset browser
+    entry_node_traverse(&g_browser->end, DOWN);
+    entry_node_traverse(&g_browser->sel, DOWN);
+    (g_browser->num_entries)++;
+    // move to head and delete head
+    entry_node_traverse(&g_browser->sel, UP);
+    entry_node_traverse(&g_browser->sel, UP);
+    browser_del_entry();
+
+    mu_assert("Failure in 022-09", g_browser->sel == en2);
+    mu_assert("Failure in 022-10", g_browser->end == en3);
+    mu_assert("Failure in 022-11", g_browser->start == en2);
+    mu_assert("Failure in 022-12", g_browser->num_entries == 2);
+
+    free_browser(g_browser);
+
+    // ------------------------------------------------------------------------
+    // Browser size > num nodes
+    // ------------------------------------------------------------------------
+    
+    // not enough space for one of three nodes
+    g_browser = init_browser(g_entries, 2);
+
+    // delete tail
+    browser_del_entry();
+
+    mu_assert("Failure in 022-13", g_browser->sel == en2);
+    mu_assert("Failure in 022-14", g_browser->end == en2);
+    mu_assert("Failure in 022-15", g_browser->start == en1);
+    mu_assert("Failure in 022-16", g_browser->num_entries == 2);
+
+    // reset browser
+    entry_node_traverse(&g_browser->sel, DOWN);
+    entry_node_traverse(&g_browser->start, DOWN);
+    entry_node_traverse(&g_browser->end, DOWN);
+    // move up and delete non-tail
+    entry_node_traverse(&g_browser->sel, UP);
+    browser_del_entry();
+
+    mu_assert("Failure in 022-17", g_browser->sel == en1);
+    mu_assert("Failure in 022-18", g_browser->end == en3);
+    mu_assert("Failure in 022-19", g_browser->start == en1);
+    mu_assert("Failure in 022-20", g_browser->num_entries == 2);
+
+    free_entry_list(g_entries);
+    free_browser(g_browser);
+    
+    // ------------------------------------------------------------------------
+    // Delete from empty list
+    // ------------------------------------------------------------------------
+
+    g_entries = init_entry_list();
+    g_browser = init_browser(g_entries, 2);
+
+    mu_assert("Failure in 022-21", g_browser->sel == NULL);
+    mu_assert("Failure in 022-22", g_browser->end == NULL);
+    mu_assert("Failure in 022-23", g_browser->start == NULL);
+    mu_assert("Failure in 022-24", g_browser->num_entries == 0);
+
+    free_entry_list(g_entries);
+    free_browser(g_browser);
+    return 0;
+}
+
+/*
+char *edit_entry_to_sql_update_023() {
+    int cat_id = 1;
+    int id = 1;
+    struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900, 
+	.tm_isdst = 1}; 
+    time_t d1 = mktime(&tm1);
+    entry_t *e = init_entry(id, "Starbucks", d1, -0.21, cat_id, NULL);
+
+    char *sql = edit_entry_to_sql_update(e);
+    char* expected_statement = "UPDATE Entries SET name = 'Starbucks', "
+			       "date = 1644642000, amount = -0.21, "
+        		       "category_id = 1, note = '' WHERE"
+        		       " id=1;"; 
+
+    mu_assert("Failure in 023-01", strcmp(sql, expected_statement) == 0);
+    free_entry(e);
+    free(sql);
+    return 0;
+}
+*/
 
 void end_budgurse(int status) {
     

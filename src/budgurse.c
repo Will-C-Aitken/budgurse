@@ -24,6 +24,7 @@ void init_budgurse() {
     // start ncurses
     initscr();
     curs_set(0);
+    keypad(stdscr, true);
     noecho();
     use_default_colors();
 

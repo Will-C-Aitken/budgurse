@@ -24,6 +24,8 @@
 #define MAX_AMOUNT_VAL 999999.99
 #define MIN_AMOUNT_VAL -99999.99
 
+#define KEY_ESC 27
+
 typedef enum state {
     BROWSER,
     PROMPT,

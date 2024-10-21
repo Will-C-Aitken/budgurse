@@ -2,6 +2,15 @@
 
 int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
+const char *date_prompt = "Enter date "
+    "(mm/dd/yyyy or mm/dd for current year):";
+const char *name_prompt = "Enter descriptor (cannot be empty):";
+const char *amnt_prompt = "Enter amount:";
+const char *m_cat_prompt = "Enter category:";
+const char *s_cat_prompt = "Enter subcategory (leave empty for none):";
+const char *note_prompt = "Enter note (leave empty for none):";
+
+
 int prompt_new_entry() {
 
     time_t date;
@@ -10,32 +19,30 @@ int prompt_new_entry() {
     int cat_id;
     char note[MAX_NOTE_BYTES];
 
-    const char *date_prompt = "Enter date "
-	"(mm/dd/yyyy or mm/dd for current year):";
-    const char *name_prompt = "Enter descriptor (cannot be empty):";
-    const char *amnt_prompt = "Enter amount:";
-    const char *m_cat_prompt = "Enter category:";
-    const char *s_cat_prompt = "Enter subcategory (leave empty for none):";
-    const char *note_prompt = "Enter note (leave empty for none):";
-
     if ((get_entry_input(date_prompt, &date, (input_proc_fn_t)date_proc) || 
          get_entry_input(name_prompt, name, (input_proc_fn_t)name_proc) ||
          get_entry_input(amnt_prompt, &amnt, (input_proc_fn_t)amount_proc) ||
          get_entry_input(m_cat_prompt, &cat_id, (input_proc_fn_t)m_cat_proc) ||
 	 get_entry_input(s_cat_prompt, &cat_id, (input_proc_fn_t)s_cat_proc) ||
          get_entry_input(note_prompt, note, (input_proc_fn_t)note_proc))
-	== BUDGURSE_FAILURE)
-	return 1; 
+	== BUDGURSE_FAILURE) {
 
-    entry_t *e = init_entry(name, date, amnt, cat_id, 
+	werase(g_wins[PROMPT].win);
+	wrefresh(g_wins[PROMPT].win);
+	return 1; 
+    }
+
+    entry_t *e = init_entry(g_entries->next_free_id, name, date, amnt, cat_id, 
 	    (strlen(note) == 0) ? NULL : note);
     db_exec(e, (gen_sql_fn_t)entry_to_sql_insert);
     entry_node_t* en = init_entry_node(e);
     append_to_tail(g_entries, en);
+
     werase(g_wins[PROMPT].win);
     wrefresh(g_wins[PROMPT].win);
     return 0;
 }
+
 
 int prompt_add_category(const char *cat_name, int parent_id) {
     int ch;
@@ -44,7 +51,7 @@ int prompt_add_category(const char *cat_name, int parent_id) {
 	"you like to add it? (y/n)";
 
     while (1) {
-	display_prompt(add_cat_str);
+	display_prompt(add_cat_str, 0, true);
 	ch = wgetch(g_wins[PROMPT].win);
 	if (ch == 'y') {
 	    int new_cat_id = get_next_id(g_categories);
@@ -58,6 +65,67 @@ int prompt_add_category(const char *cat_name, int parent_id) {
     }
 }
 
+void prompt_edit_entry(entry_node_t *cur) {
+    int ch, rc = 1;
+    const char *edit_prompt = "Edit: (1) Date, (2) Name, (3) Amount, "
+	"(4) Categories, (5) Note";
+
+    display_prompt(edit_prompt, 0, true);
+
+    ch = wgetch(g_wins[PROMPT].win);
+    while (rc == BUDGURSE_FAILURE) {
+	switch (ch) {
+	    case '1': {
+		time_t new_date;
+		if ((rc = get_entry_input(date_prompt, &new_date, 
+			(input_proc_fn_t)date_proc)) == BUDGURSE_SUCCESS)
+		    entry_set_date(cur->data, new_date);
+		break;
+	    } 
+	    case '2': {
+		char new_name[MAX_NAME_BYTES];
+		if ((rc = get_entry_input(name_prompt, new_name, 
+			(input_proc_fn_t)name_proc)) == BUDGURSE_SUCCESS)
+		    entry_set_name(cur->data, new_name);
+		break;
+	    } 
+	    case '3': {
+		float new_amount;
+		if ((rc = get_entry_input(amnt_prompt, &new_amount, 
+			(input_proc_fn_t)amount_proc)) == BUDGURSE_SUCCESS)
+		    entry_set_amount(cur->data, new_amount);
+		break;
+	    } 
+	    case '4': {
+		int new_id;
+		if ((rc = get_entry_input(m_cat_prompt, &new_id, 
+			(input_proc_fn_t)m_cat_proc)) == BUDGURSE_FAILURE)
+		    break;
+		if ((rc = get_entry_input(s_cat_prompt, &new_id, 
+			(input_proc_fn_t)s_cat_proc)) == BUDGURSE_SUCCESS)
+		    entry_set_cat_id(cur->data, new_id);
+		break;
+	    } 
+	    case '5': {
+		char new_note[MAX_NOTE_BYTES];
+		if ((rc = get_entry_input(note_prompt, new_note, 
+			(input_proc_fn_t)note_proc)) == BUDGURSE_SUCCESS)
+		    entry_set_note(cur->data, new_note);
+		break;
+	    } 
+	    case 'q':
+	    case KEY_ESC:
+		return;
+	}
+    }
+
+    // edit_entry_to_sql_update()
+
+    werase(g_wins[PROMPT].win);
+    wrefresh(g_wins[PROMPT].win);
+}
+
+
 int get_entry_input(const char *prompt_str, void *output, 
 	input_proc_fn_t p_fn) {
 
@@ -68,13 +136,13 @@ int get_entry_input(const char *prompt_str, void *output,
 
     while (poll) {
 	response[0] = '\0';
-	display_prompt(prompt_str);
+	display_prompt(prompt_str, 0, true);
 
 	if (!get_prompt_response(response))
 	    poll = p_fn(response, output);
 
 	if (poll) {
-	    display_prompt(err_str);
+	    display_prompt(err_str, 0, false);
 	    int ch = wgetch(g_wins[PROMPT].win);
 	    if (ch == 'q')
 		return 1;
@@ -84,12 +152,15 @@ int get_entry_input(const char *prompt_str, void *output,
     return 0;
 }
 
-void display_prompt(const char *prompt_str) {
-    werase(g_wins[PROMPT].win);
-    wmove(g_wins[PROMPT].win, 0, 1);
+
+void display_prompt(const char *prompt_str, int line, bool refresh) {
+    if (refresh)
+	werase(g_wins[PROMPT].win);
+    wmove(g_wins[PROMPT].win, line, 1);
     waddstr(g_wins[PROMPT].win, prompt_str);
     wrefresh(g_wins[PROMPT].win);
 }
+
 
 int get_prompt_response(char* pr) {
     int rc;

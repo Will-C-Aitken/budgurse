@@ -5,11 +5,12 @@
 
 entry_list_t *g_entries = NULL;
 
-entry_t *init_entry(char *name, time_t date, float amount, 
-	int category_id, char *note) {
+entry_t *init_entry(int id, const char *name, time_t date, float amount, 
+	int category_id, const char *note) {
 
     entry_t *e = malloc(sizeof(entry_t));
 
+    e->id = id;
     e->date = date;
     e->amount = amount;
     e->name = strdup(name);
@@ -28,6 +29,28 @@ void free_entry(entry_t *e) {
     free(e->name);
     free(e->note);
     free(e);
+}
+
+void entry_set_date(entry_t *e, time_t new_date) {
+    e->date = new_date;
+}
+
+void entry_set_name(entry_t *e, const char *name) {
+    free(e->name);
+    e->name = strdup(name);
+}
+
+void entry_set_amount(entry_t *e, float amount) {
+    e->amount = amount;
+}
+
+void entry_set_cat_id(entry_t *e, int cat_id) {
+    e->category_id = cat_id;
+}
+
+void entry_set_note(entry_t *e, const char *note) {
+    free(e->note);
+    e->note = strdup(note);
 }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +105,7 @@ entry_list_t *init_entry_list() {
     el->head = NULL;
     el->tail = NULL;
     el->num_nodes = 0;
+    el->next_free_id = 1;
     
     return el;
 }
@@ -90,6 +114,7 @@ entry_list_t *init_entry_list() {
 void append_to_tail(entry_list_t *el, entry_node_t *en) {
 
     el->num_nodes++;
+    el->next_free_id = en->data->id + 1;
     
     if (el->num_nodes == 1) {
 	el->tail = en;
@@ -102,8 +127,7 @@ void append_to_tail(entry_list_t *el, entry_node_t *en) {
     el->tail = en;
 }
 
-
-void free_tail(entry_list_t *el) {
+void del_tail(entry_list_t *el) {
 
     if (el->num_nodes == 0)
         return;
@@ -116,17 +140,47 @@ void free_tail(entry_list_t *el) {
 
     if (el->num_nodes == 0) {
 	el->head = NULL;
-	el->tail = NULL;
         return;
     }
 
     el->tail->next = NULL;
+}
 
-    if (el->num_nodes == 1) {
-	el->head = el->tail;
-	el->head->next = NULL;
-	el->tail->prev = NULL;
+void del_head(entry_list_t *el) {
+    if (el->num_nodes == 0)
+	return;
+
+    entry_node_t *temp = el->head;
+    el->head = temp->next;
+    el->num_nodes--;
+
+    free_entry_node(temp);
+
+    if (el->num_nodes == 0) {
+	el->tail = NULL;
+        return;
     }
+
+    el->head->prev = NULL;
+}
+
+void del_entry(entry_list_t *el, entry_node_t *en) {
+
+    if (en == el->tail) {
+	del_tail(el);
+	return;
+    }
+
+    if (en == el->head) {
+	del_head(el);
+	return;
+    }
+
+    en->prev->next = en->next;
+    en->next->prev = en->prev;
+
+    free_entry_node(en);
+    el->num_nodes--;
 }
 
 
@@ -135,7 +189,7 @@ void free_entry_list(entry_list_t *el) {
 	return;
 
     while(el->num_nodes > 0)
-	free_tail(el);
+	del_tail(el);
     free(el);
 }
 

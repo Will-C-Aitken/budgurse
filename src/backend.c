@@ -16,7 +16,8 @@ static int load_categories_callback(void *_, int argc, char **argv,
 static int load_entries_callback(void *_, int argc, char **argv, 
 	char **azColName) {
 
-    entry_t *entry = init_entry(argv[1], 
+    entry_t *entry = init_entry(strtol(argv[0], NULL, 10),
+				argv[1], 
 				(time_t)strtol(argv[2], NULL, 10),
 				strtof(argv[3], NULL), 
 				strtol(argv[4], NULL, 10), 
@@ -39,7 +40,7 @@ void init_db(const char *file_name) {
     
     char sql[BUFSIZ]; 
     snprintf(sql, BUFSIZ, 
-	"CREATE TABLE IF NOT EXISTS ENTRIES( "
+	"CREATE TABLE IF NOT EXISTS Entries( "
 	    "id INTEGER NOT NULL, "
 	    "name VARCHAR(%d) NOT NULL, "
 	    "date INTEGER NOT NULL, "
@@ -47,13 +48,13 @@ void init_db(const char *file_name) {
 	    "category_id INTEGER NOT NULL, "
 	    "note VARCHAR(%d), "
 	    "PRIMARY KEY (id), "
-	    "FOREIGN KEY (category_id) REFERENCES CATEGORIES(id)); "
-	"CREATE TABLE IF NOT EXISTS CATEGORIES( "
+	    "FOREIGN KEY (category_id) REFERENCES Categories(id)); "
+	"CREATE TABLE IF NOT EXISTS Categories( "
 	    "id INTEGER NOT NULL, "
 	    "parent_id INTEGER, "
 	    "name VARCHAR(%d) NOT NULL, "
 	    "PRIMARY KEY (id), "
-	    "FOREIGN KEY (parent_id) REFERENCES CATEGORIES(id));",
+	    "FOREIGN KEY (parent_id) REFERENCES Categories(id));",
 	MAX_NAME_BYTES, MAX_NOTE_BYTES, MAX_CAT_BYTES);
 
     rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
@@ -69,12 +70,12 @@ void load_db() {
     
     int rc;
     char *err_msg;
-    char *sql = "SELECT * from CATEGORIES";
+    char *sql = "SELECT * from Categories";
     rc = sqlite3_exec(g_db, sql, load_categories_callback, NULL, &err_msg);
     EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
 	    err_msg);
 
-    sql = "SELECT * from ENTRIES";
+    sql = "SELECT * from Entries";
     rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", 
 	    err_msg);
@@ -101,7 +102,7 @@ int db_exec(void *data, gen_sql_fn_t gen_sql) {
 
 char *entry_to_sql_insert(entry_t *e) {
 
-    char *sql_to_append = "INSERT INTO ENTRIES (name, date, amount, "
+    char *sql_to_append = "INSERT INTO Entries (name, date, amount, "
 			  "category_id, note) "
 			  "VALUES (";
 
@@ -134,14 +135,50 @@ char *entry_to_sql_insert(entry_t *e) {
     return sql;
 }
 
+char *edit_entry_to_sql_update(entry_t *e) {
+
+    char *sql_to_append = "UPDATE Entries SET name = "; 
+
+    char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
+    sql[0] = '\0';
+    strcat(sql, sql_to_append);
+
+    append_to_sql(&sql, NULL, e->name, true);
+
+    sql_to_append = ", date = ";
+    char date_str[10];
+    sprintf(date_str, "%ld", e->date);
+    append_to_sql(&sql, sql_to_append, date_str, false);
+
+    sql_to_append = ", amount = ";
+    char amount_str[8];
+    sprintf(amount_str, "%0.2f", e->amount);
+    append_to_sql(&sql, sql_to_append, amount_str, false);
+
+    sql_to_append = ", category_id = ";
+    char category_id_str[2];
+    sprintf(category_id_str, "%d", e->category_id);
+    append_to_sql(&sql, sql_to_append, category_id_str, false);
+
+    sql_to_append = ", note = ";
+    append_to_sql(&sql, sql_to_append, e->note, true);
+
+    sql_to_append = " WHERE id='";
+    char id_str[10];
+    sprintf(id_str, "%d", e->id);
+    append_to_sql(&sql, sql_to_append, id_str, false);
+
+    return sql;
+}
+
 char *cat_to_sql_insert(category_t *c) {
-    char *sql_to_append = "INSERT INTO CATEGORIES (id, parent_id, name) "
+    char *sql_to_append = "INSERT INTO Categories (id, parent_id, name) "
 			  "VALUES (";
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
-    char category_id_str[2];
+    char category_id_str[10];
     sprintf(category_id_str, "%d", c->id);
     append_to_sql(&sql, NULL, category_id_str, false);
 
@@ -157,6 +194,22 @@ char *cat_to_sql_insert(category_t *c) {
     return sql;
 }
 
+char *del_entry_to_sql(entry_t *e) {
+    char *sql_to_append = "DELETE FROM Entries WHERE id=";
+
+    char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
+    sql[0] = '\0';
+    strcat(sql, sql_to_append);
+
+    char id_str[10];
+    sprintf(id_str, "%d", e->id);
+    append_to_sql(&sql, NULL, id_str, false);
+
+    sql_to_append = ";";
+    append_to_sql(&sql, sql_to_append, "", false);
+
+    return sql;
+}
 
 void append_to_sql(char **cur_sql, const char *sql_to_append, 
 	const char *data_to_append, bool data_is_str_type) {

@@ -16,6 +16,8 @@ int db_exec(void *data, gen_sql_fn_t gen_sql);
 
 char *entry_to_sql_insert(entry_t *e);
 char *cat_to_sql_insert(category_t *c);
+char *del_entry_to_sql(entry_t *e);
+char *edit_entry_to_sql_update(entry_t *e);
 void append_to_sql(char **cur_sql, const char *sql_to_append, 
 	const char *data_to_append, bool data_is_str_type);
 

@@ -24,10 +24,13 @@ typedef struct browser {
 extern browser_t *g_browser;
 
 browser_t* init_browser(entry_list_t* el, int max_num_entries);
+void free_browser(browser_t* b);
+
 int browser_handle_key(int ch);
 void browser_scroll(int num_times, direction_t dir);
 void browser_add_entry();
-void free_browser(browser_t* b);
+void browser_edit_entry();
+entry_node_t *browser_del_entry();
 
 // drawing functions
 void draw_browser();
