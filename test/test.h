@@ -47,13 +47,14 @@ int write_entry_test();
 int load_db_test();
 int cat_to_sql_insert_test();
 int del_entry_to_sql_test();
-// int edit_entry_to_sql_update_023();
+int edit_entry_to_sql_update_test();
 
 // Browser tests
 int browser_tests();
 int browser_init_test();
 int browser_scroll_test();
-int browser_del_entry_test();
+int browser_append_to_tail_test();
+int browser_pop_sel_entry_test();
 
 // Categories tests
 int categories_tests();

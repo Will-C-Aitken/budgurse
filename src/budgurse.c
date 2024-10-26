@@ -37,6 +37,7 @@ void init_budgurse() {
     load_db();
 
     g_browser = init_browser(g_entries, -1);
+    g_summary = init_summary(g_entries, MONTH, -1, -1);
 
     state = BROWSER;
 }
@@ -45,6 +46,7 @@ void init_budgurse() {
 int handle_input(int ch) {
     switch (state) {
 	case BROWSER: return browser_handle_key(ch);
+	case SUMMARY: return summary_handle_key(ch);
 	case PROMPT: return 1;
     }
     return 1;
@@ -57,6 +59,7 @@ void end_budgurse(int status) {
     free_cat_array(g_categories);
     free_entry_list(g_entries);
     free_wins(g_wins);
+    free_summary(g_summary);
     if (sqlite3_close(g_db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",
 		  sqlite3_errmsg(g_db));

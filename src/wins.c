@@ -5,6 +5,7 @@ win_t g_wins[NUM_WINS];
 void init_wins() {
     g_wins[BROWSER] = init_browser_win();
     g_wins[PROMPT] = init_prompt_win();
+    g_wins[SUMMARY] = init_summary_win();
 }
 
 void free_wins() {
@@ -33,3 +34,15 @@ win_t init_prompt_win() {
     keypad(pw.win, true);
     return pw;
 }
+
+win_t init_summary_win() {
+    win_t sw;
+    sw.h = LINES - 2;
+    sw.w= COLS;
+    sw.y= 0;
+    sw.x= 0;
+    sw.win = newwin(sw.h, sw.w, sw.y, sw.x);
+    keypad(sw.win, true);
+    return sw;
+}
+

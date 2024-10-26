@@ -29,8 +29,10 @@ void free_browser(browser_t* b);
 int browser_handle_key(int ch);
 void browser_scroll(int num_times, direction_t dir);
 void browser_add_entry();
+void browser_append_to_tail();
 void browser_edit_entry();
-entry_node_t *browser_del_entry();
+void browser_del_entry();
+entry_node_t *browser_pop_sel_entry();
 
 // drawing functions
 void draw_browser();

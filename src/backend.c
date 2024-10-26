@@ -163,10 +163,13 @@ char *edit_entry_to_sql_update(entry_t *e) {
     sql_to_append = ", note = ";
     append_to_sql(&sql, sql_to_append, e->note, true);
 
-    sql_to_append = " WHERE id='";
+    sql_to_append = " WHERE id=";
     char id_str[10];
     sprintf(id_str, "%d", e->id);
     append_to_sql(&sql, sql_to_append, id_str, false);
+
+    sql_to_append = ";";
+    append_to_sql(&sql, sql_to_append, "", false);
 
     return sql;
 }
@@ -194,6 +197,7 @@ char *cat_to_sql_insert(category_t *c) {
     return sql;
 }
 
+
 char *del_entry_to_sql(entry_t *e) {
     char *sql_to_append = "DELETE FROM Entries WHERE id=";
 
@@ -210,6 +214,7 @@ char *del_entry_to_sql(entry_t *e) {
 
     return sql;
 }
+
 
 void append_to_sql(char **cur_sql, const char *sql_to_append, 
 	const char *data_to_append, bool data_is_str_type) {

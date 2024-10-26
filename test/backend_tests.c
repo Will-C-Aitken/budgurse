@@ -8,6 +8,7 @@ int backend_tests() {
     mu_run_test(load_db_test);
     mu_run_test(cat_to_sql_insert_test);
     mu_run_test(del_entry_to_sql_test);
+    mu_run_test(edit_entry_to_sql_update_test);
     return 0;
 }
 
@@ -137,19 +138,18 @@ int del_entry_to_sql_test() {
 }
 
 
-/*
-char *edit_entry_to_sql_update_test() {
+int edit_entry_to_sql_update_test() {
     int cat_id = 1;
     int id = 1;
-    struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900, 
-	.tm_isdst = 1}; 
+    struct tm tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t d1 = mktime(&tm1);
     entry_t *e = init_entry(id, "Starbucks", d1, -0.21, cat_id, NULL);
 
     char *sql = edit_entry_to_sql_update(e);
+    printf("%s\n", sql);
     char* expected_statement = "UPDATE Entries SET name = 'Starbucks', "
 			       "date = 1644642000, amount = -0.21, "
-        		       "category_id = 1, note = '' WHERE"
+        		       "category_id = 1, note = NULL WHERE"
         		       " id=1;"; 
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 15);
@@ -157,5 +157,3 @@ char *edit_entry_to_sql_update_test() {
     free(sql);
     return 0;
 }
-*/
-

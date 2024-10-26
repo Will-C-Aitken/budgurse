@@ -4,7 +4,8 @@
 int browser_tests() {
     mu_run_test(browser_init_test);
     mu_run_test(browser_scroll_test);
-    mu_run_test(browser_del_entry_test);
+    mu_run_test(browser_append_to_tail_test);
+    mu_run_test(browser_pop_sel_entry_test);
     return 0;
 }
 
@@ -122,11 +123,86 @@ int browser_scroll_test() {
 }
 
 
-int browser_del_entry_test() {
+int browser_append_to_tail_test() {
+
+    // empty_list
+    g_entries = init_entry_list();
+    // browser with room for more entries
+    g_browser = init_browser(g_entries, 10);
+
+    entry_node_t *en0 = init_entry_node(test_dummy_entry(0));
+    append_to_tail(g_entries, en0);
+    browser_append_to_tail();
+    
+    mu_assert(g_browser->end == en0, "Browser", 40);
+    mu_assert(g_browser->sel == en0, "Browser", 41);
+    mu_assert(g_browser->start == en0, "Browser", 42);
+    mu_assert(g_browser->num_entries == 1, "Browser", 43);
+
+
+    // append while at tail
+    entry_node_t *en1 = init_entry_node(test_dummy_entry(4));
+    append_to_tail(g_entries, en1);
+    browser_append_to_tail();
+
+    mu_assert(g_browser->end == en1, "Browser", 44);
+    mu_assert(g_browser->sel == en1, "Browser", 45);
+    mu_assert(g_browser->start == g_entries->head, "Browser", 46);
+    mu_assert(g_browser->num_entries == 2, "Browser", 47);
+
+    // append while not at tail i.e. go to tail
+    browser_scroll(2, UP); 
+    entry_node_t *en2 = init_entry_node(test_dummy_entry(5));
+    append_to_tail(g_entries, en2);
+    browser_append_to_tail();
+
+    mu_assert(g_browser->end == en2, "Browser", 48);
+    mu_assert(g_browser->sel == en2, "Browser", 49);
+    mu_assert(g_browser->start == g_entries->head, "Browser", 50);
+    mu_assert(g_browser->num_entries == 3, "Browser", 51);
+    
+    free_browser(g_browser);
+    
+    // browser smaller than num entries
+    g_browser = init_browser(g_entries, 3);
+
+    entry_node_t *en3 = init_entry_node(test_dummy_entry(6));
+    append_to_tail(g_entries, en3);
+    entry_node_t *temp = g_browser->start;
+
+    // append while at tail 
+    browser_append_to_tail();
+
+    mu_assert(g_browser->end == en3, "Browser", 52);
+    mu_assert(g_browser->sel == en3, "Browser", 53);
+    mu_assert(g_browser->start == temp->next, "Browser", 54);
+    // num_entries in browser does not change (still full)
+    mu_assert(g_browser->num_entries == 3, "Browser", 55);
+
+    // move all context above tail
+    browser_scroll(3, UP); 
+    entry_node_t *en4 = init_entry_node(test_dummy_entry(7));
+    append_to_tail(g_entries, en4);
+    browser_append_to_tail();
+
+    mu_assert(g_browser->end == en4, "Browser", 56);
+    mu_assert(g_browser->sel == en4, "Browser", 57);
+    mu_assert(g_browser->start == g_entries->tail->prev->prev, "Browser", 58);
+    mu_assert(g_browser->num_entries == 3, "Browser", 59);
+
+    free_entry_list(g_entries);
+    free_browser(g_browser);
+
+    return 0;
+}
+
+
+int browser_pop_sel_entry_test() {
     // For this series of tests, only delete from browser (i.e. move pointers),
     // but do not actually delete the entries from the list or db (they're not
     // written there anyway)
     
+    entry_node_t *popped_en = NULL;
     g_entries = test_dummy_entry_list(3);
 
     // ------------------------------------------------------------------------
@@ -139,24 +215,26 @@ int browser_del_entry_test() {
     // move selected to middle
     entry_node_traverse(&g_browser->sel, UP);
     // delete selected 
-    browser_del_entry();
+    popped_en = browser_pop_sel_entry();
 
-    mu_assert(g_browser->sel == g_entries->tail, "Browser", 40);
-    mu_assert(g_browser->end == g_entries->tail, "Browser", 41);
-    mu_assert(g_browser->start == g_entries->head, "Browser", 42);
-    mu_assert(g_browser->num_entries == 2, "Browser", 43);
+    mu_assert(popped_en == g_entries->head->next, "Browser", 60);
+    mu_assert(g_browser->sel == g_entries->tail, "Browser", 61);
+    mu_assert(g_browser->end == g_entries->tail, "Browser", 62);
+    mu_assert(g_browser->start == g_entries->head, "Browser", 63);
+    mu_assert(g_browser->num_entries == 2, "Browser", 64);
 
     // reset browser
     entry_node_traverse(&g_browser->sel, DOWN);
     entry_node_traverse(&g_browser->end, DOWN);
     g_browser->num_entries++;
     // el tail
-    browser_del_entry();
+    popped_en = browser_pop_sel_entry();
 
-    mu_assert(g_browser->sel == g_entries->head->next, "Browser", 44);
-    mu_assert(g_browser->end == g_entries->head->next, "Browser", 45);
-    mu_assert(g_browser->start == g_entries->head, "Browser", 46);
-    mu_assert(g_browser->num_entries == 2, "Browser", 47);
+    mu_assert(popped_en == g_entries->tail, "Browser", 65);
+    mu_assert(g_browser->sel == g_entries->head->next, "Browser", 66);
+    mu_assert(g_browser->end == g_entries->head->next, "Browser", 67);
+    mu_assert(g_browser->start == g_entries->head, "Browser", 68);
+    mu_assert(g_browser->num_entries == 2, "Browser", 69);
 
     // reset browser
     entry_node_traverse(&g_browser->end, DOWN);
@@ -165,12 +243,13 @@ int browser_del_entry_test() {
     // move to head and delete head
     entry_node_traverse(&g_browser->sel, UP);
     entry_node_traverse(&g_browser->sel, UP);
-    browser_del_entry();
+    popped_en = browser_pop_sel_entry();
 
-    mu_assert(g_browser->sel == g_entries->head->next, "Browser", 48);
-    mu_assert(g_browser->end == g_entries->tail, "Browser", 49);
-    mu_assert(g_browser->start == g_entries->head->next, "Browser", 50);
-    mu_assert(g_browser->num_entries == 2, "Browser", 51);
+    mu_assert(popped_en == g_entries->head, "Browser", 70);
+    mu_assert(g_browser->sel == g_entries->head->next, "Browser", 71);
+    mu_assert(g_browser->end == g_entries->tail, "Browser", 72);
+    mu_assert(g_browser->start == g_entries->head->next, "Browser", 73);
+    mu_assert(g_browser->num_entries == 2, "Browser", 74);
 
     free_browser(g_browser);
 
@@ -182,12 +261,13 @@ int browser_del_entry_test() {
     g_browser = init_browser(g_entries, 2);
 
     // delete tail
-    browser_del_entry();
+    popped_en = browser_pop_sel_entry();
 
-    mu_assert(g_browser->sel == g_entries->head->next, "Browser", 52);
-    mu_assert(g_browser->end == g_entries->head->next, "Browser", 53);
-    mu_assert(g_browser->start == g_entries->head, "Browser", 54);
-    mu_assert(g_browser->num_entries == 2, "Browser", 55);
+    mu_assert(popped_en == g_entries->tail, "Browser", 75);
+    mu_assert(g_browser->sel == g_entries->head->next, "Browser", 76);
+    mu_assert(g_browser->end == g_entries->head->next, "Browser", 77);
+    mu_assert(g_browser->start == g_entries->head, "Browser", 78);
+    mu_assert(g_browser->num_entries == 2, "Browser", 79);
 
     // reset browser
     entry_node_traverse(&g_browser->sel, DOWN);
@@ -195,12 +275,13 @@ int browser_del_entry_test() {
     entry_node_traverse(&g_browser->end, DOWN);
     // move up and delete non-tail
     entry_node_traverse(&g_browser->sel, UP);
-    browser_del_entry();
+    popped_en = browser_pop_sel_entry();
 
-    mu_assert(g_browser->sel == g_entries->head, "Browser", 56);
-    mu_assert(g_browser->end == g_entries->tail, "Browser", 57);
-    mu_assert(g_browser->start == g_entries->head, "Browser", 58);
-    mu_assert(g_browser->num_entries == 2, "Browser", 59);
+    mu_assert(popped_en == g_entries->tail->prev, "Browser", 80);
+    mu_assert(g_browser->sel == g_entries->head, "Browser", 81);
+    mu_assert(g_browser->end == g_entries->tail, "Browser", 82);
+    mu_assert(g_browser->start == g_entries->head, "Browser", 83);
+    mu_assert(g_browser->num_entries == 2, "Browser", 84);
 
     free_entry_list(g_entries);
     free_browser(g_browser);
@@ -212,10 +293,10 @@ int browser_del_entry_test() {
     g_entries = init_entry_list();
     g_browser = init_browser(g_entries, 2);
 
-    mu_assert(g_browser->sel == NULL, "Browser", 60);
-    mu_assert(g_browser->end == NULL, "Browser", 61);
-    mu_assert(g_browser->start == NULL, "Browser", 62);
-    mu_assert(g_browser->num_entries == 0, "Browser", 63);
+    mu_assert(g_browser->sel == NULL, "Browser", 85);
+    mu_assert(g_browser->end == NULL, "Browser", 86);
+    mu_assert(g_browser->start == NULL, "Browser", 87);
+    mu_assert(g_browser->num_entries == 0, "Browser", 88);
 
     free_entry_list(g_entries);
     free_browser(g_browser);

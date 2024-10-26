@@ -29,19 +29,18 @@ browser_t* init_browser(entry_list_t* el, int max_num_entries){
     return b;
 }
 
+
 int browser_handle_key(int ch) {
+
+    EXIT_IF(!g_browser, "Browser not initialized");
+
     switch (ch) {
 	case 'a':
 	    browser_add_entry();
 	    break;
-	case 'd': {
-	    entry_node_t *en_to_del = browser_del_entry();
-	    if (en_to_del) {
-		db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
-		del_entry(g_entries, en_to_del);
-	    }
+	case 'd':
+	    browser_del_entry();
 	    break;
-	}
 	case 'e':
 	    browser_edit_entry();
 	    break;
@@ -60,9 +59,8 @@ int browser_handle_key(int ch) {
     return 1;
 }
 
-void browser_scroll(int num_times, direction_t dir) {
 
-    EXIT_IF(!g_browser, "Browser not initialized");
+void browser_scroll(int num_times, direction_t dir) {
 
     if (g_browser->num_entries < 1)
 	return;
@@ -92,30 +90,50 @@ void browser_scroll(int num_times, direction_t dir) {
 
 
 void browser_add_entry() {
-    if (prompt_new_entry() == BUDGURSE_FAILURE)
-	return;
+    if (prompt_new_entry() == BUDGURSE_SUCCESS)
+	browser_append_to_tail();
+ }
+
+
+void browser_append_to_tail() {
 
     // go to new entry in browser
     g_browser->sel = g_browser->end = g_entries->tail;
     
-    // if all entries still fit in window don't change start pos
-    g_browser->num_entries++;
-    if (g_browser->num_entries <= g_browser->max_num_entries) {
-	g_browser->start = g_entries->head;
+    // if browser already full move start pos
+    if (g_browser->num_entries == g_browser->max_num_entries) {
+	g_browser->start = g_entries->tail;
+	// move to top of context
+	for (int i = 0; i < g_browser->num_entries - 1; i++)
+	    entry_node_traverse(&g_browser->start, UP);
 	return;
     }
 
-    // otherwise move start to tail - max_num_entries
-    for (int i = 0; i < g_browser->max_num_entries - 1; i++)
-	entry_node_traverse(&g_browser->start, UP);
- }
+    // otherwise onlt update start if it was NULL
+    g_browser->num_entries++;
+    if (!g_browser->start)
+	g_browser->start = g_entries->tail;
+
+}
+
 
 void browser_edit_entry() {
     if (g_browser->num_entries > 0) 
 	prompt_edit_entry(g_browser->sel);
 }
 
-entry_node_t *browser_del_entry() {
+
+void browser_del_entry() {
+    entry_node_t *en_to_del = browser_pop_sel_entry();
+    if (en_to_del) {
+	db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
+	del_entry(g_entries, en_to_del);
+    }
+}
+
+
+
+entry_node_t *browser_pop_sel_entry() {
 
     // if already empty, cannot delete
     if (g_browser->num_entries == 0)

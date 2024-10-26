@@ -72,8 +72,8 @@ void prompt_edit_entry(entry_node_t *cur) {
 
     display_prompt(edit_prompt, 0, true);
 
-    ch = wgetch(g_wins[PROMPT].win);
     while (rc == BUDGURSE_FAILURE) {
+	ch = wgetch(g_wins[PROMPT].win);
 	switch (ch) {
 	    case '1': {
 		time_t new_date;
@@ -115,12 +115,13 @@ void prompt_edit_entry(entry_node_t *cur) {
 	    } 
 	    case 'q':
 	    case KEY_ESC:
+		werase(g_wins[PROMPT].win);
+		wrefresh(g_wins[PROMPT].win);
 		return;
 	}
     }
 
-    // edit_entry_to_sql_update()
-
+    db_exec(cur->data, (gen_sql_fn_t)edit_entry_to_sql_update);
     werase(g_wins[PROMPT].win);
     wrefresh(g_wins[PROMPT].win);
 }

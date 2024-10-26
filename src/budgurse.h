@@ -29,6 +29,7 @@
 typedef enum state {
     BROWSER,
     PROMPT,
+    SUMMARY,
 } state_t;
 
 extern state_t state;
@@ -66,5 +67,6 @@ void end_budgurse();
 #include "categories.h"
 #include "wins.h"
 #include "prompt.h"
+#include "summary.h"
 
 #endif
