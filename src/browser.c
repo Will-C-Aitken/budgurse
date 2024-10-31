@@ -335,7 +335,7 @@ void browser_draw_amount(float amount, int *col, int max_width){
 
     // print comma in thousands
     if (thousands) 
-	wprintw(g_wins[BROWSER].win, "%d,%0.2f", thousands, 
+	wprintw(g_wins[BROWSER].win, "%d,%06.2f", thousands, 
 		amount - (thousands*1000));
     else
 	wprintw(g_wins[BROWSER].win, "%0.2f", amount);
