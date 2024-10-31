@@ -152,17 +152,17 @@ int entry_node_traverse_test() {
     struct tm tm1 = {.tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900};
     time_t d1 = mktime(&tm1);
     entry_t* e1 = init_entry(1, "Starbucks", d1, -0.21, cat_id,
-	"Zionist scum!");
+	"I might have a strong opinion about this");
     entry_node_t* en1 = init_entry_node(e1);
     append_to_tail(g_entries, en1);
 
     entry_t* e2 = init_entry(2, "Starbucks", d1, -0.21, cat_id,
-	"Zionist scum!");
+	"I might have a strong opinion about this");
     entry_node_t* en2 = init_entry_node(e2);
     append_to_tail(g_entries, en2);
 
     entry_t* e3 = init_entry(3, "Starbucks", d1, -0.31, cat_id,
-	"Zionist scum!");
+	"I might have a strong opinion about this");
     entry_node_t* en3 = init_entry_node(e3);
     append_to_tail(g_entries, en3);
 

@@ -2,10 +2,10 @@
 
 int tests_run = 0;
 
-entry_list_t *g_entries;
-cat_array_t *g_categories;
-sqlite3 *g_db;
-browser_t *g_browser;
+// entry_list_t *g_entries;
+// cat_array_t *g_categories;
+// sqlite3 *g_db;
+// browser_t *g_browser;
 win_t wins[NUM_WINS];
 
 int curses_mode = 0;

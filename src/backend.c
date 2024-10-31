@@ -115,15 +115,15 @@ char *entry_to_sql_insert(entry_t *e) {
 
     sql_to_append = ", ";
 
-    char date_str[10];
+    char date_str[11];
     sprintf(date_str, "%ld", e->date);
     append_to_sql(&sql, sql_to_append, date_str, false);
 
-    char amount_str[8];
+    char amount_str[9];
     sprintf(amount_str, "%0.2f", e->amount);
     append_to_sql(&sql, sql_to_append, amount_str, false);
 
-    char category_id_str[2];
+    char category_id_str[3];
     sprintf(category_id_str, "%d", e->category_id);
     append_to_sql(&sql, sql_to_append, category_id_str, false);
 
@@ -146,17 +146,17 @@ char *edit_entry_to_sql_update(entry_t *e) {
     append_to_sql(&sql, NULL, e->name, true);
 
     sql_to_append = ", date = ";
-    char date_str[10];
+    char date_str[11];
     sprintf(date_str, "%ld", e->date);
     append_to_sql(&sql, sql_to_append, date_str, false);
 
     sql_to_append = ", amount = ";
-    char amount_str[8];
+    char amount_str[9];
     sprintf(amount_str, "%0.2f", e->amount);
     append_to_sql(&sql, sql_to_append, amount_str, false);
 
     sql_to_append = ", category_id = ";
-    char category_id_str[2];
+    char category_id_str[3];
     sprintf(category_id_str, "%d", e->category_id);
     append_to_sql(&sql, sql_to_append, category_id_str, false);
 
@@ -164,7 +164,7 @@ char *edit_entry_to_sql_update(entry_t *e) {
     append_to_sql(&sql, sql_to_append, e->note, true);
 
     sql_to_append = " WHERE id=";
-    char id_str[10];
+    char id_str[11];
     sprintf(id_str, "%d", e->id);
     append_to_sql(&sql, sql_to_append, id_str, false);
 
@@ -205,7 +205,7 @@ char *del_entry_to_sql(entry_t *e) {
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
-    char id_str[10];
+    char id_str[11];
     sprintf(id_str, "%d", e->id);
     append_to_sql(&sql, NULL, id_str, false);
 

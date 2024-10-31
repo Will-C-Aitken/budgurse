@@ -146,7 +146,6 @@ int edit_entry_to_sql_update_test() {
     entry_t *e = init_entry(id, "Starbucks", d1, -0.21, cat_id, NULL);
 
     char *sql = edit_entry_to_sql_update(e);
-    printf("%s\n", sql);
     char* expected_statement = "UPDATE Entries SET name = 'Starbucks', "
 			       "date = 1644642000, amount = -0.21, "
         		       "category_id = 1, note = NULL WHERE"

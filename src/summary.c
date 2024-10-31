@@ -35,12 +35,14 @@ summary_t* init_summary(entry_list_t* el, delin_t d, int height, int width) {
     return s;
 }
 
+
 void free_summary(summary_t* s) {
     if (!s)
 	return;
     free(s->data);
     free(s);
 }
+
 
 
 int summary_handle_key(int ch) {
