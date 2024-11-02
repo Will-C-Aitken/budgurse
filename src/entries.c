@@ -94,6 +94,32 @@ bool is_tail (const entry_node_t* curr) {
     return false;
 }
 
+int dist_between(const entry_node_t* en1, const entry_node_t* en2) {
+    int count = 0;
+    entry_node_t *temp = en1;
+
+    // go forward first
+    while(temp) {
+	if (temp == en2)
+	    return count;
+	temp = temp->next;
+	count++;
+    }
+    
+    // try backward
+    temp = en1;
+    count = 0;
+    while(temp) {
+	if (temp == en2)
+	    return count;
+	temp = temp->prev;
+	count++;
+    }
+
+    // not in same list, return -1
+    return -1;
+}
+
 // ---------------------------------------------------------------------------
 // Entry List Definitions
 // ---------------------------------------------------------------------------
@@ -111,7 +137,7 @@ entry_list_t *init_entry_list() {
 }
 
 
-void append_to_tail(entry_list_t *el, entry_node_t *en) {
+void insert_entry(entry_list_t *el, entry_node_t *en, place_fn_t p_fn) {
 
     el->num_nodes++;
     el->next_free_id = en->data->id + 1;
@@ -122,9 +148,7 @@ void append_to_tail(entry_list_t *el, entry_node_t *en) {
 	return;
     }
 
-    en->prev = el->tail;
-    el->tail->next = en;
-    el->tail = en;
+    p_fn(el, en);
 }
 
 void del_tail(entry_list_t *el) {
@@ -211,4 +235,43 @@ int where_in_list(const entry_list_t *el, const entry_t *e){
     }
 
     return(-1);
+}
+
+
+void to_tail(entry_list_t *el, entry_node_t *en) {
+    en->prev = el->tail;
+    el->tail->next = en;
+    el->tail = en;
+}
+
+
+void to_head(entry_list_t *el, entry_node_t *en) {
+    en->next = el->head;
+    el->head->prev = en;
+    el->head = en;
+}
+
+
+void after_date(entry_list_t *el, entry_node_t *en) {
+    if (el->tail->data->date <= en->data->date) {
+	to_tail(el, en);
+	return;
+    }
+
+    if (el->head->data->date >= en->data->date) {
+	to_head(el, en);
+	return;
+    }
+
+    entry_node_t *temp = el->tail;
+    for (int i = el->num_nodes; i > 1; i--) {
+	entry_node_traverse(&temp, UP);
+	if (en->data->date < temp->data->date)
+	    continue;
+	en->next = temp->next;
+	en->prev = temp;
+	temp->next->prev = en;
+	temp->next = en;
+	return;
+    }
 }

@@ -90,30 +90,85 @@ void browser_scroll(int num_times, direction_t dir) {
 
 
 void browser_add_entry() {
-    if (prompt_new_entry() == BUDGURSE_SUCCESS)
-	browser_append_to_tail();
+    entry_node_t *new_en = prompt_new_entry();
+    // user exited
+    if (!new_en)
+	return;
+    browser_insert(new_en);
  }
 
 
-void browser_append_to_tail() {
+// Here is why an array for entries may have been a better choice. The logic
+// would certainly be simpler. However, since most new entries will be at the
+// tail and close to the current context the linked list should be faster.
+void browser_insert(entry_node_t *en) {
 
-    // go to new entry in browser
-    g_browser->sel = g_browser->end = g_entries->tail;
-    
-    // if browser already full move start pos
+    // browser is already full
     if (g_browser->num_entries == g_browser->max_num_entries) {
-	g_browser->start = g_entries->tail;
-	// move to top of context
-	for (int i = 0; i < g_browser->num_entries - 1; i++)
-	    entry_node_traverse(&g_browser->start, UP);
-	return;
+	// check if new entry is within current context (distance will be one
+	// greater than num_entries)
+	int dist = dist_between(g_browser->start, g_browser->end);
+	if (dist > g_browser->num_entries) {
+	    // if yes, make room and return
+	    entry_node_traverse(&g_browser->start, DOWN);
+	    g_browser->sel = en;
+	    return;
+	}
+
+	// otherwise, try going down first (after saving state in case it's 
+	// actually up
+	entry_node_t *temp_start = g_browser->start;
+	entry_node_t *temp_sel = g_browser->sel;
+	entry_node_t *temp_end = g_browser->end;
+	while (temp_sel->next) {
+	    entry_node_traverse(&temp_sel, DOWN);
+	    // only move context down until you no longer can
+	    if (temp_end->next) {
+		entry_node_traverse(&temp_start, DOWN);
+		entry_node_traverse(&temp_end, DOWN);
+	    }
+	    if (temp_sel == en) {
+		g_browser->start = temp_start;
+		g_browser->sel = temp_sel;
+		g_browser->end = temp_end;
+		return;
+	    }
+	}
+
+	// if still not found, go up
+	while (g_browser->sel->prev) {
+	    entry_node_traverse(&g_browser->sel, UP);
+	    // only move context up until you no longer can
+	    if (g_browser->start->prev) {
+		entry_node_traverse(&g_browser->start, UP);
+		entry_node_traverse(&g_browser->end, UP);
+	    }
+	    if (temp_sel == en) {
+		g_browser->start = temp_start;
+		g_browser->sel = temp_sel;
+		g_browser->end = temp_end;
+		return;
+	    }
+	}
     }
 
-    // otherwise onlt update start if it was NULL
-    g_browser->num_entries++;
-    if (!g_browser->start)
-	g_browser->start = g_entries->tail;
+    // browser is not full yet
+    else {
+	g_browser->num_entries++;
 
+	// first entry
+	if (!g_browser->sel) {
+	    g_browser->start = g_browser->sel = g_browser->end = en;
+	    return;
+	}
+
+	g_browser->start = g_browser->sel = g_browser->end = en;
+	while (g_browser->start->prev)
+	    entry_node_traverse(&g_browser->start, UP);
+	while (g_browser->end->next)
+	    entry_node_traverse(&g_browser->end, DOWN);
+	return;
+    }
 }
 
 
@@ -238,86 +293,71 @@ void draw_browser() {
 
 
 void browser_draw_header() {
-    int col = 2;
     char *col_names[] = {"Date", "Name", "     Amount", "Category", 
 		       "Subcategory"};
 
-    for (int i = 0; i < 5; i++) {
-	wmove(g_wins[BROWSER].win, 1, col);
-	browser_draw_string(col_names[i], &col, browser_col_widths[i]);
-    }
+    wmove(g_wins[BROWSER].win, 1, 1);
+    for (int i = 0; i < 5; i++)
+	if (i == 0)
+	    browser_draw_string(col_names[i], browser_col_widths[i], " ");
+	else
+	    browser_draw_string(col_names[i], browser_col_widths[i], "  ");
 }
 
 
 void browser_draw_entry(const entry_t *e, int row) {
-
-    int col = 1;
+    const char *delim_str = "  ";
     int i = 0;
 
-    wmove(g_wins[BROWSER].win, row, col);
+    // skip border
+    wmove(g_wins[BROWSER].win, row, 1);
     waddch(g_wins[BROWSER].win, ' ');
-    col++;
-    wmove(g_wins[BROWSER].win, row, col);
 
-    browser_draw_date(e->date, &col, browser_col_widths[i++]);
-    wmove(g_wins[BROWSER].win, row, col);
-
-    browser_draw_string(e->name, &col, browser_col_widths[i++]);
-    wmove(g_wins[BROWSER].win, row, col);
-
-    browser_draw_amount(e->amount, &col, browser_col_widths[i++]);
-    wmove(g_wins[BROWSER].win, row, col);
+    browser_draw_date(e->date, browser_col_widths[i++]);
+    browser_draw_string(e->name, browser_col_widths[i++], delim_str);
+    browser_draw_amount(e->amount, browser_col_widths[i++], delim_str);
 
     char* cat;
     char* subcat;
     cat_id_to_names(g_categories, e->category_id, &cat, &subcat);
-
-    browser_draw_string(cat, &col, browser_col_widths[i++]);
-    wmove(g_wins[BROWSER].win, row, col);
-
+    browser_draw_string(cat, browser_col_widths[i++], delim_str);
     if (subcat)
-	browser_draw_string(subcat, &col, browser_col_widths[i++]);
+	browser_draw_string(subcat, browser_col_widths[i++], delim_str);
     else
-	browser_draw_string("", &col, browser_col_widths[i++]);
+	browser_draw_string("", browser_col_widths[i++], delim_str);
 
     // pad with blank spaces
-    wmove(g_wins[BROWSER].win, row, col);
-    browser_draw_string("", &col, getmaxx(g_wins[BROWSER].win) - col - 3);
+    int pad_len = getmaxx(g_wins[BROWSER].win) - getcurx(g_wins[BROWSER].win) - 1;
+    browser_draw_string("", pad_len, "");
 }
 
 
-void browser_draw_date(time_t date, int *col, int max_width){
-
+void browser_draw_date(time_t date, int max_width){
     struct tm *tmp_date = gmtime(&date);
     wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", ++(tmp_date->tm_mon), 
 	    tmp_date->tm_mday, tmp_date->tm_year + 1900);
-    *col += max_width;
 }
 
 
-void browser_draw_string(const char *str, int *col, int max_width){
+void browser_draw_string(const char *str, int max_width, 
+	const char *delim_str){
 
-    // only draw "   " if not first col
-    if (*col > 2) {
-	waddstr(g_wins[BROWSER].win, "   ");
-    }
+    waddstr(g_wins[BROWSER].win, delim_str);
 
     // trunacte string
-    char trunc_str[max_width];
-    snprintf(trunc_str, max_width, "%-*s", max_width, str);
+    char trunc_str[max_width+1];
+    snprintf(trunc_str, max_width+1, "%-*s", max_width, str);
     wprintw(g_wins[BROWSER].win, "%s", trunc_str);
-    *col += max_width;
 }
 
 
-void browser_draw_amount(float amount, int *col, int max_width){
-
-    waddstr(g_wins[BROWSER].win, "   ");
+void browser_draw_amount(float amount, int max_width, const char *delim_str){
+    waddstr(g_wins[BROWSER].win, delim_str);
 
     // to right align
     int num_spaces, num_dig, thousands;
     num_dig = num_places_in_amount((int)amount);
-    num_spaces = max_width - 8 - num_dig;
+    num_spaces = max_width - 5 - num_dig;
     thousands = abs((int)amount / 1000);
 
     // for comma
@@ -339,8 +379,6 @@ void browser_draw_amount(float amount, int *col, int max_width){
 		amount - (thousands*1000));
     else
 	wprintw(g_wins[BROWSER].win, "%0.2f", amount);
-
-    *col += max_width; 
 }
 
 

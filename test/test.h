@@ -38,6 +38,8 @@ int is_end_node_test();
 int entry_node_traverse_test();
 int del_head_test();
 int del_entry_test();
+int insert_after_date_test();
+int dist_between_test();
 
 // Backend tests
 int backend_tests();
@@ -67,7 +69,12 @@ int date_proc_test();
 int amount_proc_test();
 int cat_proc_test();
 
+// Summary tests
+int summary_tests();
+int summary_init_test();
+
 // Utility functions
 entry_list_t* test_dummy_entry_list(int num_nodes);
 entry_t *test_dummy_entry(int id);
+cat_array_t* test_dummy_cat_array(int num_cats);
 int is_amount_eq(float candidate, float actual);

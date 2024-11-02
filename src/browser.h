@@ -4,10 +4,10 @@
 #include "budgurse.h"
 
 #define DATE_STR_LEN 10
-#define NAME_STR_LEN 25
-#define AMOUNT_STR_LEN 14
-#define CAT_STR_LEN 15
-#define SUBCAT_STR_LEN 15
+#define NAME_STR_LEN 22
+#define AMOUNT_STR_LEN 11
+#define CAT_STR_LEN 18
+#define SUBCAT_STR_LEN 18
 
 static const int browser_col_widths[] = {DATE_STR_LEN, NAME_STR_LEN, 
     AMOUNT_STR_LEN, CAT_STR_LEN, SUBCAT_STR_LEN};
@@ -29,7 +29,7 @@ void free_browser(browser_t* b);
 int browser_handle_key(int ch);
 void browser_scroll(int num_times, direction_t dir);
 void browser_add_entry();
-void browser_append_to_tail();
+void browser_insert(entry_node_t *en);
 void browser_edit_entry();
 void browser_del_entry();
 entry_node_t *browser_pop_sel_entry();
@@ -38,9 +38,10 @@ entry_node_t *browser_pop_sel_entry();
 void draw_browser();
 void browser_draw_header();
 void browser_draw_entry(const entry_t *e, int row);
-void browser_draw_date(time_t date, int *col, int max_width);
-void browser_draw_amount(float amount, int *col, int max_width);
-void browser_draw_string(const char *cat, int *col, int max_width);
+void browser_draw_date(time_t date, int max_width);
+void browser_draw_amount(float amount, int max_width, const char *delim_str);
+void browser_draw_string(const char *str, int max_width, 
+	const char *delim_str);
 
 // utility functions
 int num_places_in_amount (int n);

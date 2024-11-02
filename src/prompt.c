@@ -11,7 +11,7 @@ const char *s_cat_prompt = "Enter subcategory (leave empty for none):";
 const char *note_prompt = "Enter note (leave empty for none):";
 
 
-int prompt_new_entry() {
+entry_node_t *prompt_new_entry() {
 
     time_t date;
     char name[MAX_NAME_BYTES];
@@ -29,18 +29,18 @@ int prompt_new_entry() {
 
 	werase(g_wins[PROMPT].win);
 	wrefresh(g_wins[PROMPT].win);
-	return 1; 
+	return NULL; 
     }
 
     entry_t *e = init_entry(g_entries->next_free_id, name, date, amnt, cat_id, 
 	    (strlen(note) == 0) ? NULL : note);
     db_exec(e, (gen_sql_fn_t)entry_to_sql_insert);
     entry_node_t* en = init_entry_node(e);
-    append_to_tail(g_entries, en);
+    insert_entry(g_entries, en, after_date);
 
     werase(g_wins[PROMPT].win);
     wrefresh(g_wins[PROMPT].win);
-    return 0;
+    return en;
 }
 
 

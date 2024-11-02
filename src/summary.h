@@ -12,7 +12,7 @@ typedef enum delin {
 typedef struct summary {
     int num_cols;
     int num_rows;
-    float **data;
+    float *data;
     int x_start;
     int x_sel;
     int x_end;
@@ -23,7 +23,8 @@ typedef struct summary {
 
 extern summary_t *g_summary;
 
-summary_t* init_summary(entry_list_t* el, delin_t d, int height, int width);
+summary_t* init_summary(delin_t d, int height, int width);
+void calc_summary(summary_t *s, entry_list_t* el, bool sorted_by_date);
 void free_summary(summary_t* s);
 
 int summary_handle_key(int ch);

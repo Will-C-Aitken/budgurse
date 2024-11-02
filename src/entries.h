@@ -43,6 +43,8 @@ typedef struct entry_list {
     int next_free_id;
 } entry_list_t;
 
+typedef void (*place_fn_t) (entry_list_t *, entry_node_t *);
+
 extern entry_list_t *g_entries;
 
 // entry declarations
@@ -61,15 +63,21 @@ void entry_node_traverse(entry_node_t **curr, direction_t dir);
 bool is_end_node(const entry_node_t* curr);
 bool is_head(const entry_node_t* curr);
 bool is_tail(const entry_node_t* curr);
+int dist_between(const entry_node_t* en1, const entry_node_t* en2);
 void free_entry_node(entry_node_t *e);
 
 // entry list declarations
 entry_list_t *init_entry_list();
-void append_to_tail(entry_list_t *el, entry_node_t *en);
+void insert_entry(entry_list_t *el, entry_node_t *en, place_fn_t p_fn);
 void del_entry(entry_list_t *el, entry_node_t *en);
 void del_tail(entry_list_t *el);
 void del_head(entry_list_t *el);
 void free_entry_list(entry_list_t *el);
 int where_in_list(const entry_list_t *el, const entry_t *e);
+
+// place_fns
+void to_tail(entry_list_t *el, entry_node_t *en);
+void to_head(entry_list_t *el, entry_node_t *en);
+void after_date(entry_list_t *el, entry_node_t *en);
 
 #endif

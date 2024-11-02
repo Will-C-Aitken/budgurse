@@ -12,18 +12,20 @@ int curses_mode = 0;
 
 int main(int argc, char **argv) {
 
-     if (!entries_tests())
-	 printf("All Entries Tests Passed\n");
-     if (!backend_tests())
-	 printf("All Backend Tests Passed\n");
-     if (!browser_tests())
-	 printf("All Browser Tests Passed\n");
-     if (!categories_tests())
-	 printf("All Categories Tests Passed\n");
-     if (!prompt_tests())
-	 printf("All Prompt Tests Passed\n");
+    if (!entries_tests())
+	printf("All Entries Tests Passed\n");
+    if (!backend_tests())
+	printf("All Backend Tests Passed\n");
+    if (!browser_tests())
+	printf("All Browser Tests Passed\n");
+    if (!categories_tests())
+	printf("All Categories Tests Passed\n");
+    if (!prompt_tests())
+	printf("All Prompt Tests Passed\n");
+    if (!summary_tests())
+	printf("All Summary Tests Passed\n");
 
-     printf("Tests run: %d\n", tests_run);
+    printf("Tests run: %d\n", tests_run);
 }
 
 

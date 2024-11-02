@@ -131,8 +131,8 @@ int browser_append_to_tail_test() {
     g_browser = init_browser(g_entries, 10);
 
     entry_node_t *en0 = init_entry_node(test_dummy_entry(0));
-    append_to_tail(g_entries, en0);
-    browser_append_to_tail();
+    insert_entry(g_entries, en0, to_tail);
+    browser_insert(en0);
     
     mu_assert(g_browser->end == en0, "Browser", 40);
     mu_assert(g_browser->sel == en0, "Browser", 41);
@@ -142,8 +142,8 @@ int browser_append_to_tail_test() {
 
     // append while at tail
     entry_node_t *en1 = init_entry_node(test_dummy_entry(4));
-    append_to_tail(g_entries, en1);
-    browser_append_to_tail();
+    insert_entry(g_entries, en1, to_tail);
+    browser_insert(en1);
 
     mu_assert(g_browser->end == en1, "Browser", 44);
     mu_assert(g_browser->sel == en1, "Browser", 45);
@@ -153,8 +153,8 @@ int browser_append_to_tail_test() {
     // append while not at tail i.e. go to tail
     browser_scroll(2, UP); 
     entry_node_t *en2 = init_entry_node(test_dummy_entry(5));
-    append_to_tail(g_entries, en2);
-    browser_append_to_tail();
+    insert_entry(g_entries, en2, to_tail);
+    browser_insert(en2);
 
     mu_assert(g_browser->end == en2, "Browser", 48);
     mu_assert(g_browser->sel == en2, "Browser", 49);
@@ -167,23 +167,24 @@ int browser_append_to_tail_test() {
     g_browser = init_browser(g_entries, 3);
 
     entry_node_t *en3 = init_entry_node(test_dummy_entry(6));
-    append_to_tail(g_entries, en3);
+    insert_entry(g_entries, en3, to_tail);
     entry_node_t *temp = g_browser->start;
 
     // append while at tail 
-    browser_append_to_tail();
+    browser_insert(en3);
 
     mu_assert(g_browser->end == en3, "Browser", 52);
     mu_assert(g_browser->sel == en3, "Browser", 53);
     mu_assert(g_browser->start == temp->next, "Browser", 54);
     // num_entries in browser does not change (still full)
     mu_assert(g_browser->num_entries == 3, "Browser", 55);
+    printf("Last one\n");
 
     // move all context above tail
     browser_scroll(3, UP); 
     entry_node_t *en4 = init_entry_node(test_dummy_entry(7));
-    append_to_tail(g_entries, en4);
-    browser_append_to_tail();
+    insert_entry(g_entries, en4, to_tail);
+    browser_insert(en4);
 
     mu_assert(g_browser->end == en4, "Browser", 56);
     mu_assert(g_browser->sel == en4, "Browser", 57);

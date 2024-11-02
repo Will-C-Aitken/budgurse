@@ -24,7 +24,7 @@ static int load_entries_callback(void *_, int argc, char **argv,
 				argv[5]);
 
     entry_node_t *en = init_entry_node(entry);
-    append_to_tail(g_entries, en);
+    insert_entry(g_entries, en, after_date);
     return 0;
 }
 
