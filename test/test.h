@@ -57,6 +57,7 @@ int browser_init_test();
 int browser_scroll_test();
 int browser_append_to_tail_test();
 int browser_pop_sel_entry_test();
+int browser_insert_after_date_test();
 
 // Categories tests
 int categories_tests();

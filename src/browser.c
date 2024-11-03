@@ -105,37 +105,33 @@ void browser_insert(entry_node_t *en) {
 
     // browser is already full
     if (g_browser->num_entries == g_browser->max_num_entries) {
-	// check if new entry is within current context (distance will be one
-	// greater than num_entries)
+	// check if new entry has expanded current context (distance will equal
+	// to num_entries when normally it's num_entries - 1)
 	int dist = dist_between(g_browser->start, g_browser->end);
-	if (dist > g_browser->num_entries) {
+	if (dist == g_browser->num_entries) {
 	    // if yes, make room and return
 	    entry_node_traverse(&g_browser->start, DOWN);
 	    g_browser->sel = en;
 	    return;
 	}
 
-	// otherwise, try going down first (after saving state in case it's 
-	// actually up
-	entry_node_t *temp_start = g_browser->start;
-	entry_node_t *temp_sel = g_browser->sel;
-	entry_node_t *temp_end = g_browser->end;
-	while (temp_sel->next) {
-	    entry_node_traverse(&temp_sel, DOWN);
+	// otherwise, try going down first 
+	while (g_browser->sel->next) {
+	    entry_node_traverse(&g_browser->sel, DOWN);
 	    // only move context down until you no longer can
-	    if (temp_end->next) {
-		entry_node_traverse(&temp_start, DOWN);
-		entry_node_traverse(&temp_end, DOWN);
+	    if (g_browser->end->next) {
+		entry_node_traverse(&g_browser->start, DOWN);
+		entry_node_traverse(&g_browser->end, DOWN);
 	    }
-	    if (temp_sel == en) {
-		g_browser->start = temp_start;
-		g_browser->sel = temp_sel;
-		g_browser->end = temp_end;
+	    if (g_browser->sel == en)
 		return;
-	    }
 	}
 
-	// if still not found, go up
+	// if still not found, go back up
+	// worst case go all the way down then all the way back up, but very
+	// rare (would only happen if near the top, and add something just
+	// above it, outside of context)
+	g_browser->sel = g_browser->start;
 	while (g_browser->sel->prev) {
 	    entry_node_traverse(&g_browser->sel, UP);
 	    // only move context up until you no longer can
@@ -143,12 +139,8 @@ void browser_insert(entry_node_t *en) {
 		entry_node_traverse(&g_browser->start, UP);
 		entry_node_traverse(&g_browser->end, UP);
 	    }
-	    if (temp_sel == en) {
-		g_browser->start = temp_start;
-		g_browser->sel = temp_sel;
-		g_browser->end = temp_end;
+	    if (g_browser->sel == en)
 		return;
-	    }
 	}
     }
 
@@ -156,17 +148,9 @@ void browser_insert(entry_node_t *en) {
     else {
 	g_browser->num_entries++;
 
-	// first entry
-	if (!g_browser->sel) {
-	    g_browser->start = g_browser->sel = g_browser->end = en;
-	    return;
-	}
-
-	g_browser->start = g_browser->sel = g_browser->end = en;
-	while (g_browser->start->prev)
-	    entry_node_traverse(&g_browser->start, UP);
-	while (g_browser->end->next)
-	    entry_node_traverse(&g_browser->end, DOWN);
+	g_browser->sel = en;
+	g_browser->start = g_entries->head;
+	g_browser->end = g_entries->tail;
 	return;
     }
 }

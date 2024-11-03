@@ -284,7 +284,7 @@ int insert_after_date_test() {
 
     // two days newer
     struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=14, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+	   .tm_mday=14, .tm_mon=11, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date2 = mktime(&tm2);
     entry_t *e2 = init_entry(2, "A Name", date2, -12.00, 1, "A Note");
     entry_node_t *en2= init_entry_node(e2);
@@ -323,6 +323,19 @@ int insert_after_date_test() {
     mu_assert(en4->next == en2, "Entries", 86);
     mu_assert(en4->prev == en1, "Entries", 87);
     mu_assert(en2->prev == en4, "Entries", 88);
+    
+    // one year before (should be first
+    struct tm tm5 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=13, .tm_mon=0, .tm_year=2021 - 1900, .tm_isdst=1}; 
+    time_t date5 = mktime(&tm5);
+    entry_t *e5 = init_entry(5, "A Name", date5, -12.00, 1, "A Note");
+    entry_node_t *en5= init_entry_node(e5);
+    insert_entry(g_entries, en5, after_date);
+
+    mu_assert(g_entries->num_nodes == 5, "Entries", 89);
+    mu_assert(g_entries->head == en5, "Entries", 90);
+    mu_assert(g_entries->head->next == en1, "Entries", 91);
+    mu_assert(en1->prev == en5, "Entries", 92);
 
     free_entry_list(g_entries);
     return 0;
@@ -333,20 +346,20 @@ int dist_between_test() {
     int d;
     g_entries = test_dummy_entry_list(1);
     d = dist_between(g_entries->head, g_entries->tail);
-    mu_assert(d == 0, "Entries", 89);
+    mu_assert(d == 0, "Entries", 93);
     free_entry_list(g_entries);
 
     g_entries = test_dummy_entry_list(5);
     d = dist_between(g_entries->head, g_entries->tail);
-    mu_assert(d == 4, "Entries", 90);
+    mu_assert(d == 4, "Entries", 94);
     d = dist_between(g_entries->tail, g_entries->head);
-    mu_assert(d == 4, "Entries", 91);
+    mu_assert(d == 4, "Entries", 95);
     free_entry_list(g_entries);
 
     entry_node_t *en1 = init_entry_node(test_dummy_entry(1));
     entry_node_t *en2 = init_entry_node(test_dummy_entry(2));
     d = dist_between(en1, en2);
-    mu_assert(d == -1, "Entries", 92);
+    mu_assert(d == -1, "Entries", 96);
     free_entry_node(en1);
     free_entry_node(en2);
 

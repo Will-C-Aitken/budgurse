@@ -6,6 +6,7 @@ int browser_tests() {
     mu_run_test(browser_scroll_test);
     mu_run_test(browser_append_to_tail_test);
     mu_run_test(browser_pop_sel_entry_test);
+    mu_run_test(browser_insert_after_date_test);
     return 0;
 }
 
@@ -178,7 +179,6 @@ int browser_append_to_tail_test() {
     mu_assert(g_browser->start == temp->next, "Browser", 54);
     // num_entries in browser does not change (still full)
     mu_assert(g_browser->num_entries == 3, "Browser", 55);
-    printf("Last one\n");
 
     // move all context above tail
     browser_scroll(3, UP); 
@@ -301,5 +301,121 @@ int browser_pop_sel_entry_test() {
 
     free_entry_list(g_entries);
     free_browser(g_browser);
+    return 0;
+}
+
+
+int browser_insert_after_date_test() {
+
+    g_entries = init_entry_list();
+    // browser with room for more entries
+    g_browser = init_browser(g_entries, 3);
+
+    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date1 = mktime(&tm1);
+    entry_t *e1 = init_entry(1, "A Name", date1, -12.00, 1, "A Note");
+    entry_node_t *en1= init_entry_node(e1);
+    insert_entry(g_entries, en1, after_date);
+    browser_insert(en1);
+
+    mu_assert(g_browser->end == en1, "Browser", 92);
+    mu_assert(g_browser->sel == en1, "Browser", 93);
+    mu_assert(g_browser->start == en1, "Browser", 94);
+    mu_assert(g_browser->num_entries == 1, "Browser", 95);
+
+    // earlier date
+    struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=1, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date2 = mktime(&tm2);
+    entry_t *e2 = init_entry(2, "A Name", date2, -12.00, 1, "A Note");
+    entry_node_t *en2= init_entry_node(e2);
+    insert_entry(g_entries, en2, after_date);
+    browser_insert(en2);
+
+    mu_assert(g_browser->sel == en2, "Browser", 96);
+    mu_assert(g_browser->end == en1, "Browser", 97);
+    mu_assert(g_browser->start == en2, "Browser", 98);
+    mu_assert(g_browser->num_entries == 2, "Browser", 99);
+
+    // between the two
+    struct tm tm3 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=4, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date3 = mktime(&tm3);
+    entry_t *e3 = init_entry(3, "A Name", date3, -12.00, 1, "A Note");
+    entry_node_t *en3= init_entry_node(e3);
+    insert_entry(g_entries, en3, after_date);
+    browser_insert(en3);
+
+    mu_assert(g_browser->sel == en3, "Browser", 100);
+    mu_assert(g_browser->end == en1, "Browser", 101);
+    mu_assert(g_browser->start == en2, "Browser", 102);
+    mu_assert(g_browser->num_entries == 3, "Browser", 103);
+
+    // new en at where start was
+    struct tm tm4 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=3, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date4 = mktime(&tm4);
+    entry_t *e4 = init_entry(4, "A Name", date4, -12.00, 1, "A Note");
+    entry_node_t *en4= init_entry_node(e4);
+    insert_entry(g_entries, en4, after_date);
+    browser_insert(en4);
+
+    // en2, en4, en3, en1
+    mu_assert(g_browser->sel == en4, "Browser", 104);
+    mu_assert(g_browser->end == en1, "Browser", 105);
+    mu_assert(g_browser->start == en4, "Browser", 106);
+    mu_assert(g_browser->num_entries == 3, "Browser", 107);
+
+    // new en at where end was
+    struct tm tm5 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=9, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date5 = mktime(&tm5);
+    entry_t *e5 = init_entry(5, "A Name", date5, -12.00, 1, "A Note");
+    entry_node_t *en5= init_entry_node(e5);
+    insert_entry(g_entries, en5, after_date);
+    browser_insert(en5);
+
+    // en2, en4, en3, en5, en1
+    mu_assert(g_browser->sel == en5, "Browser", 108);
+    mu_assert(g_browser->end == en1, "Browser", 109);
+    mu_assert(g_browser->start == en3, "Browser", 110);
+    mu_assert(g_browser->num_entries == 3, "Browser", 111);
+
+    // new en at head (tail already covered in `append_to_tail` tests)
+    // while not at head
+    struct tm tm6 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=29, .tm_mon=11, .tm_year=2021 - 1900, .tm_isdst=1}; 
+    time_t date6 = mktime(&tm6);
+    entry_t *e6 = init_entry(6, "A Name", date6, -12.00, 1, "A Note");
+    entry_node_t *en6= init_entry_node(e6);
+    insert_entry(g_entries, en6, after_date);
+    browser_insert(en6);
+
+    // en6, en2, en4, en3, en5, en1
+    mu_assert(g_browser->sel == en6, "Browser", 112);
+    mu_assert(g_browser->end == en4, "Browser", 113);
+    mu_assert(g_browser->start == en6, "Browser", 114);
+    mu_assert(g_browser->num_entries == 3, "Browser", 115);
+
+    // new en at head (tail already covered in `append_to_tail` tests)
+    // while at head
+    struct tm tm9 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=29, .tm_mon=10, .tm_year=2021 - 1900, .tm_isdst=1}; 
+    time_t date9 = mktime(&tm9);
+    entry_t *e9 = init_entry(9, "A Name", date9, -12.00, 1, "A Note");
+    entry_node_t *en9= init_entry_node(e9);
+    insert_entry(g_entries, en9, after_date);
+    browser_insert(en9);
+
+    // en9, en6, en2, en4, en3, en5, en1
+    mu_assert(g_browser->sel == en9, "Browser", 116);
+    mu_assert(g_browser->end == en2, "Browser", 117);
+    mu_assert(g_browser->start == en9, "Browser", 118);
+    mu_assert(g_browser->num_entries == 3, "Browser", 119);
+
+    free_entry_list(g_entries);
+    free_browser(g_browser);
+
     return 0;
 }
