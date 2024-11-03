@@ -125,9 +125,9 @@ int is_sub_cat(const cat_array_t *ca, int cat_id, int p_cat_id) {
     return found;
 }
 
+
 int get_next_id(const cat_array_t *ca) {
     if (ca->num_cats > 0)
 	return (ca->array[ca->num_cats - 1]->id + 1);
     return 1;
 }
-

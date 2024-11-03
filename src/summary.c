@@ -10,11 +10,15 @@ summary_t* init_summary(delin_t d, int height, int width) {
     int num_cols;
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
-	case MONTH: num_cols = 12; break;
+	case MONTH: 
+	    num_cols = 12; 
+	    break;
 	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
     }
 
     summary_t *s = malloc(sizeof(summary_t));
+
+    s->delin = d;
 
     if (height == -1)
 	height = g_wins[SUMMARY].h;
@@ -41,12 +45,33 @@ summary_t* init_summary(delin_t d, int height, int width) {
     int n = s->num_rows * s->num_cols;
     s->data = malloc(sizeof(float) * n);
     memset(s->data, 0.00, sizeof(float) * n);
+
     return s;
 }
 
 
-void calc_summary(summary_t *s, entry_list_t* el, bool sorted_by_date) {
-    EXIT_IF(!el, "Passed entry list not initialized\n");
+void calc_summary() {
+    EXIT_IF(!g_entries, "Entries must be initialized before calculating "
+	    "summary\n");
+
+    // if new date, shift and recalc
+    
+    entry_node_t *curr = g_entries->tail;
+    int max_date_part = date_part_from_delin(curr->data->date, 
+	    g_summary->delin);
+
+    for (int i = g_entries->num_nodes; i > 0; i--) {
+	summary_update_cell(curr, max_date_part);
+	curr = curr->prev; 
+    }
+}
+
+
+// in progress
+void summary_update_cell(entry_node_t *en, int max_date_part) {
+    // int date = date_part_from_delin(en->data->date, g_summary->delin);
+    // int date_idx = date + (g_summary->num_cols - max_date_part - 1);
+    // int curr_cat_idx = en->data->category_id;
 }
 
 
@@ -60,4 +85,18 @@ void free_summary(summary_t* s) {
 
 int summary_handle_key(int ch) {
     return 1;
+}
+
+
+int date_part_from_delin(time_t date, delin_t d) {
+    int date_part;
+    struct tm *tm_from_date = gmtime(&date);
+    switch (d) {
+	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	case MONTH: 
+	    date_part = (tm_from_date->tm_mon)++;
+	    break;
+	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
+    }
+    return date_part;
 }
