@@ -81,19 +81,75 @@ llist_t *init_llist() {
     return l;
 }
 
-void llist_insert_node(llist_t *l, llist_node_t *nd, llist_place_fn_t p_fn, 
-	llist_comp_fn_t c_fn) {
-
-    l->num_nodes++;
+void llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn) {
     
-    if (l->num_nodes == 1) {
-	l->tail = nd;
-	l->head = nd;
+    if (l->num_nodes == 0) {
+	l->num_nodes++;
+        l->tail = nd;
+        l->head = nd;
 	return;
     }
 
-    p_fn(l, nd, c_fn);
+    if (c_fn(nd->data, l->tail->data)) {
+	llist_insert_to_tail(l, nd);
+	return;
+    }
+
+    if (c_fn(l->head->data, nd->data)) {
+	llist_insert_to_head(l, nd);
+	return;
+    }
+
+    llist_node_t *temp = l->tail;
+    for (int i = l->num_nodes; i > 1; i--) {
+	llist_node_traverse(&temp, UP);
+	if (c_fn(nd->data, temp->data)) {
+	    l->num_nodes++;
+	    llist_insert_after_node(temp, nd);
+	    return;
+	}
+	// found node, but do insert inside c_fn (to support ll within ll)
+	if (c_fn(temp->data, nd->data) < 1)
+	    return;
+    }
+
 }
+
+void llist_insert_to_tail(llist_t *l, llist_node_t *nd) {
+    l->num_nodes++;
+    if (l->num_nodes == 1) {
+        l->tail = nd;
+        l->head = nd;
+	return;
+    }
+
+    nd->prev = l->tail;
+    l->tail->next = nd;
+    l->tail = nd;
+}
+
+
+void llist_insert_to_head(llist_t *l, llist_node_t *nd) {
+    l->num_nodes++;
+    if (l->num_nodes == 1) {
+        l->tail = nd;
+        l->head = nd;
+	return;
+    }
+
+    nd->next = l->head;
+    l->head->prev = nd;
+    l->head = nd;
+}
+
+
+void llist_insert_after_node(llist_node_t *prev_nd, llist_node_t *nd) {
+    nd->next = prev_nd->next;
+    nd->prev = prev_nd;
+    prev_nd->next->prev = nd;
+    prev_nd->next = nd;
+}
+
 
 void llist_del_tail(llist_t *l, llist_free_data_fn_t f_fn) {
 
@@ -159,47 +215,4 @@ void free_llist(llist_t *l, llist_free_data_fn_t f_fn) {
     while(l->num_nodes > 0)
 	llist_del_tail(l, f_fn);
     free(l);
-}
-
-// ---------------------------------------------------------------------------
-// Llist place function Definitions
-// ---------------------------------------------------------------------------
-
-
-void llist_to_tail(llist_t *l, llist_node_t *nd, llist_comp_fn_t _) {
-    nd->prev = l->tail;
-    l->tail->next = nd;
-    l->tail = nd;
-}
-
-
-void llist_to_head(llist_t *l, llist_node_t *nd, llist_comp_fn_t _) {
-    nd->next = l->head;
-    l->head->prev = nd;
-    l->head = nd;
-}
-
-
-void llist_after_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn) {
-    if (c_fn(nd->data, l->tail->data)) {
-	llist_to_tail(l, nd, NULL);
-	return;
-    }
-
-    if (c_fn(l->head->data, nd->data)) {
-	llist_to_head(l, nd, NULL);
-	return;
-    }
-
-    llist_node_t *temp = l->tail;
-    for (int i = l->num_nodes; i > 1; i--) {
-	llist_node_traverse(&temp, UP);
-	if (c_fn(temp->data, nd->data))
-	    continue;
-	nd->next = temp->next;
-	nd->prev = temp;
-	temp->next->prev = nd;
-	temp->next = nd;
-	return;
-    }
 }

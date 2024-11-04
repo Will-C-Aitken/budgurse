@@ -4,7 +4,7 @@
 llist_t* test_dummy_list(int num_nodes) {
     llist_t *el = init_llist();
     for (int i = 1; i <= num_nodes; i++)
-	llist_insert_node(el, init_llist_node(NULL), llist_to_tail, NULL);
+	llist_insert_to_tail(el, init_llist_node(NULL));
     return el;
 }
 

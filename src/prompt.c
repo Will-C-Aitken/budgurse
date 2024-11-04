@@ -39,8 +39,7 @@ llist_node_t *prompt_new_entry_node() {
     db_exec(e, (gen_sql_fn_t)entry_to_sql_insert);
     e->id = sqlite3_last_insert_rowid(g_db);
     llist_node_t* en = init_llist_node(e);
-    llist_insert_node(g_entries, en, llist_after_node, 
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en, (llist_comp_fn_t)entry_date_comp_gte);
 
     werase(g_wins[PROMPT].win);
     wrefresh(g_wins[PROMPT].win);

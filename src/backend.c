@@ -24,7 +24,7 @@ static int load_entries_callback(void *_, int argc, char **argv,
 				argv[5]);
 
     llist_node_t *nd = init_llist_node(entry);
-    llist_insert_node(g_entries, nd, llist_to_tail, NULL);
+    llist_insert_to_tail(g_entries, nd);
     return 0;
 }
 

@@ -132,7 +132,7 @@ int browser_append_to_tail_test() {
     g_browser = init_browser(g_entries, 10);
 
     llist_node_t *en0 = init_llist_node(NULL);
-    llist_insert_node(g_entries, en0, llist_to_tail, NULL);
+    llist_insert_to_tail(g_entries, en0);
     browser_insert(en0);
     
     mu_assert(g_browser->end == en0, "Browser", 40);
@@ -143,7 +143,7 @@ int browser_append_to_tail_test() {
 
     // append while at tail
     llist_node_t *en1 = init_llist_node(NULL);
-    llist_insert_node(g_entries, en1, llist_to_tail, NULL);
+    llist_insert_to_tail(g_entries, en1);
     browser_insert(en1);
 
     mu_assert(g_browser->end == en1, "Browser", 44);
@@ -154,7 +154,7 @@ int browser_append_to_tail_test() {
     // append while not at tail i.e. go to tail
     browser_scroll(2, UP); 
     llist_node_t *en2 = init_llist_node(NULL);
-    llist_insert_node(g_entries, en2, llist_to_tail, NULL);
+    llist_insert_to_tail(g_entries, en2);
     browser_insert(en2);
 
     mu_assert(g_browser->end == en2, "Browser", 48);
@@ -168,7 +168,7 @@ int browser_append_to_tail_test() {
     g_browser = init_browser(g_entries, 3);
 
     llist_node_t *en3 = init_llist_node(NULL);
-    llist_insert_node(g_entries, en3, llist_to_tail, NULL);
+    llist_insert_to_tail(g_entries, en3);
     llist_node_t *temp = g_browser->start;
 
     // append while at tail 
@@ -183,7 +183,7 @@ int browser_append_to_tail_test() {
     // move all context above tail
     browser_scroll(3, UP); 
     llist_node_t *en4 = init_llist_node(NULL);
-    llist_insert_node(g_entries, en4, llist_to_tail, NULL);
+    llist_insert_to_tail(g_entries, en4);
     browser_insert(en4);
 
     mu_assert(g_browser->end == en4, "Browser", 56);
@@ -316,8 +316,7 @@ int browser_insert_after_date_test() {
     time_t date1 = mktime(&tm1);
     entry_t *e1 = init_entry(1, "A Name", date1, -12.00, 1, "A Note");
     llist_node_t *en1= init_llist_node(e1);
-    llist_insert_node(g_entries, en1, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en1, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en1);
 
     mu_assert(g_browser->end == en1, "Browser", 92);
@@ -331,8 +330,7 @@ int browser_insert_after_date_test() {
     time_t date2 = mktime(&tm2);
     entry_t *e2 = init_entry(2, "A Name", date2, -12.00, 1, "A Note");
     llist_node_t *en2= init_llist_node(e2);
-    llist_insert_node(g_entries, en2, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en2, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en2);
 
     mu_assert(g_browser->sel == en2, "Browser", 96);
@@ -346,8 +344,7 @@ int browser_insert_after_date_test() {
     time_t date3 = mktime(&tm3);
     entry_t *e3 = init_entry(3, "A Name", date3, -12.00, 1, "A Note");
     llist_node_t *en3= init_llist_node(e3);
-    llist_insert_node(g_entries, en3, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en3, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en3);
 
     mu_assert(g_browser->sel == en3, "Browser", 100);
@@ -361,8 +358,7 @@ int browser_insert_after_date_test() {
     time_t date4 = mktime(&tm4);
     entry_t *e4 = init_entry(4, "A Name", date4, -12.00, 1, "A Note");
     llist_node_t *en4= init_llist_node(e4);
-    llist_insert_node(g_entries, en4, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en4, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en4);
 
     // en2, en4, en3, en1
@@ -377,8 +373,7 @@ int browser_insert_after_date_test() {
     time_t date5 = mktime(&tm5);
     entry_t *e5 = init_entry(5, "A Name", date5, -12.00, 1, "A Note");
     llist_node_t *en5= init_llist_node(e5);
-    llist_insert_node(g_entries, en5, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en5, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en5);
 
     // en2, en4, en3, en5, en1
@@ -394,8 +389,7 @@ int browser_insert_after_date_test() {
     time_t date6 = mktime(&tm6);
     entry_t *e6 = init_entry(6, "A Name", date6, -12.00, 1, "A Note");
     llist_node_t *en6= init_llist_node(e6);
-    llist_insert_node(g_entries, en6, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en6, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en6);
 
     // en6, en2, en4, en3, en5, en1
@@ -411,8 +405,7 @@ int browser_insert_after_date_test() {
     time_t date9 = mktime(&tm9);
     entry_t *e9 = init_entry(9, "A Name", date9, -12.00, 1, "A Note");
     llist_node_t *en9= init_llist_node(e9);
-    llist_insert_node(g_entries, en9, llist_after_node, 
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en9, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en9);
 
     // en9, en6, en2, en4, en3, en5, en1

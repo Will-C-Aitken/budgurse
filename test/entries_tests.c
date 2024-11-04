@@ -15,8 +15,7 @@ int insert_after_date_test() {
     time_t date1 = mktime(&tm1);
     entry_t *e1 = init_entry(1, "A Name", date1, -12.00, 1, "A Note");
     llist_node_t *en1= init_llist_node(e1);
-    llist_insert_node(g_entries, en1, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en1, (llist_comp_fn_t)entry_date_comp_gte);
 
     mu_assert(g_entries->num_nodes == 1, "Entries", 1);
     mu_assert(g_entries->head == en1, "Entries", 2);
@@ -28,8 +27,7 @@ int insert_after_date_test() {
     time_t date2 = mktime(&tm2);
     entry_t *e2 = init_entry(2, "A Name", date2, -12.00, 1, "A Note");
     llist_node_t *en2= init_llist_node(e2);
-    llist_insert_node(g_entries, en2, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en2, (llist_comp_fn_t)entry_date_comp_gte);
 
     mu_assert(g_entries->num_nodes == 2, "Entries", 4);
     mu_assert(g_entries->head == en1, "Entries", 5);
@@ -40,8 +38,7 @@ int insert_after_date_test() {
     // same time
     entry_t *e3 = init_entry(3, "A Name", date2, -12.00, 1, "A Note");
     llist_node_t *en3= init_llist_node(e3);
-    llist_insert_node(g_entries, en3, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en3, (llist_comp_fn_t)entry_date_comp_gte);
 
     mu_assert(g_entries->num_nodes == 3, "Entries", 9);
     mu_assert(g_entries->head == en1, "Entries", 10);
@@ -57,8 +54,7 @@ int insert_after_date_test() {
     time_t date4 = mktime(&tm4);
     entry_t *e4 = init_entry(4, "A Name", date4, -12.00, 1, "A Note");
     llist_node_t *en4= init_llist_node(e4);
-    llist_insert_node(g_entries, en4, llist_after_node,
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en4, (llist_comp_fn_t)entry_date_comp_gte);
 
     mu_assert(g_entries->num_nodes == 4, "Entries", 16);
     mu_assert(g_entries->head == en1, "Entries", 17);
@@ -73,8 +69,7 @@ int insert_after_date_test() {
     time_t date5 = mktime(&tm5);
     entry_t *e5 = init_entry(5, "A Name", date5, -12.00, 1, "A Note");
     llist_node_t *en5= init_llist_node(e5);
-    llist_insert_node(g_entries, en5, llist_after_node, 
-	    (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entries, en5, (llist_comp_fn_t)entry_date_comp_gte);
 
     mu_assert(g_entries->num_nodes == 5, "Entries", 22);
     mu_assert(g_entries->head == en5, "Entries", 23);

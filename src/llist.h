@@ -23,7 +23,6 @@ typedef enum llist_direction {
 
 typedef int (*llist_comp_fn_t) (void *, void *);
 typedef void (*llist_free_data_fn_t) (void *);
-typedef void (*llist_place_fn_t) (llist_t *, llist_node_t *, llist_comp_fn_t);
 
 // llist node declarations
 llist_node_t *init_llist_node(void *data);
@@ -36,16 +35,15 @@ void free_llist_node(llist_node_t *nd, llist_free_data_fn_t fn);
 
 // llist declarations
 llist_t *init_llist();
-void llist_insert_node(llist_t *l, llist_node_t *nd, llist_place_fn_t p_fn, 
-	llist_comp_fn_t c_fn);
+void llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn);
 void llist_del_node(llist_t *l, llist_node_t *en, llist_free_data_fn_t fn);
 void llist_del_tail(llist_t *l, llist_free_data_fn_t fn);
 void llist_del_head(llist_t *l, llist_free_data_fn_t fn);
 void free_llist(llist_t *l, llist_free_data_fn_t fn);
 
 // llist place_fns
-void llist_to_tail(llist_t *el, llist_node_t *en, llist_comp_fn_t c_fn);
-void llist_to_head(llist_t *el, llist_node_t *en, llist_comp_fn_t c_fn);
-void llist_after_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn);
+void llist_insert_to_tail(llist_t *l, llist_node_t *nd);
+void llist_insert_to_head(llist_t *l, llist_node_t *nd);
+void llist_insert_after_node(llist_node_t *prev_nd, llist_node_t *nd);
 
 #endif

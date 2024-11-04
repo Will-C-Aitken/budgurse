@@ -15,7 +15,7 @@ int append_to_tail_test() {
 
     llist_t *tl = init_llist();
     llist_node_t *tnd = init_llist_node(NULL);
-    llist_insert_node(tl, tnd, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, tnd);
 
     // there should be no next or prev
     mu_assert(!tl->head->prev, "Llist", 1);
@@ -29,7 +29,7 @@ int append_to_tail_test() {
     mu_assert(tl->head == tnd, "Llist", 7);
 
     llist_node_t* tnd2 = init_llist_node(NULL);
-    llist_insert_node(tl, tnd2, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, tnd2);
 
     mu_assert(!tl->head->prev, "Llist", 8);
     mu_assert(tl->head->next == tl->tail, "Llist", 9);
@@ -40,7 +40,7 @@ int append_to_tail_test() {
     mu_assert(tl->tail == tnd2, "Llist", 13);
 
     llist_node_t* tnd3 = init_llist_node(NULL);
-    llist_insert_node(tl, tnd3, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, tnd3);
 
     mu_assert(!tl->head->prev, "Llist", 14);
     mu_assert(tl->head->next == tnd2, "Llist", 15);
@@ -92,19 +92,19 @@ int is_end_node_test() {
 
     llist_t *tl = init_llist();
     llist_node_t* nd1 = init_llist_node(NULL);
-    llist_insert_node(tl, nd1, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd1);
 
     mu_assert(llist_is_end_node(nd1), "Llist", 34);
 
     llist_node_t* nd2 = init_llist_node(NULL);
-    llist_insert_node(tl, nd2, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd2);
 
     // Both are still end nodes
     mu_assert(llist_is_end_node(nd2), "Llist", 35);
     mu_assert(llist_is_end_node(nd1), "Llist", 36);
 
     llist_node_t* nd3 = init_llist_node(NULL);
-    llist_insert_node(tl, nd3, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd3);
 
     // 1 and 3 are end nodes but 2 isn't
     mu_assert(llist_is_end_node(nd1), "Llist", 37);
@@ -122,13 +122,13 @@ int llist_node_traverse_test() {
     llist_t *tl = init_llist();
 
     llist_node_t* nd1 = init_llist_node(NULL);
-    llist_insert_node(tl, nd1, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd1);
 
     llist_node_t* nd2 = init_llist_node(NULL);
-    llist_insert_node(tl, nd2, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd2);
 
     llist_node_t* nd3 = init_llist_node(NULL);
-    llist_insert_node(tl, nd3, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd3);
 
     llist_node_t* temp = tl->tail;
 
@@ -155,13 +155,13 @@ int del_head_test() {
 
     llist_t *tl = init_llist();
     llist_node_t* nd1 = init_llist_node(NULL);
-    llist_insert_node(tl, nd1, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd1);
 
     llist_node_t* nd2 = init_llist_node(NULL);
-    llist_insert_node(tl, nd2, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd2);
     
     llist_node_t* nd3 = init_llist_node(NULL);
-    llist_insert_node(tl, nd3, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd3);
 
     llist_del_head(tl, free);
     mu_assert(nd2 == tl->head, "Llist", 46);
@@ -188,13 +188,13 @@ int del_entry_test() {
 
     llist_t *tl = init_llist();
     llist_node_t* nd1 = init_llist_node(NULL);
-    llist_insert_node(tl, nd1, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd1);
 
     llist_node_t* nd2 = init_llist_node(NULL);
-    llist_insert_node(tl, nd2, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd2);
     
     llist_node_t* nd3 = init_llist_node(NULL);
-    llist_insert_node(tl, nd3, llist_to_tail, NULL);
+    llist_insert_to_tail(tl, nd3);
 
     llist_del_node(tl, nd2, free);
     mu_assert(nd1->next == nd3, "Llist", 57);
