@@ -38,13 +38,13 @@ int entry_to_sql_insert_test() {
 int load_empty_db_test() {
 
     init_db("data/test.db");
-    g_entries = init_entry_list();
+    g_entries = init_llist();
     g_categories = init_cat_array();
     load_db();
     mu_assert(g_entries->num_nodes == 0, "Backend", 2);
     mu_assert(g_categories->num_cats == 0, "Backend", 3);
 
-    free_entry_list(g_entries);
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_cat_array(g_categories);
     int result = sqlite3_close(g_db);
     mu_assert(result == SQLITE_OK, "Backend", 4);
@@ -87,7 +87,7 @@ int load_db_test() {
     // assumes the tests from prior fn have been executed
     
     init_db("data/test.db");
-    g_entries = init_entry_list();
+    g_entries = init_llist();
     g_categories = init_cat_array();
     load_db();
     mu_assert(g_entries->num_nodes == 2, "Backend", 8);
@@ -101,7 +101,7 @@ int load_db_test() {
     time_t test_time1 = mktime(&test_time_tm1);
     mu_assert(difftime(test_time1, tail->date) == 0.0, "Backend", 11);
 
-    free_entry_list(g_entries);
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_cat_array(g_categories);
 
     int result = sqlite3_close(g_db);
@@ -128,7 +128,7 @@ int cat_to_sql_insert_test() {
 
 
 int del_entry_to_sql_test() {
-    entry_t *e = test_dummy_entry(1);
+    entry_t *e = init_entry(1, "A Name", 0, -12.00, 1, "A Note");
     char *sql = del_entry_to_sql(e);
     char *expected_statement = "DELETE FROM Entries WHERE id=1;";
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 14);

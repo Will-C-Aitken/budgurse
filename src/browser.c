@@ -3,7 +3,7 @@
 browser_t *g_browser = NULL;
 
 // set max_num_entries to -1 to calculate it with actual window size
-browser_t* init_browser(entry_list_t* el, int max_num_entries){
+browser_t* init_browser(llist_t* el, int max_num_entries){
 
     browser_t *b = malloc(sizeof(browser_t));
 
@@ -21,7 +21,7 @@ browser_t* init_browser(entry_list_t* el, int max_num_entries){
     // select tail at startup
     b->end = b->sel = b->start = el->tail;
     b->num_entries = 1;
-    while (b->num_entries < b->max_num_entries && !is_head(b->start)) {
+    while (b->num_entries < b->max_num_entries && !llist_is_head(b->start)) {
 	b->start = b->start->prev;
 	b->num_entries++;
     }
@@ -60,7 +60,7 @@ int browser_handle_key(int ch) {
 }
 
 
-void browser_scroll(int num_times, direction_t dir) {
+void browser_scroll(int num_times, llist_dir_t dir) {
 
     if (g_browser->num_entries < 1)
 	return;
@@ -71,18 +71,18 @@ void browser_scroll(int num_times, direction_t dir) {
 	    return;
 
 	// break if at either end of list
- 	if ((is_head(g_browser->sel) && dir == UP) || 
-	    (is_tail(g_browser->sel) && dir == DOWN))
+ 	if ((llist_is_head(g_browser->sel) && dir == UP) || 
+	    (llist_is_tail(g_browser->sel) && dir == DOWN))
  	    return;
 
 	// move start and end points if at end of current context 
 	if ((g_browser->sel == g_browser->start && dir == UP) ||
 	    (g_browser->sel == g_browser->end && dir == DOWN)) {
-	    entry_node_traverse(&g_browser->end, dir);
-	    entry_node_traverse(&g_browser->start, dir);
+	    llist_node_traverse(&g_browser->end, dir);
+	    llist_node_traverse(&g_browser->start, dir);
 	}
 
-	entry_node_traverse(&g_browser->sel, dir);
+	llist_node_traverse(&g_browser->sel, dir);
 
 	num_times--;
     }
@@ -90,7 +90,7 @@ void browser_scroll(int num_times, direction_t dir) {
 
 
 void browser_add_entry() {
-    entry_node_t *new_en = prompt_new_entry();
+    llist_node_t *new_en = prompt_new_entry_node();
     // user exited
     if (!new_en)
 	return;
@@ -101,27 +101,27 @@ void browser_add_entry() {
 // Here is why an array for entries may have been a better choice. The logic
 // would certainly be simpler. However, since most new entries will be at the
 // tail and close to the current context the linked list should be faster.
-void browser_insert(entry_node_t *en) {
+void browser_insert(llist_node_t *en) {
 
     // browser is already full
     if (g_browser->num_entries == g_browser->max_num_entries) {
 	// check if new entry has expanded current context (distance will equal
 	// to num_entries when normally it's num_entries - 1)
-	int dist = dist_between(g_browser->start, g_browser->end);
+	int dist = llist_dist_between(g_browser->start, g_browser->end);
 	if (dist == g_browser->num_entries) {
 	    // if yes, make room and return
-	    entry_node_traverse(&g_browser->start, DOWN);
+	    llist_node_traverse(&g_browser->start, DOWN);
 	    g_browser->sel = en;
 	    return;
 	}
 
 	// otherwise, try going down first 
 	while (g_browser->sel->next) {
-	    entry_node_traverse(&g_browser->sel, DOWN);
+	    llist_node_traverse(&g_browser->sel, DOWN);
 	    // only move context down until you no longer can
 	    if (g_browser->end->next) {
-		entry_node_traverse(&g_browser->start, DOWN);
-		entry_node_traverse(&g_browser->end, DOWN);
+		llist_node_traverse(&g_browser->start, DOWN);
+		llist_node_traverse(&g_browser->end, DOWN);
 	    }
 	    if (g_browser->sel == en)
 		return;
@@ -133,11 +133,11 @@ void browser_insert(entry_node_t *en) {
 	// above it, outside of context)
 	g_browser->sel = g_browser->start;
 	while (g_browser->sel->prev) {
-	    entry_node_traverse(&g_browser->sel, UP);
+	    llist_node_traverse(&g_browser->sel, UP);
 	    // only move context up until you no longer can
 	    if (g_browser->start->prev) {
-		entry_node_traverse(&g_browser->start, UP);
-		entry_node_traverse(&g_browser->end, UP);
+		llist_node_traverse(&g_browser->start, UP);
+		llist_node_traverse(&g_browser->end, UP);
 	    }
 	    if (g_browser->sel == en)
 		return;
@@ -163,34 +163,34 @@ void browser_edit_entry() {
 
 
 void browser_del_entry() {
-    entry_node_t *en_to_del = browser_pop_sel_entry();
+    llist_node_t *en_to_del = browser_pop_sel_entry();
     if (en_to_del) {
 	db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
-	del_entry(g_entries, en_to_del);
+	llist_del_node(g_entries, en_to_del, (llist_free_data_fn_t)free_entry);
     }
 }
 
 
 
-entry_node_t *browser_pop_sel_entry() {
+llist_node_t *browser_pop_sel_entry() {
 
     // if already empty, cannot delete
     if (g_browser->num_entries == 0)
 	return NULL;
 
-    entry_node_t *temp = g_browser->sel;
+    llist_node_t *temp = g_browser->sel;
 
     // check if removed entry will be replaced by another in browser (i.e.
     // there's more nodes that aren't visible). In this case we want to move UP
     if (g_entries->num_nodes > g_browser->num_entries) {
 	// start needs to go up to show next node
-	entry_node_traverse(&g_browser->start, UP);
+	llist_node_traverse(&g_browser->start, UP);
 
 	// tail only moves up if it's being deleted
 	if (g_browser->sel == g_browser->end) 
-	    entry_node_traverse(&g_browser->end, UP);
+	    llist_node_traverse(&g_browser->end, UP);
 	
-	entry_node_traverse(&g_browser->sel, UP);
+	llist_node_traverse(&g_browser->sel, UP);
     }
 
     // otherwise all nodes are visible and deleting should move sel DOWN 
@@ -200,15 +200,15 @@ entry_node_t *browser_pop_sel_entry() {
 
 	// only touch start if it's being deleted
 	if (g_browser->sel == g_browser->start)
-	    entry_node_traverse(&g_browser->start, DOWN);
+	    llist_node_traverse(&g_browser->start, DOWN);
 	
 	// tail (and sel now) only moves up if it's being deleted 
 	if (g_browser->sel == g_browser->end) {
-	    entry_node_traverse(&g_browser->end, UP);
-	    entry_node_traverse(&g_browser->sel, UP);
+	    llist_node_traverse(&g_browser->end, UP);
+	    llist_node_traverse(&g_browser->sel, UP);
 	}
 	else
-	    entry_node_traverse(&g_browser->sel, DOWN);
+	    llist_node_traverse(&g_browser->sel, DOWN);
     }
     
     if (g_browser->num_entries == 0)
@@ -216,22 +216,6 @@ entry_node_t *browser_pop_sel_entry() {
 
     return temp;
 }
-
-// int browser_go_to(browser_t* b, entry_t *dest, direction_t dir) {
-//     
-//     while (b->sel_node->data != dest) {
-// 	// we've reached either end of the list and should go no further
-// 	if (!entry_node_traverse(b->sel_node, dir))
-// 	    return 1;
-// 
-// 	b->sel_node = entry_node_traverse(b->sel_node, dir);
-// 	if (entry_node_traverse(b->start_node, dir))
-// 	    b->start_node = entry_node_traverse(b->start_node, dir);
-// 	b->end_node = entry_node_traverse(b->prev_node, dir);
-//     }
-// 
-//     return 0;
-// }
 
 
 void free_browser(browser_t* b) {
@@ -262,7 +246,7 @@ void draw_browser() {
 	return;
     }
 
-    entry_node_t* temp = g_browser->start;
+    llist_node_t* temp = g_browser->start;
     while (temp != g_browser->end->next) {
 	if (temp == g_browser->sel)
 	    wattron(g_wins[BROWSER].win, A_REVERSE);

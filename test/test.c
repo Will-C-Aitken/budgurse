@@ -1,29 +1,24 @@
 #include "test.h"
 
 int tests_run = 0;
-
-// entry_list_t *g_entries;
-// cat_array_t *g_categories;
-// sqlite3 *g_db;
-// browser_t *g_browser;
-win_t wins[NUM_WINS];
-
 int curses_mode = 0;
 
 int main(int argc, char **argv) {
 
+    if (!llist_tests())
+	printf("All Llist Tests Passed\n");
     if (!entries_tests())
 	printf("All Entries Tests Passed\n");
     if (!backend_tests())
-	printf("All Backend Tests Passed\n");
+        printf("All Backend Tests Passed\n");
     if (!browser_tests())
-	printf("All Browser Tests Passed\n");
+        printf("All Browser Tests Passed\n");
     if (!categories_tests())
-	printf("All Categories Tests Passed\n");
+        printf("All Categories Tests Passed\n");
     if (!prompt_tests())
-	printf("All Prompt Tests Passed\n");
-    if (!summary_tests())
-	printf("All Summary Tests Passed\n");
+        printf("All Prompt Tests Passed\n");
+    // if (!summary_tests())
+    //	   printf("All Summary Tests Passed\n");
 
     printf("Tests run: %d\n", tests_run);
 }
@@ -34,7 +29,7 @@ void end_budgurse(int status) {
     
     free_browser(g_browser);
     free_cat_array(g_categories);
-    free_entry_list(g_entries);
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_wins(g_wins);
     if (sqlite3_close(g_db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",

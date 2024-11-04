@@ -1,25 +1,11 @@
 #include "test.h"
 
 
-entry_list_t* test_dummy_entry_list(int num_nodes) {
-    entry_list_t *el = init_entry_list();
+llist_t* test_dummy_list(int num_nodes) {
+    llist_t *el = init_llist();
     for (int i = 1; i <= num_nodes; i++)
-	insert_entry(el, init_entry_node(test_dummy_entry(i)), to_tail);
+	llist_insert_node(el, init_llist_node(NULL), llist_to_tail, NULL);
     return el;
-}
-
-
-entry_t *test_dummy_entry(int id) {
-    int category_id = 1;
-    struct tm test_time_tm = {.tm_sec = 0,
-			       .tm_min = 0,
-			       .tm_hour = 0,
-			       .tm_mday = 12,
-			       .tm_mon = 1, // 0-based so 6 is July
-			       .tm_year = 2022 - 1900, // year starts at 1900
-			       .tm_isdst = 1}; // daylight savings?
-    time_t test_date = mktime(&test_time_tm);
-    return init_entry(id, "A Name", test_date, -12.00, category_id, "A Note");
 }
 
 

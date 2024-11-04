@@ -18,28 +18,22 @@ void print_err_str(const char *test_suite, const char *test_fn_name,
 	int test_num);
 
 extern int tests_run;
-
-// required data structure globals
-extern entry_list_t *g_entries;
-extern cat_array_t *g_categories;
-extern sqlite3 *g_db;
-extern browser_t *g_browser;
-extern win_t wins[NUM_WINS];
-
 extern int curses_mode;
 
-// Entries Tests
-int entries_tests();
+// Llist Tests
+int llist_tests();
 int append_to_tail_test();
 int del_tail_test();
 int free_entry_list_test();
-int where_in_list_test();
 int is_end_node_test();
 int entry_node_traverse_test();
 int del_head_test();
 int del_entry_test();
-int insert_after_date_test();
 int dist_between_test();
+
+// Entries Tests
+int entries_tests();
+int insert_after_date_test();
 
 // Backend tests
 int backend_tests();
@@ -75,7 +69,6 @@ int summary_tests();
 int summary_init_test();
 
 // Utility functions
-entry_list_t* test_dummy_entry_list(int num_nodes);
-entry_t *test_dummy_entry(int id);
+llist_t* test_dummy_list(int num_nodes);
 cat_array_t* test_dummy_cat_array(int num_cats);
 int is_amount_eq(float candidate, float actual);

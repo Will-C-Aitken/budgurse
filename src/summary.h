@@ -26,7 +26,7 @@ extern summary_t *g_summary;
 
 summary_t* init_summary(delin_t d, int height, int width);
 void calc_summary();
-void summary_update_cell(entry_node_t *en, int max_date_part);
+void summary_update_cell(llist_node_t *en, int max_date_part);
 void free_summary(summary_t* s);
 
 int summary_handle_key(int ch);

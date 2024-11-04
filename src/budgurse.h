@@ -12,6 +12,15 @@
 #include <sqlite3.h>
 #include <ncurses.h>
 
+#include "llist.h"
+#include "entries.h"
+#include "backend.h"
+#include "browser.h"
+#include "categories.h"
+#include "wins.h"
+#include "prompt.h"
+#include "summary.h"
+
 #define TIME_T_32 (sizeof(time_t) == 4)
 
 #define BUDGURSE_FAILURE 1
@@ -60,13 +69,5 @@ extern int curses_mode;
 void init_budgurse();
 int handle_input();
 void end_budgurse();
-
-#include "entries.h"
-#include "backend.h"
-#include "browser.h"
-#include "categories.h"
-#include "wins.h"
-#include "prompt.h"
-#include "summary.h"
 
 #endif

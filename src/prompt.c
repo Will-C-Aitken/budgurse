@@ -11,7 +11,7 @@ const char *s_cat_prompt = "Enter subcategory (leave empty for none):";
 const char *note_prompt = "Enter note (leave empty for none):";
 
 
-entry_node_t *prompt_new_entry() {
+llist_node_t *prompt_new_entry_node() {
 
     time_t date;
     char name[MAX_NAME_BYTES];
@@ -32,11 +32,15 @@ entry_node_t *prompt_new_entry() {
 	return NULL; 
     }
 
-    entry_t *e = init_entry(g_entries->next_free_id, name, date, amnt, cat_id, 
+    // use 0 as placeholder for id since we don't know what db assigned to it
+    // yet
+    entry_t *e = init_entry(0, name, date, amnt, cat_id, 
 	    (strlen(note) == 0) ? NULL : note);
     db_exec(e, (gen_sql_fn_t)entry_to_sql_insert);
-    entry_node_t* en = init_entry_node(e);
-    insert_entry(g_entries, en, after_date);
+    e->id = sqlite3_last_insert_rowid(g_db);
+    llist_node_t* en = init_llist_node(e);
+    llist_insert_node(g_entries, en, llist_after_node, 
+	    (llist_comp_fn_t)entry_date_comp_gte);
 
     werase(g_wins[PROMPT].win);
     wrefresh(g_wins[PROMPT].win);
@@ -51,7 +55,7 @@ int prompt_add_category(const char *cat_name, int parent_id) {
 	"you like to add it? (y/n)";
 
     while (1) {
-	display_prompt(add_cat_str, 0, true);
+	display_prompt(add_cat_str, 0, 1);
 	ch = wgetch(g_wins[PROMPT].win);
 	if (ch == 'y') {
 	    int new_cat_id = get_next_id(g_categories);
@@ -65,12 +69,12 @@ int prompt_add_category(const char *cat_name, int parent_id) {
     }
 }
 
-void prompt_edit_entry(entry_node_t *cur) {
+void prompt_edit_entry(llist_node_t *cur) {
     int ch, rc = 1;
     const char *edit_prompt = "Edit: (1) Date, (2) Name, (3) Amount, "
 	"(4) Categories, (5) Note";
 
-    display_prompt(edit_prompt, 0, true);
+    display_prompt(edit_prompt, 0, 1);
 
     while (rc == BUDGURSE_FAILURE) {
 	ch = wgetch(g_wins[PROMPT].win);
@@ -137,13 +141,13 @@ int get_entry_input(const char *prompt_str, void *output,
 
     while (poll) {
 	response[0] = '\0';
-	display_prompt(prompt_str, 0, true);
+	display_prompt(prompt_str, 0, 1);
 
 	if (!get_prompt_response(response))
 	    poll = p_fn(response, output);
 
 	if (poll) {
-	    display_prompt(err_str, 0, false);
+	    display_prompt(err_str, 0, 0);
 	    int ch = wgetch(g_wins[PROMPT].win);
 	    if (ch == 'q')
 		return 1;
@@ -154,7 +158,7 @@ int get_entry_input(const char *prompt_str, void *output,
 }
 
 
-void display_prompt(const char *prompt_str, int line, bool refresh) {
+void display_prompt(const char *prompt_str, int line, int refresh) {
     if (refresh)
 	werase(g_wins[PROMPT].win);
     wmove(g_wins[PROMPT].win, line, 1);
@@ -250,7 +254,7 @@ int amount_proc(char *buf, float *amount) {
 }
 
 int m_cat_proc(char *buf, int *id) {
-    if (cat_proc(buf, id, true))
+    if (cat_proc(buf, id, 1))
 	return 1;
     if (!is_sub_cat(g_categories, *id, 0))
 	return 1;
@@ -264,7 +268,7 @@ int s_cat_proc(char *buf, int *id) {
     // cat)
     if (strlen(buf) == 0)
 	return 0;
-    if (cat_proc(buf, id, false))
+    if (cat_proc(buf, id, 0))
 	return 1;
     if (!is_sub_cat(g_categories, *id, m_id)) {
 	return 1;
@@ -273,7 +277,7 @@ int s_cat_proc(char *buf, int *id) {
 }
 
 
-int cat_proc(char *buf, int *id, bool is_main_cat) {
+int cat_proc(char *buf, int *id, int is_main_cat) {
     int p_id = (is_main_cat) ? 0 : *id;
     int min_len = (is_main_cat) ? 1 : 0;
     char cat_name[MAX_CAT_BYTES];

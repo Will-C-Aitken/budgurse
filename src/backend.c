@@ -23,8 +23,8 @@ static int load_entries_callback(void *_, int argc, char **argv,
 				strtol(argv[4], NULL, 10), 
 				argv[5]);
 
-    entry_node_t *en = init_entry_node(entry);
-    insert_entry(g_entries, en, after_date);
+    llist_node_t *nd = init_llist_node(entry);
+    llist_insert_node(g_entries, nd, llist_to_tail, NULL);
     return 0;
 }
 
@@ -41,13 +41,12 @@ void init_db(const char *file_name) {
     char sql[BUFSIZ]; 
     snprintf(sql, BUFSIZ, 
 	"CREATE TABLE IF NOT EXISTS Entries( "
-	    "id INTEGER NOT NULL, "
+	    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
 	    "name VARCHAR(%d) NOT NULL, "
 	    "date INTEGER NOT NULL, "
 	    "amount REAL NOT NULL, "
 	    "category_id INTEGER NOT NULL, "
 	    "note VARCHAR(%d), "
-	    "PRIMARY KEY (id), "
 	    "FOREIGN KEY (category_id) REFERENCES Categories(id)); "
 	"CREATE TABLE IF NOT EXISTS Categories( "
 	    "id INTEGER NOT NULL, "
@@ -75,7 +74,7 @@ void load_db() {
     EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
 	    err_msg);
 
-    sql = "SELECT * from Entries";
+    sql = "SELECT * FROM Entries ORDER BY date ASC";
     rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", 
 	    err_msg);
@@ -111,26 +110,26 @@ char *entry_to_sql_insert(entry_t *e) {
     strcat(sql, sql_to_append);
 
 
-    append_to_sql(&sql, NULL, e->name, true);
+    append_to_sql(&sql, NULL, e->name, 1);
 
     sql_to_append = ", ";
 
     char date_str[11];
     sprintf(date_str, "%ld", e->date);
-    append_to_sql(&sql, sql_to_append, date_str, false);
+    append_to_sql(&sql, sql_to_append, date_str, 0);
 
     char amount_str[9];
     sprintf(amount_str, "%0.2f", e->amount);
-    append_to_sql(&sql, sql_to_append, amount_str, false);
+    append_to_sql(&sql, sql_to_append, amount_str, 0);
 
     char category_id_str[3];
     sprintf(category_id_str, "%d", e->category_id);
-    append_to_sql(&sql, sql_to_append, category_id_str, false);
+    append_to_sql(&sql, sql_to_append, category_id_str, 0);
 
-    append_to_sql(&sql, sql_to_append, e->note, true);
+    append_to_sql(&sql, sql_to_append, e->note, 1);
 
     sql_to_append = ");";
-    append_to_sql(&sql, sql_to_append, "", false);
+    append_to_sql(&sql, sql_to_append, "", 0);
 
     return sql;
 }
@@ -143,33 +142,33 @@ char *edit_entry_to_sql_update(entry_t *e) {
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
-    append_to_sql(&sql, NULL, e->name, true);
+    append_to_sql(&sql, NULL, e->name, 1);
 
     sql_to_append = ", date = ";
     char date_str[11];
     sprintf(date_str, "%ld", e->date);
-    append_to_sql(&sql, sql_to_append, date_str, false);
+    append_to_sql(&sql, sql_to_append, date_str, 0);
 
     sql_to_append = ", amount = ";
     char amount_str[9];
     sprintf(amount_str, "%0.2f", e->amount);
-    append_to_sql(&sql, sql_to_append, amount_str, false);
+    append_to_sql(&sql, sql_to_append, amount_str, 0);
 
     sql_to_append = ", category_id = ";
     char category_id_str[3];
     sprintf(category_id_str, "%d", e->category_id);
-    append_to_sql(&sql, sql_to_append, category_id_str, false);
+    append_to_sql(&sql, sql_to_append, category_id_str, 0);
 
     sql_to_append = ", note = ";
-    append_to_sql(&sql, sql_to_append, e->note, true);
+    append_to_sql(&sql, sql_to_append, e->note, 1);
 
     sql_to_append = " WHERE id=";
     char id_str[11];
     sprintf(id_str, "%d", e->id);
-    append_to_sql(&sql, sql_to_append, id_str, false);
+    append_to_sql(&sql, sql_to_append, id_str, 0);
 
     sql_to_append = ";";
-    append_to_sql(&sql, sql_to_append, "", false);
+    append_to_sql(&sql, sql_to_append, "", 0);
 
     return sql;
 }
@@ -183,16 +182,16 @@ char *cat_to_sql_insert(category_t *c) {
 
     char category_id_str[10];
     sprintf(category_id_str, "%d", c->id);
-    append_to_sql(&sql, NULL, category_id_str, false);
+    append_to_sql(&sql, NULL, category_id_str, 0);
 
     sql_to_append = ", ";
     sprintf(category_id_str, "%d", c->parent_id);
-    append_to_sql(&sql, sql_to_append, category_id_str, false);
+    append_to_sql(&sql, sql_to_append, category_id_str, 0);
 
-    append_to_sql(&sql, sql_to_append, c->name, true);
+    append_to_sql(&sql, sql_to_append, c->name, 1);
 
     sql_to_append = ");";
-    append_to_sql(&sql, sql_to_append, "", false);
+    append_to_sql(&sql, sql_to_append, "", 0);
 
     return sql;
 }
@@ -207,17 +206,17 @@ char *del_entry_to_sql(entry_t *e) {
 
     char id_str[11];
     sprintf(id_str, "%d", e->id);
-    append_to_sql(&sql, NULL, id_str, false);
+    append_to_sql(&sql, NULL, id_str, 0);
 
     sql_to_append = ";";
-    append_to_sql(&sql, sql_to_append, "", false);
+    append_to_sql(&sql, sql_to_append, "", 0);
 
     return sql;
 }
 
 
 void append_to_sql(char **cur_sql, const char *sql_to_append, 
-	const char *data_to_append, bool data_is_str_type) {
+	const char *data_to_append, int data_is_str_type) {
     
     char *format_str = (data_is_str_type) ? "%Q" : "%s";
     char *sql_casted_data = sqlite3_mprintf(format_str, data_to_append);

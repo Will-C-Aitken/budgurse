@@ -56,19 +56,20 @@ void calc_summary() {
 
     // if new date, shift and recalc
     
-    entry_node_t *curr = g_entries->tail;
-    int max_date_part = date_part_from_delin(curr->data->date, 
+    llist_node_t *curr_en = g_entries->tail;
+    entry_t *curr_e = (entry_t*)curr_en->data;
+    int max_date_part = date_part_from_delin(curr_e->date, 
 	    g_summary->delin);
 
     for (int i = g_entries->num_nodes; i > 0; i--) {
-	summary_update_cell(curr, max_date_part);
-	curr = curr->prev; 
+	summary_update_cell(curr_en, max_date_part);
+	curr_en = curr_en->prev; 
     }
 }
 
 
 // in progress
-void summary_update_cell(entry_node_t *en, int max_date_part) {
+void summary_update_cell(llist_node_t *en, int max_date_part) {
     // int date = date_part_from_delin(en->data->date, g_summary->delin);
     // int date_idx = date + (g_summary->num_cols - max_date_part - 1);
     // int curr_cat_idx = en->data->category_id;

@@ -91,7 +91,7 @@ void cat_id_to_names(const cat_array_t *ca, int cat_id, char** cat_name,
 }
 
 
-int cat_name_to_id(const cat_array_t *ca, const char* name, bool is_main_cat) {
+int cat_name_to_id(const cat_array_t *ca, const char* name, int is_main_cat) {
     for (int i = 0; i < ca->num_cats; i++) {
 	if (strcmp(name, ca->array[i]->name) == 0) {
 	    if ((is_main_cat && ca->array[i]->parent_id == 0) ||
