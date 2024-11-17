@@ -16,17 +16,19 @@ typedef struct llist {
     int num_nodes;
 } llist_t;
 
-typedef enum llist_direction {
+typedef enum direction {
     DOWN = 0,
-    UP = 1
-} llist_dir_t;
+    UP = 1,
+    LEFT = 2,
+    RIGHT = 3
+} dir_t;
 
-typedef int (*llist_comp_fn_t) (void *, void *);
+typedef int (*llist_comp_fn_t) (llist_node_t *, llist_node_t *, int);
 typedef void (*llist_free_data_fn_t) (void *);
 
 // llist node declarations
 llist_node_t *init_llist_node(void *data);
-void llist_node_traverse(llist_node_t **curr, llist_dir_t dir);
+void llist_node_traverse(llist_node_t **curr, dir_t dir);
 int llist_is_end_node(const llist_node_t* curr);
 int llist_is_head(const llist_node_t* curr);
 int llist_is_tail(const llist_node_t* curr);
@@ -35,7 +37,7 @@ void free_llist_node(llist_node_t *nd, llist_free_data_fn_t fn);
 
 // llist declarations
 llist_t *init_llist();
-void llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn);
+int llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn);
 void llist_del_node(llist_t *l, llist_node_t *en, llist_free_data_fn_t fn);
 void llist_del_tail(llist_t *l, llist_free_data_fn_t fn);
 void llist_del_head(llist_t *l, llist_free_data_fn_t fn);

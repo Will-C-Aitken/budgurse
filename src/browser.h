@@ -27,7 +27,7 @@ browser_t* init_browser(llist_t* el, int max_num_entries);
 void free_browser(browser_t* b);
 
 int browser_handle_key(int ch);
-void browser_scroll(int num_times, llist_dir_t dir);
+void browser_scroll(int num_times, dir_t dir);
 void browser_add_entry();
 void browser_insert(llist_node_t *en);
 void browser_edit_entry();
@@ -35,15 +35,9 @@ void browser_del_entry();
 llist_node_t *browser_pop_sel_entry();
 
 // drawing functions
-void draw_browser();
+void browser_draw();
 void browser_draw_header();
 void browser_draw_entry(const entry_t *e, int row);
 void browser_draw_date(time_t date, int max_width);
-void browser_draw_amount(float amount, int max_width, const char *delim_str);
-void browser_draw_string(const char *str, int max_width, 
-	const char *delim_str);
-
-// utility functions
-int num_places_in_amount (int n);
 
 #endif

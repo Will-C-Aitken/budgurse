@@ -99,7 +99,7 @@ int amount_proc_test() {
 
 int cat_proc_test() {
 
-    g_categories = init_cat_array();
+    g_categories = init_llist();
     
     int rc;
     int id;
@@ -111,27 +111,31 @@ int cat_proc_test() {
 
     test_str = "Food";
     category_t *c1 = init_category(1, 0, test_str);
-    append_to_cat_array(g_categories, c1);
+    llist_insert_node(g_categories, init_llist_node(c1), 
+	    (llist_comp_fn_t)cat_comp);
     rc = m_cat_proc(test_str, &id);
     mu_assert(rc == BUDGURSE_SUCCESS, "Prompt", 25);
 
     test_str = "Max characterssssssssssssssssss";
     category_t *c2 = init_category(2, 0, test_str);
-    append_to_cat_array(g_categories, c2);
+    llist_insert_node(g_categories, init_llist_node(c2), 
+	    (llist_comp_fn_t)cat_comp);
     rc = m_cat_proc(test_str, &id);
     mu_assert(rc == BUDGURSE_SUCCESS, "Prompt", 26);
     mu_assert(id == 2, "Prompt", 27);
 
     test_str = "Too many characterssssssssssssss";
     category_t *c3 = init_category(3, 0, test_str);
-    append_to_cat_array(g_categories, c3);
+    llist_insert_node(g_categories, init_llist_node(c3), 
+	    (llist_comp_fn_t)cat_comp);
     rc = m_cat_proc(test_str, &id);
     mu_assert(rc == BUDGURSE_FAILURE, "Prompt", 28);
 
     // Can't be a subcategory
     test_str = "Cafe";
     category_t *c4 = init_category(4, 1, test_str);
-    append_to_cat_array(g_categories, c4);
+    llist_insert_node(g_categories, init_llist_node(c4), 
+	    (llist_comp_fn_t)cat_comp);
     rc = m_cat_proc(test_str, &id);
     mu_assert(rc == BUDGURSE_FAILURE, "Prompt", 29);
 
@@ -145,7 +149,8 @@ int cat_proc_test() {
     test_str = "Max characterssssssssssssssssss";
     // make it a subcat of Food
     category_t *c5 = init_category(5, 1, test_str);
-    rc = append_to_cat_array(g_categories, c5);
+    llist_insert_node(g_categories, init_llist_node(c5), 
+	    (llist_comp_fn_t)cat_comp);
     // id should be set to parent_id before entering fn
     id = 1;
     rc = s_cat_proc(test_str, &id);
@@ -155,7 +160,8 @@ int cat_proc_test() {
     // legal except too long
     test_str = "Too many characterssssssssssssss";
     category_t *c6 = init_category(6, 0, test_str);
-    append_to_cat_array(g_categories, c6);
+    llist_insert_node(g_categories, init_llist_node(c6), 
+	    (llist_comp_fn_t)cat_comp);
     rc = s_cat_proc(test_str, &id);
     mu_assert(rc == BUDGURSE_FAILURE, "Prompt", 33);
 
@@ -166,7 +172,8 @@ int cat_proc_test() {
     mu_assert(rc == BUDGURSE_SUCCESS, "Prompt", 34);
     mu_assert(id == 1, "Prompt", 35);
 
-    free_cat_array(g_categories);
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
+
     return 0;
 }
 

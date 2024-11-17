@@ -1,7 +1,5 @@
 #include "prompt.h"
 
-int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
 const char *date_prompt = "Enter date "
     "(mm/dd/yyyy or mm/dd for current year):";
 const char *name_prompt = "Enter descriptor (cannot be empty):";
@@ -19,12 +17,12 @@ llist_node_t *prompt_new_entry_node() {
     int cat_id;
     char note[MAX_NOTE_BYTES];
 
-    if ((get_entry_input(date_prompt, &date, (input_proc_fn_t)date_proc) || 
-         get_entry_input(name_prompt, name, (input_proc_fn_t)name_proc) ||
-         get_entry_input(amnt_prompt, &amnt, (input_proc_fn_t)amount_proc) ||
-         get_entry_input(m_cat_prompt, &cat_id, (input_proc_fn_t)m_cat_proc) ||
-	 get_entry_input(s_cat_prompt, &cat_id, (input_proc_fn_t)s_cat_proc) ||
-         get_entry_input(note_prompt, note, (input_proc_fn_t)note_proc))
+    if ((prompt_for_entry(date_prompt, &date, (input_proc_fn_t)date_proc) || 
+         prompt_for_entry(name_prompt, name, (input_proc_fn_t)name_proc) ||
+         prompt_for_entry(amnt_prompt, &amnt, (input_proc_fn_t)amount_proc) ||
+         prompt_for_entry(m_cat_prompt, &cat_id, (input_proc_fn_t)m_cat_proc) ||
+	 prompt_for_entry(s_cat_prompt, &cat_id, (input_proc_fn_t)s_cat_proc) ||
+         prompt_for_entry(note_prompt, note, (input_proc_fn_t)note_proc))
 	== BUDGURSE_FAILURE) {
 
 	werase(g_wins[PROMPT].win);
@@ -34,7 +32,8 @@ llist_node_t *prompt_new_entry_node() {
 
     // use 0 as placeholder for id since we don't know what db assigned to it
     // yet
-    entry_t *e = init_entry(0, name, date, amnt, cat_id, 
+    entry_t *e = init_entry(0, name, date, amnt, 
+	    cat_get_from_id(g_categories, cat_id),
 	    (strlen(note) == 0) ? NULL : note);
     db_exec(e, (gen_sql_fn_t)entry_to_sql_insert);
     e->id = sqlite3_last_insert_rowid(g_db);
@@ -54,14 +53,21 @@ int prompt_add_category(const char *cat_name, int parent_id) {
 	"you like to add it? (y/n)";
 
     while (1) {
-	display_prompt(add_cat_str, 0, 1);
+	prompt_display(add_cat_str, 0, 1);
 	ch = wgetch(g_wins[PROMPT].win);
 	if (ch == 'y') {
-	    int new_cat_id = get_next_id(g_categories);
-	    new_cat = init_category(new_cat_id, parent_id, cat_name);
-	    append_to_cat_array(g_categories, new_cat);
+	    // set new id to 0 temporarily until db assigns it
+	    new_cat = init_category(0, parent_id, cat_name);
+	    llist_node_t *nd = init_llist_node(new_cat);
+	    llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
+	    if (g_summary) {
+		delin_t d = g_summary->delin;
+		free(g_summary);
+		g_summary = init_summary(d, -1, -1);
+	    }
 	    db_exec(new_cat, (gen_sql_fn_t)cat_to_sql_insert);
-	    return new_cat_id;
+	    new_cat->id = sqlite3_last_insert_rowid(g_db);
+	    return new_cat->id;
 	} 
 	if (ch == 'n')
 	    return 0;
@@ -73,45 +79,46 @@ void prompt_edit_entry(llist_node_t *cur) {
     const char *edit_prompt = "Edit: (1) Date, (2) Name, (3) Amount, "
 	"(4) Categories, (5) Note";
 
-    display_prompt(edit_prompt, 0, 1);
+    prompt_display(edit_prompt, 0, 1);
 
     while (rc == BUDGURSE_FAILURE) {
 	ch = wgetch(g_wins[PROMPT].win);
 	switch (ch) {
 	    case '1': {
 		time_t new_date;
-		if ((rc = get_entry_input(date_prompt, &new_date, 
+		if ((rc = prompt_for_entry(date_prompt, &new_date, 
 			(input_proc_fn_t)date_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_date(cur->data, new_date);
 		break;
 	    } 
 	    case '2': {
 		char new_name[MAX_NAME_BYTES];
-		if ((rc = get_entry_input(name_prompt, new_name, 
+		if ((rc = prompt_for_entry(name_prompt, new_name, 
 			(input_proc_fn_t)name_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_name(cur->data, new_name);
 		break;
 	    } 
 	    case '3': {
 		float new_amount;
-		if ((rc = get_entry_input(amnt_prompt, &new_amount, 
+		if ((rc = prompt_for_entry(amnt_prompt, &new_amount, 
 			(input_proc_fn_t)amount_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_amount(cur->data, new_amount);
 		break;
 	    } 
 	    case '4': {
 		int new_id;
-		if ((rc = get_entry_input(m_cat_prompt, &new_id, 
+		if ((rc = prompt_for_entry(m_cat_prompt, &new_id, 
 			(input_proc_fn_t)m_cat_proc)) == BUDGURSE_FAILURE)
 		    break;
-		if ((rc = get_entry_input(s_cat_prompt, &new_id, 
+		if ((rc = prompt_for_entry(s_cat_prompt, &new_id, 
 			(input_proc_fn_t)s_cat_proc)) == BUDGURSE_SUCCESS)
-		    entry_set_cat_id(cur->data, new_id);
+		    entry_set_cat(cur->data, 
+			    cat_get_from_id(g_categories, new_id));
 		break;
 	    } 
 	    case '5': {
 		char new_note[MAX_NOTE_BYTES];
-		if ((rc = get_entry_input(note_prompt, new_note, 
+		if ((rc = prompt_for_entry(note_prompt, new_note, 
 			(input_proc_fn_t)note_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_note(cur->data, new_note);
 		break;
@@ -130,7 +137,7 @@ void prompt_edit_entry(llist_node_t *cur) {
 }
 
 
-int get_entry_input(const char *prompt_str, void *output, 
+int prompt_for_entry(const char *prompt_str, void *output, 
 	input_proc_fn_t p_fn) {
 
     const char *err_str = "Invalid format. Press 'q' to cancel entry or any "
@@ -140,13 +147,13 @@ int get_entry_input(const char *prompt_str, void *output,
 
     while (poll) {
 	response[0] = '\0';
-	display_prompt(prompt_str, 0, 1);
+	prompt_display(prompt_str, 0, 1);
 
-	if (!get_prompt_response(response))
+	if (!prompt_get_response(response))
 	    poll = p_fn(response, output);
 
 	if (poll) {
-	    display_prompt(err_str, 0, 0);
+	    prompt_display(err_str, 0, 0);
 	    int ch = wgetch(g_wins[PROMPT].win);
 	    if (ch == 'q')
 		return 1;
@@ -157,7 +164,7 @@ int get_entry_input(const char *prompt_str, void *output,
 }
 
 
-void display_prompt(const char *prompt_str, int line, int refresh) {
+void prompt_display(const char *prompt_str, int line, int refresh) {
     if (refresh)
 	werase(g_wins[PROMPT].win);
     wmove(g_wins[PROMPT].win, line, 1);
@@ -166,7 +173,7 @@ void display_prompt(const char *prompt_str, int line, int refresh) {
 }
 
 
-int get_prompt_response(char* pr) {
+int prompt_get_response(char* pr) {
     int rc;
     wmove(g_wins[PROMPT].win, 1, 1);
     echo();
@@ -255,8 +262,6 @@ int amount_proc(char *buf, float *amount) {
 int m_cat_proc(char *buf, int *id) {
     if (cat_proc(buf, id, 1))
 	return 1;
-    if (!is_sub_cat(g_categories, *id, 0))
-	return 1;
     return 0;
 }
 
@@ -269,7 +274,7 @@ int s_cat_proc(char *buf, int *id) {
 	return 0;
     if (cat_proc(buf, id, 0))
 	return 1;
-    if (!is_sub_cat(g_categories, *id, m_id)) {
+    if (!cat_is_sub(g_categories, *id, m_id)) {
 	return 1;
     }
     return 0;
@@ -284,7 +289,7 @@ int cat_proc(char *buf, int *id, int is_main_cat) {
     if (snprintf(cat_name, MAX_CAT_BYTES, "%s", buf) < min_len)
 	return 1;
 
-    *id = cat_name_to_id(g_categories, cat_name, is_main_cat);
+    *id = cat_name_to_id(g_categories, cat_name, p_id);
     
     // Could not find cat_id
     if (*id == 0) {
@@ -304,28 +309,3 @@ int note_proc(char *buf, char *note) {
     snprintf(note, MAX_NOTE_BYTES, "%s", buf);
     return 0;
 }
-
-
-int check_time_bounds(int day, int month, int year) {
-    // If system has 32 bit time_t, year must be less than 2038
-    if (TIME_T_32) 
-	if (year < 1900 || year > 2037) return 1;
-    if (month < 1 || month > 12) 
-	return 1;
-    if (day < 0 || day > days[month-1])
-	return 1;
-    return 0;
-}
-
-
-// int scan_cat(const char *buf, char* cat_name, char* subcat_name) {
-//     // first check if slash for subcat
-//     if 
-//     // (max int is 10 chars + %)*2 + /*2 + ^ + [ + ] + s \0 = 29
-//     // round up to 32
-//     char format[32]; 
-//     snprintf(format, (MAX_CAT_BYTES-1)*2, "%%%d[^/]/%%%ds", MAX_CAT_BYTES-1,
-// 	    MAX_CAT_BYTES-1);
-//     // returns number of matched fields which as to be 2
-//     return (sscanf(buf, format, cat_name, subcat_name) != 2);
-// }

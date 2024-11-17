@@ -52,15 +52,19 @@ int browser_handle_key(int ch) {
 	case KEY_UP:
 	    browser_scroll(1, UP);
 	    break;
+	case 's':
+	    state = SUMMARY;
+	    summary_draw();
+	    return 1;
 	case 'q':
 	    return 0;
     }
-    draw_browser();
+    browser_draw();
     return 1;
 }
 
 
-void browser_scroll(int num_times, llist_dir_t dir) {
+void browser_scroll(int num_times, dir_t dir) {
 
     if (g_browser->num_entries < 1)
 	return;
@@ -226,7 +230,7 @@ void free_browser(browser_t* b) {
 }
 
 
-void draw_browser() {
+void browser_draw() {
 
     werase(g_wins[BROWSER].win);
     box(g_wins[BROWSER].win, 0, 0);
@@ -267,9 +271,11 @@ void browser_draw_header() {
     wmove(g_wins[BROWSER].win, 1, 1);
     for (int i = 0; i < 5; i++)
 	if (i == 0)
-	    browser_draw_string(col_names[i], browser_col_widths[i], " ");
+	    draw_str(g_wins[BROWSER].win, col_names[i], browser_col_widths[i], 
+		    " ", 0);
 	else
-	    browser_draw_string(col_names[i], browser_col_widths[i], "  ");
+	    draw_str(g_wins[BROWSER].win, col_names[i], browser_col_widths[i], 
+		    "  ", 0);
 }
 
 
@@ -282,21 +288,25 @@ void browser_draw_entry(const entry_t *e, int row) {
     waddch(g_wins[BROWSER].win, ' ');
 
     browser_draw_date(e->date, browser_col_widths[i++]);
-    browser_draw_string(e->name, browser_col_widths[i++], delim_str);
-    browser_draw_amount(e->amount, browser_col_widths[i++], delim_str);
+    draw_str(g_wins[BROWSER].win, e->name, browser_col_widths[i++], 
+	    delim_str, 0);
+    draw_amount(g_wins[BROWSER].win, e->amount, browser_col_widths[i++], 
+	    delim_str, 0);
 
     char* cat;
     char* subcat;
-    cat_id_to_names(g_categories, e->category_id, &cat, &subcat);
-    browser_draw_string(cat, browser_col_widths[i++], delim_str);
+    cat_id_to_names(g_categories, e->cat->id, &cat, &subcat);
+    draw_str(g_wins[BROWSER].win, cat, browser_col_widths[i++], delim_str, 0);
     if (subcat)
-	browser_draw_string(subcat, browser_col_widths[i++], delim_str);
+	draw_str(g_wins[BROWSER].win, subcat, browser_col_widths[i++], 
+		delim_str, 0);
     else
-	browser_draw_string("", browser_col_widths[i++], delim_str);
+	draw_str(g_wins[BROWSER].win, "", browser_col_widths[i++], 
+		delim_str, 0);
 
     // pad with blank spaces
     int pad_len = getmaxx(g_wins[BROWSER].win) - getcurx(g_wins[BROWSER].win) - 1;
-    browser_draw_string("", pad_len, "");
+    draw_str(g_wins[BROWSER].win, "", pad_len, "", 0);
 }
 
 
@@ -307,51 +317,3 @@ void browser_draw_date(time_t date, int max_width){
 }
 
 
-void browser_draw_string(const char *str, int max_width, 
-	const char *delim_str){
-
-    waddstr(g_wins[BROWSER].win, delim_str);
-
-    // trunacte string
-    char trunc_str[max_width+1];
-    snprintf(trunc_str, max_width+1, "%-*s", max_width, str);
-    wprintw(g_wins[BROWSER].win, "%s", trunc_str);
-}
-
-
-void browser_draw_amount(float amount, int max_width, const char *delim_str){
-    waddstr(g_wins[BROWSER].win, delim_str);
-
-    // to right align
-    int num_spaces, num_dig, thousands;
-    num_dig = num_places_in_amount((int)amount);
-    num_spaces = max_width - 5 - num_dig;
-    thousands = abs((int)amount / 1000);
-
-    // for comma
-    if (thousands) 
-	num_spaces--;
-    while (num_spaces-- > 0) 
-	waddch(g_wins[BROWSER].win, ' ');
-
-    // print negative (if necessary) and dollar sign 
-    if (amount < 0) 
-	waddstr(g_wins[BROWSER].win, "-$");
-    else 
-	waddstr(g_wins[BROWSER].win, " $");
-    amount = fabs(amount);
-
-    // print comma in thousands
-    if (thousands) 
-	wprintw(g_wins[BROWSER].win, "%d,%06.2f", thousands, 
-		amount - (thousands*1000));
-    else
-	wprintw(g_wins[BROWSER].win, "%0.2f", amount);
-}
-
-
-int num_places_in_amount(int n) {
-    if (n < 0) return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
-    if (n < 10) return 1;
-    return 1 + num_places_in_amount(n / 10);
-}

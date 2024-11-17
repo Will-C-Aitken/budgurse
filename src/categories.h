@@ -5,30 +5,30 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "llist.h"
+
+extern llist_t *g_categories;
+
+#define MAX_CAT_BYTES 32
+
 typedef struct category {
     int id;
-    int parent_id;
+    int p_id;
+    llist_t *subcats;
     char *name;
+    int sum_idx;
 } category_t;
 
-category_t *init_category(int id, int parent_id, const char* name);
+category_t *init_category(int id, int p_id, const char* name);
 void free_category(category_t *c);
+int cat_comp(llist_node_t *cn1, llist_node_t *cn2, int inverse);
 
-typedef struct cat_array {
-    int num_cats;
-    category_t **array;
-} cat_array_t;
-
-extern cat_array_t *g_categories;
-
-cat_array_t *init_cat_array();
-void free_cat_array(cat_array_t *ca);
-int append_to_cat_array(cat_array_t *ca, category_t *c);
-void cat_id_to_names(const cat_array_t *ca, int cat_id, char** cat_name, 
+void cat_id_to_names(const llist_t *cl, int cat_id, char** cat_name, 
 	char** subcat_name);
-int cat_name_to_id(const cat_array_t *ca, const char* name, int is_main_cat);
-category_t* get_cat(const cat_array_t *ca, int cat_id);
-int is_sub_cat(const cat_array_t *ca, int cat_id, int p_cat_id);
-int get_next_id(const cat_array_t *ca);
+int cat_name_to_id(const llist_t *cl, const char* name, int p_cat_id);
+int cat_is_sub(const llist_t *cl, int cat_id, int p_cat_id);
+void cat_set_sum_idxs(const llist_t *cl, int *next_idx);
+category_t *cat_get_from_id(const llist_t *cl, int cat_id);
+void cat_flatten_names(const llist_t *cl, char **flat_names[], int *next_idx);
 
 #endif

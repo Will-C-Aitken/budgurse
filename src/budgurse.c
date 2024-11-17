@@ -3,12 +3,10 @@
 state_t state = BROWSER;
 int curses_mode = 1;
 
-llist_t *g_entries = NULL;
-
 int main(int argc, char *argv[]) {
 
     init_budgurse();
-    draw_browser();
+    browser_draw();
 
     while(1) {
 	int ch = wgetch(g_wins[state].win);
@@ -33,13 +31,14 @@ void init_budgurse() {
     // init global array g_wins
     init_wins();
     g_entries = init_llist();
-    g_categories = init_cat_array();
+    g_categories = init_llist();
 
     init_db("data/budgurse.db");
     load_db();
 
     g_browser = init_browser(g_entries, -1);
     g_summary = init_summary(MONTH, -1, -1);
+    summary_calc();
 
     state = BROWSER;
 }
@@ -49,6 +48,7 @@ int handle_input(int ch) {
     switch (state) {
 	case BROWSER: return browser_handle_key(ch);
 	case SUMMARY: return summary_handle_key(ch);
+	// prompt has no need to be selectable for now
 	case PROMPT: return 1;
     }
     return 1;
@@ -58,7 +58,7 @@ int handle_input(int ch) {
 void end_budgurse(int status) {
     
     free_browser(g_browser);
-    free_cat_array(g_categories);
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_wins(g_wins);
     free_summary(g_summary);

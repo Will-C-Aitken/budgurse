@@ -1,6 +1,8 @@
 #include "summary.h"
 
 summary_t *g_summary = NULL;
+const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 
 summary_t* init_summary(delin_t d, int height, int width) {
@@ -10,9 +12,7 @@ summary_t* init_summary(delin_t d, int height, int width) {
     int num_cols;
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
-	case MONTH: 
-	    num_cols = 12; 
-	    break;
+	case MONTH: num_cols = 12; break;
 	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
     }
 
@@ -25,20 +25,29 @@ summary_t* init_summary(delin_t d, int height, int width) {
     if (width == -1)
 	width = g_wins[SUMMARY].w;
     
-    // 1 more for total(s) and 4 less for header and borders
-    s->num_rows = g_categories->num_cats + 1;
-    // 2 more for totals and avg
-    s->num_cols = num_cols + 2;
+    // 1 more for total 
+    s->num_cols = num_cols + 1;
+    s->num_rows = 0;
+    cat_set_sum_idxs(g_categories, &s->num_rows);
+
+    // 1 more for totals
+    s->num_rows++;
+    s->cat_name_list = malloc(sizeof(char *) * s->num_rows);
+
+    int temp_idx = 0;
+    cat_flatten_names(g_categories, &s->cat_name_list, &temp_idx);
+    s->cat_name_list[s->num_rows - 1] = "Total";
 
     // set starting position to end
     s->x_sel = s->x_end = s->num_cols - 1;
     s->y_sel = s->y_end = s->num_rows - 1;
 
     // limit visible columns to only full columns
-    s->x_start = s->num_cols - ((width - CAT_STR_LEN - 7) 
-				/ (AMOUNT_STR_LEN + 1)) - 1;
+    int x_space = ((width - CAT_STR_LEN - 11) / (AMOUNT_STR_LEN + 1));
+    s->x_start = (s->num_cols > x_space) ? s->num_cols - x_space : 0;
+
     // check if room for all categories
-    int y_space = (height - 4);
+    int y_space = (height - 5);
     s->y_start = (s->num_rows > y_space) ? s->num_rows - y_space : 0;
     
     // table for sums
@@ -46,45 +55,318 @@ summary_t* init_summary(delin_t d, int height, int width) {
     s->data = malloc(sizeof(float) * n);
     memset(s->data, 0.00, sizeof(float) * n);
 
+    // set newest date to today as default 
+    s->newest_date = time(NULL);
+
     return s;
-}
-
-
-void calc_summary() {
-    EXIT_IF(!g_entries, "Entries must be initialized before calculating "
-	    "summary\n");
-
-    // if new date, shift and recalc
-    
-    llist_node_t *curr_en = g_entries->tail;
-    entry_t *curr_e = (entry_t*)curr_en->data;
-    int max_date_part = date_part_from_delin(curr_e->date, 
-	    g_summary->delin);
-
-    for (int i = g_entries->num_nodes; i > 0; i--) {
-	summary_update_cell(curr_en, max_date_part);
-	curr_en = curr_en->prev; 
-    }
-}
-
-
-// in progress
-void summary_update_cell(llist_node_t *en, int max_date_part) {
-    // int date = date_part_from_delin(en->data->date, g_summary->delin);
-    // int date_idx = date + (g_summary->num_cols - max_date_part - 1);
-    // int curr_cat_idx = en->data->category_id;
 }
 
 
 void free_summary(summary_t* s) {
     if (!s)
 	return;
+    // minus 1 because "Total" is not on heap
+    for (int i = 0; i < s->num_rows - 1; i++)
+    	free(s->cat_name_list[i]);
+    free(s->cat_name_list);
     free(s->data);
     free(s);
 }
 
 
+void summary_calc() {
+    EXIT_IF(!g_entries, "Entries must be initialized before calculating "
+	    "summary\n");
+
+    if (g_entries->num_nodes == 0)
+	return;
+
+    llist_node_t *curr_en = g_entries->tail;
+    entry_t *e;
+
+    int first = 1;
+    while (curr_en) {
+	e = (entry_t*)curr_en->data;
+	if (first) {
+	    first = 0;
+	    g_summary->newest_date = e->date;
+	}
+	summary_update_on_entry(e);
+	curr_en = curr_en->prev; 
+    }
+}
+
+
+void summary_update_on_entry(entry_t *e) {
+    int x, y;
+    int max_x = g_summary->num_cols - 1;
+    int max_y = g_summary->num_rows - 1;
+
+    x = date_part_from_delin(e->date, g_summary->delin);
+    y = e->cat->sum_idx;
+
+    summary_inc_cell(x, y, e->amount);
+    // also update column total, row total
+    summary_inc_cell(x, max_y, e->amount);
+    summary_inc_cell(max_x, y, e->amount);
+    // and total total
+    summary_inc_cell(max_x, max_y, e->amount);
+
+    // do the same for parent category if it exists
+    if (e->cat->p_id != 0) {
+	y = cat_get_from_id(g_categories, e->cat->p_id)->sum_idx; 
+	summary_inc_cell(x, y, e->amount);
+	summary_inc_cell(max_x, y, e->amount);
+	// except for column total because that would be a duplicate
+    }
+}
+
+
+void summary_inc_cell(int x, int y, int value) {
+    EXIT_IF(x >= g_summary->num_cols || y >= g_summary->num_rows, 
+	    "Invalid summary table idx(s)\n");
+    g_summary->data[y*g_summary->num_cols + x] += value;
+}
+
+
+void summary_draw() {
+    int x_start = g_summary->x_start;
+    int x_sel = g_summary->x_sel;
+    int x_end = g_summary->x_end;
+    int nc = g_summary->num_cols;
+    int y_start = g_summary->y_start;
+    int y_sel = g_summary->y_sel;
+    int y_end = g_summary->y_end;
+    int nr = g_summary->num_rows;
+    int x_idx, y_idx;
+    int vert_idx_1 = 21;
+    int vert_idx_2 = 21 + 4 + ((x_end - x_start) * (AMOUNT_STR_LEN + 1));
+    int row = 3;
+    int row_attrs, col_attrs;
+    float amt;
+    int date_offset;
+
+
+    werase(g_wins[SUMMARY].win);
+    box(g_wins[SUMMARY].win, 0, 0);
+
+    // Top tees for separator v line
+    mvwaddch(g_wins[SUMMARY].win, 0, vert_idx_1, ACS_TTEE);
+    mvwaddch(g_wins[SUMMARY].win, 0, vert_idx_2, ACS_TTEE);
+
+    summary_draw_header();
+
+    wmove(g_wins[SUMMARY].win, 2, 0);
+    waddch(g_wins[SUMMARY].win, ACS_LTEE);
+    whline(g_wins[SUMMARY].win, ACS_HLINE, g_wins[SUMMARY].w - 2);
+    mvwaddch(g_wins[SUMMARY].win, 2, vert_idx_1, ACS_PLUS);
+    mvwaddch(g_wins[SUMMARY].win, 2, vert_idx_2, ACS_PLUS);
+    mvwaddch(g_wins[SUMMARY].win, 2, g_wins[SUMMARY].w - 1, ACS_RTEE);
+
+    switch (g_summary->delin) {
+	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	case MONTH: 
+	    date_offset = date_part_from_delin(g_summary->newest_date, MONTH);
+	    break;
+	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
+    }
+
+    for (int i = y_start; i <= y_end; i++) {
+	row_attrs = 0;
+
+	// if at end, insert total hline separator (I hardly know her), and
+	// set index to final row regardless of pos (i.e. freeze totals)
+	if (i != y_end)
+	    y_idx = i;
+	else {
+	    wmove(g_wins[SUMMARY].win, row, 0);
+	    waddch(g_wins[SUMMARY].win, ACS_LTEE);
+	    whline(g_wins[SUMMARY].win, ACS_HLINE, g_wins[SUMMARY].w - 2);
+	    mvwaddch(g_wins[SUMMARY].win, row, vert_idx_1, ACS_PLUS);
+	    mvwaddch(g_wins[SUMMARY].win, row++, vert_idx_2, ACS_PLUS);
+	    y_idx = nr - 1;
+	}
+
+	char *cat = g_summary->cat_name_list[y_idx];
+
+	// space at start indicates subcategory
+	if (cat[0] != ' ') 
+	    row_attrs |= A_BOLD;
+	if (i == y_end)
+	    row_attrs |= A_ITALIC;
+
+	wmove(g_wins[SUMMARY].win, row++, 1);
+	draw_str(g_wins[SUMMARY].win, cat, CAT_STR_LEN, " ", row_attrs);
+
+	waddch(g_wins[SUMMARY].win, ' ');
+	waddch(g_wins[SUMMARY].win, ACS_VLINE);
+
+	for (int j = x_start; j <= x_end; j++) {
+	    col_attrs = row_attrs;
+
+	    if (j != x_end)
+		x_idx = (j + date_offset + 1) % (nc - 1);
+	    else {
+		// final column is frozen to be always totals
+		x_idx = nc - 1;
+		waddstr(g_wins[SUMMARY].win, "   ");
+		waddch(g_wins[SUMMARY].win, ACS_VLINE);
+	    }
+
+	    amt = g_summary->data[y_idx*nc + x_idx];
+	    if (i == y_sel && j == x_sel)
+	    	col_attrs |= A_REVERSE;
+	    if (i != y_end && j == x_end)
+		col_attrs |= A_ITALIC;
+
+	    draw_amount(g_wins[SUMMARY].win, amt, AMOUNT_STR_LEN, " ", 
+		    col_attrs);
+	}
+    }
+    
+    // fill empty rows with just the vertical cat separator
+    while (row < g_wins[SUMMARY].h - 1) {
+	mvwaddch(g_wins[SUMMARY].win, row, vert_idx_1, ACS_VLINE);
+	mvwaddch(g_wins[SUMMARY].win, row++, vert_idx_2, ACS_VLINE);
+    }
+
+    mvwaddch(g_wins[SUMMARY].win, row, vert_idx_1, ACS_BTEE);
+    mvwaddch(g_wins[SUMMARY].win, row, vert_idx_2, ACS_BTEE);
+    wrefresh(g_wins[SUMMARY].win);
+}
+
+
+void summary_draw_header() {
+    int x_start = g_summary->x_start;
+    int x_end = g_summary->x_end;
+    int curr_yr = date_part_from_delin(g_summary->newest_date, YEAR);
+    int n_mnth = date_part_from_delin(g_summary->newest_date, MONTH);
+
+    mvwaddch(g_wins[SUMMARY].win, 1, CAT_STR_LEN + 3, ACS_VLINE);
+
+    for (int i = x_start; i <= x_end; i++) {
+	switch (g_summary->delin) {
+	    case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	    case MONTH: 
+		// always print header
+		if (i == x_end) {
+		    waddstr(g_wins[SUMMARY].win, "   ");
+		    waddch(g_wins[SUMMARY].win, ACS_VLINE);
+		    summary_draw_mnth_hdr(12, n_mnth, curr_yr);
+		} else
+		    summary_draw_mnth_hdr(i, n_mnth, curr_yr);
+		break;
+	    case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
+	}
+    }
+}
+
+
+void summary_draw_mnth_hdr(int m, int ref_m, int y) {
+    if (m == 12) {
+	draw_ra_string(g_wins[SUMMARY].win, 
+		       "12m Total", 
+		       AMOUNT_STR_LEN, 
+		       " ", 
+		       A_ITALIC);
+	return;
+    }
+
+    char hdr[AMOUNT_STR_LEN];
+    int hdr_ind = ((m + ref_m + 1) % 12);
+    y = (hdr_ind > ref_m) ? y - 1 : y;
+    const char **m_str_addr = mnth_hdrs + hdr_ind;
+
+    snprintf(hdr, AMOUNT_STR_LEN, "%s %d", *m_str_addr, y);
+    draw_ra_string(g_wins[SUMMARY].win, hdr, AMOUNT_STR_LEN, " ", 0);
+}
+
+
+void summary_scroll(int num_times, dir_t dir) {
+    int nc = g_summary->num_cols;
+    int nr = g_summary->num_rows;
+
+    while (num_times > 0) {
+	switch (dir) {
+	    case UP:
+		summary_mv_idxs(&g_summary->y_start, 
+			        &g_summary->y_sel, 
+				&g_summary->y_end, 
+				0, 0);
+		break;
+	    case DOWN:
+		summary_mv_idxs(&g_summary->y_start, 
+				&g_summary->y_sel, 
+				&g_summary->y_end, 
+				1, nr-1);
+		break;
+	    case LEFT:
+		summary_mv_idxs(&g_summary->x_start, 
+				&g_summary->x_sel, 
+				&g_summary->x_end, 
+				0, 0);
+		break;
+	    case RIGHT:
+		summary_mv_idxs(&g_summary->x_start, 
+				&g_summary->x_sel, 
+				&g_summary->x_end, 
+				1, nc-1);
+		break;
+	}
+    num_times--;
+    }
+}
+
+
+void summary_mv_idxs(int *i_start, int *i_sel, int *i_end, int pos, int lim) {
+    if (!pos) {
+	// not everything is visible and at start. need to move edges
+	if (*i_start != lim && *i_start == *i_sel) {
+	    (*i_start)--;
+	    (*i_end)--;
+	}
+	*i_sel = (*i_sel == lim) ? *i_sel : *i_sel - 1;
+    } else {
+	// not everything is visible and one away from end. need to move edges 	
+	if (*i_end != lim && *i_sel + 1 >= *i_end) {
+	    (*i_start)++;
+	    (*i_end)++;
+	}
+	// (but don't move sel to frozen last element until the very end)
+	if (*i_sel != lim)
+	    (*i_sel)++;
+    }
+}
+
+
 int summary_handle_key(int ch) {
+    EXIT_IF(!g_summary, "Summary not initialized");
+
+    switch (ch) {
+	case 'b':
+	    state = BROWSER;
+	    browser_draw();
+	    return 1;
+	case 'h':
+	case KEY_LEFT:
+	    summary_scroll(1, LEFT);
+	    break;
+	case 'j':
+	case KEY_DOWN:
+	    summary_scroll(1, DOWN);
+	    break;
+	case 'k':
+	case KEY_UP:
+	    summary_scroll(1, UP);
+	    break;
+	case 'l':
+	case KEY_RIGHT:
+	    summary_scroll(1, RIGHT);
+	    break;
+	case 'q':
+	    return 0;
+    }
+    summary_draw();
     return 1;
 }
 
@@ -95,9 +377,11 @@ int date_part_from_delin(time_t date, delin_t d) {
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	case MONTH: 
-	    date_part = (tm_from_date->tm_mon)++;
+	    date_part = tm_from_date->tm_mon;
 	    break;
-	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
+	case YEAR: 
+	    date_part = tm_from_date->tm_year + 1900;
+	    break;
     }
     return date_part;
 }

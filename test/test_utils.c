@@ -10,8 +10,8 @@ llist_t* test_dummy_list(int num_nodes) {
 
 
 // Add categories alternating between main and sub
-cat_array_t* test_dummy_cat_array(int num_cats) {
-    cat_array_t *ca = init_cat_array();
+llist_t* test_dummy_cat_list(int num_cats) {
+    llist_t *ca = init_llist();
     category_t *c = NULL;
     char cat_name[CAT_STR_LEN+1];
     for (int i = 1; i <= num_cats; i++) {
@@ -20,7 +20,7 @@ cat_array_t* test_dummy_cat_array(int num_cats) {
 	    c = init_category(i, 0, cat_name);
 	else
 	    c = init_category(i, i-1, cat_name);
-	append_to_cat_array(ca, c);
+	llist_insert_node(ca, init_llist_node(c), (llist_comp_fn_t)cat_comp);
     }
     return ca;
 }

@@ -307,6 +307,7 @@ int browser_pop_sel_entry_test() {
 
 int browser_insert_after_date_test() {
 
+    category_t *tc = init_category(1, 0, "Food");
     g_entries = init_llist();
     // browser with room for more entries
     g_browser = init_browser(g_entries, 3);
@@ -314,7 +315,7 @@ int browser_insert_after_date_test() {
     struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date1 = mktime(&tm1);
-    entry_t *e1 = init_entry(1, "A Name", date1, -12.00, 1, "A Note");
+    entry_t *e1 = init_entry(1, "A Name", date1, -12.00, tc, "A Note");
     llist_node_t *en1= init_llist_node(e1);
     llist_insert_node(g_entries, en1, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en1);
@@ -328,7 +329,7 @@ int browser_insert_after_date_test() {
     struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=1, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date2 = mktime(&tm2);
-    entry_t *e2 = init_entry(2, "A Name", date2, -12.00, 1, "A Note");
+    entry_t *e2 = init_entry(2, "A Name", date2, -12.00, tc, "A Note");
     llist_node_t *en2= init_llist_node(e2);
     llist_insert_node(g_entries, en2, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en2);
@@ -342,7 +343,7 @@ int browser_insert_after_date_test() {
     struct tm tm3 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=4, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date3 = mktime(&tm3);
-    entry_t *e3 = init_entry(3, "A Name", date3, -12.00, 1, "A Note");
+    entry_t *e3 = init_entry(3, "A Name", date3, -12.00, tc, "A Note");
     llist_node_t *en3= init_llist_node(e3);
     llist_insert_node(g_entries, en3, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en3);
@@ -356,7 +357,7 @@ int browser_insert_after_date_test() {
     struct tm tm4 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=3, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date4 = mktime(&tm4);
-    entry_t *e4 = init_entry(4, "A Name", date4, -12.00, 1, "A Note");
+    entry_t *e4 = init_entry(4, "A Name", date4, -12.00, tc, "A Note");
     llist_node_t *en4= init_llist_node(e4);
     llist_insert_node(g_entries, en4, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en4);
@@ -371,7 +372,7 @@ int browser_insert_after_date_test() {
     struct tm tm5 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=9, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date5 = mktime(&tm5);
-    entry_t *e5 = init_entry(5, "A Name", date5, -12.00, 1, "A Note");
+    entry_t *e5 = init_entry(5, "A Name", date5, -12.00, tc, "A Note");
     llist_node_t *en5= init_llist_node(e5);
     llist_insert_node(g_entries, en5, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en5);
@@ -387,7 +388,7 @@ int browser_insert_after_date_test() {
     struct tm tm6 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=29, .tm_mon=11, .tm_year=2021 - 1900, .tm_isdst=1}; 
     time_t date6 = mktime(&tm6);
-    entry_t *e6 = init_entry(6, "A Name", date6, -12.00, 1, "A Note");
+    entry_t *e6 = init_entry(6, "A Name", date6, -12.00, tc, "A Note");
     llist_node_t *en6= init_llist_node(e6);
     llist_insert_node(g_entries, en6, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en6);
@@ -403,7 +404,7 @@ int browser_insert_after_date_test() {
     struct tm tm9 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
 	   .tm_mday=29, .tm_mon=10, .tm_year=2021 - 1900, .tm_isdst=1}; 
     time_t date9 = mktime(&tm9);
-    entry_t *e9 = init_entry(9, "A Name", date9, -12.00, 1, "A Note");
+    entry_t *e9 = init_entry(9, "A Name", date9, -12.00, tc, "A Note");
     llist_node_t *en9= init_llist_node(e9);
     llist_insert_node(g_entries, en9, (llist_comp_fn_t)entry_date_comp_gte);
     browser_insert(en9);
@@ -416,6 +417,7 @@ int browser_insert_after_date_test() {
 
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_browser(g_browser);
+    free_category(tc);
 
     return 0;
 }

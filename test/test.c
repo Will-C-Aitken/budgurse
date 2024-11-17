@@ -2,6 +2,7 @@
 
 int tests_run = 0;
 int curses_mode = 0;
+state_t state = BROWSER;
 
 int main(int argc, char **argv) {
 
@@ -17,8 +18,8 @@ int main(int argc, char **argv) {
         printf("All Categories Tests Passed\n");
     if (!prompt_tests())
         printf("All Prompt Tests Passed\n");
-    // if (!summary_tests())
-    //	   printf("All Summary Tests Passed\n");
+    if (!summary_tests())
+        printf("All Summary Tests Passed\n");
 
     printf("Tests run: %d\n", tests_run);
 }
@@ -28,9 +29,10 @@ int main(int argc, char **argv) {
 void end_budgurse(int status) {
     
     free_browser(g_browser);
-    free_cat_array(g_categories);
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_wins(g_wins);
+    free_summary(g_summary);
     if (sqlite3_close(g_db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",
 		  sqlite3_errmsg(g_db));

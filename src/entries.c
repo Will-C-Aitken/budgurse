@@ -7,7 +7,7 @@ llist_t *g_entries = NULL;
 // ---------------------------------------------------------------------------
 
 entry_t *init_entry(int id, const char *name, time_t date, float amount, 
-	int category_id, const char *note) {
+	category_t *c, const char *note) {
 
     entry_t *e = malloc(sizeof(entry_t));
 
@@ -15,7 +15,7 @@ entry_t *init_entry(int id, const char *name, time_t date, float amount,
     e->date = date;
     e->amount = amount;
     e->name = strdup(name);
-    e->category_id = category_id;
+    e->cat = c;
 
     if (note != NULL)
 	e->note = strdup(note);
@@ -44,8 +44,8 @@ void entry_set_amount(entry_t *e, float amount) {
     e->amount = amount;
 }
 
-void entry_set_cat_id(entry_t *e, int cat_id) {
-    e->category_id = cat_id;
+void entry_set_cat(entry_t *e, category_t *c) {
+    e->cat = c;
 }
 
 void entry_set_note(entry_t *e, const char *note) {
@@ -53,6 +53,10 @@ void entry_set_note(entry_t *e, const char *note) {
     e->note = strdup(note);
 }
 
-int entry_date_comp_gte(entry_t *e1, entry_t *e2) {
+int entry_date_comp_gte(llist_node_t *en1, llist_node_t *en2, int inverse) {
+    entry_t *e1 = (entry_t *)en1->data;
+    entry_t *e2 = (entry_t *)en2->data;
+    if (inverse)
+	return (e2->date >= e1->date);
     return (e1->date >= e2->date);
 }

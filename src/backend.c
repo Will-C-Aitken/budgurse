@@ -8,7 +8,9 @@ static int load_categories_callback(void *_, int argc, char **argv,
     category_t *c = init_category(strtol(argv[0], NULL, 10), 
 				  strtol(argv[1], NULL, 10), 
 				  argv[2]);
-    append_to_cat_array(g_categories, c);
+
+    llist_node_t *nd = init_llist_node(c);
+    llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
     return 0;
 }
 
@@ -17,11 +19,12 @@ static int load_entries_callback(void *_, int argc, char **argv,
 	char **azColName) {
 
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10),
-				argv[1], 
-				(time_t)strtol(argv[2], NULL, 10),
-				strtof(argv[3], NULL), 
-				strtol(argv[4], NULL, 10), 
-				argv[5]);
+			    argv[1], 
+			    (time_t)strtol(argv[2], NULL, 10),
+			    strtof(argv[3], NULL), 
+			    cat_get_from_id(g_categories, 
+				strtol(argv[4], NULL, 10)),
+			    argv[5]);
 
     llist_node_t *nd = init_llist_node(entry);
     llist_insert_to_tail(g_entries, nd);
@@ -123,7 +126,7 @@ char *entry_to_sql_insert(entry_t *e) {
     append_to_sql(&sql, sql_to_append, amount_str, 0);
 
     char category_id_str[3];
-    sprintf(category_id_str, "%d", e->category_id);
+    sprintf(category_id_str, "%d", e->cat->id);
     append_to_sql(&sql, sql_to_append, category_id_str, 0);
 
     append_to_sql(&sql, sql_to_append, e->note, 1);
@@ -156,7 +159,7 @@ char *edit_entry_to_sql_update(entry_t *e) {
 
     sql_to_append = ", category_id = ";
     char category_id_str[3];
-    sprintf(category_id_str, "%d", e->category_id);
+    sprintf(category_id_str, "%d", e->cat->id);
     append_to_sql(&sql, sql_to_append, category_id_str, 0);
 
     sql_to_append = ", note = ";
@@ -173,21 +176,19 @@ char *edit_entry_to_sql_update(entry_t *e) {
     return sql;
 }
 
+
 char *cat_to_sql_insert(category_t *c) {
-    char *sql_to_append = "INSERT INTO Categories (id, parent_id, name) "
+    char *sql_to_append = "INSERT INTO Categories (parent_id, name) "
 			  "VALUES (";
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
     char category_id_str[10];
-    sprintf(category_id_str, "%d", c->id);
+    sprintf(category_id_str, "%d", c->p_id);
     append_to_sql(&sql, NULL, category_id_str, 0);
 
     sql_to_append = ", ";
-    sprintf(category_id_str, "%d", c->parent_id);
-    append_to_sql(&sql, sql_to_append, category_id_str, 0);
-
     append_to_sql(&sql, sql_to_append, c->name, 1);
 
     sql_to_append = ");";

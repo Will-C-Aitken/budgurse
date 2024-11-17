@@ -15,7 +15,7 @@ llist_node_t *init_llist_node(void *data) {
     return nd;
 }
 
-void llist_node_traverse(llist_node_t **curr, llist_dir_t dir) {
+void llist_node_traverse(llist_node_t **curr, dir_t dir) {
     if (dir == DOWN && (*curr)->next) *curr = (*curr)->next;
     if (dir == UP && (*curr)->prev) *curr = (*curr)->prev;
 }
@@ -81,37 +81,47 @@ llist_t *init_llist() {
     return l;
 }
 
-void llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn) {
+int llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn) {
     
     if (l->num_nodes == 0) {
 	l->num_nodes++;
         l->tail = nd;
         l->head = nd;
-	return;
+	return 1;
     }
 
-    if (c_fn(nd->data, l->tail->data)) {
-	llist_insert_to_tail(l, nd);
-	return;
+    int res = c_fn(nd, l->tail, 0);
+    if (res) {
+	if (res > 0)
+	    llist_insert_to_tail(l, nd);
+	// if negative, insert was already done by c_fn
+	return 1;
     }
 
-    if (c_fn(l->head->data, nd->data)) {
-	llist_insert_to_head(l, nd);
-	return;
+    // use the inverse version of c_fn because for head we are inserting above
+    res = c_fn(nd, l->head, 1);
+    if (res) {
+	if (res > 0)
+	    llist_insert_to_head(l, nd);
+	// if negative, insert was already done by c_fn
+	return 1;
     }
 
     llist_node_t *temp = l->tail;
     for (int i = l->num_nodes; i > 1; i--) {
 	llist_node_traverse(&temp, UP);
-	if (c_fn(nd->data, temp->data)) {
-	    l->num_nodes++;
-	    llist_insert_after_node(temp, nd);
-	    return;
+	res = c_fn(nd, temp, 0);
+	if (res) {
+	    if (res > 0) {
+		l->num_nodes++;
+		llist_insert_after_node(temp, nd);
+	    }
+	    // if negative, insert was already done by c_fn
+	    return 1;
 	}
-	// found node, but do insert inside c_fn (to support ll within ll)
-	if (c_fn(temp->data, nd->data) < 1)
-	    return;
     }
+    
+    return 0;
 
 }
 

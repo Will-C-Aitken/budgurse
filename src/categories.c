@@ -1,133 +1,202 @@
 #include "categories.h"
 
-cat_array_t *g_categories = NULL;
+llist_t *g_categories = NULL;
 
-category_t *init_category(int id, int parent_id, const char* name) {
+category_t *init_category(int id, int p_id, const char* name) {
 
     category_t *c = malloc(sizeof(category_t));
 
     c->id = id;
-    c->parent_id = parent_id;
+    c->p_id = p_id;
+    c->subcats = NULL;
     c->name = strdup(name);
+    c->sum_idx = -1;
 
     return c;
 }   
 
 
 void free_category(category_t *c) {
+    if (!c)
+	return;
+    free_llist(c->subcats, (llist_free_data_fn_t)free_category);
     free(c->name);
     free(c);
 }
 
 
-cat_array_t *init_cat_array() {
-    cat_array_t *ca = malloc(sizeof(cat_array_t));
+int cat_comp(llist_node_t *cn1, llist_node_t *cn2, int inverse) {
+    category_t *c1 = (category_t *)cn1->data;
+    category_t *c2 = (category_t *)cn2->data;
 
-    ca->array = NULL;
-    ca->num_cats = 0;
-
-    return ca;
-}
-
-
-void free_cat_array(cat_array_t *ca) {
-    if (!ca)
-	return;
-    while (ca->num_cats > 0) {
-	free_category(ca->array[ca->num_cats-1]);
-	ca->num_cats--;
+    // inserting to subcategory list
+    if (c2->id == c1->p_id) {
+	if (!c2->subcats)
+	    c2->subcats = init_llist();
+	llist_insert_node(c2->subcats, cn1, (llist_comp_fn_t)cat_comp);
+	return -1;
     }
-    free(ca->array);
-    free(ca);
+
+    // skip if comparing sub to a main
+    else if (c1->p_id != 0 && c2->p_id == 0) {
+	return 0;
+    }
+
+    // else do alphabetically
+    if (inverse)
+	return (strcmp(c2->name, c1->name) > 0);
+    return (strcmp(c1->name, c2->name) > 0);
 }
 
 
-int append_to_cat_array(cat_array_t *ca, category_t *c) {
+void cat_id_to_names(const llist_t *cl, int cat_id, char** cat_name, 
+	char** subcat_name) {
 
-    int rc = 0;
+    if (!cl)
+	return;
 
-    // If parent_id is not NULL, must check that it exists
-    if (c->parent_id != 0) {
-	rc = 1;
-
-	for (int i = 0; i < ca->num_cats; i++) {
-	    // legal parent_id if it is already in array AND if
-	    // that parent category is NOT a subcategory itself 
-	    if ((ca->array[i]->id == c->parent_id) && 
-		(ca->array[i]->parent_id == 0)) {
-
-		rc = 0;
-		break;
+    *subcat_name = NULL;
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	*cat_name = t_cat->name;
+	if (t_cat->id == cat_id)
+	    return;
+	if (t_cat->subcats) {
+	    llist_node_t *temp2 = t_cat->subcats->head;
+	    category_t *t_cat2; 
+	    while (temp2) {
+		t_cat2 = (category_t *)temp2->data;
+		if (t_cat2->id == cat_id) {
+		    *subcat_name = t_cat2->name;
+		    return;
+		}
+		temp2 = temp2->next;
 	    }
 	}
-
-	if (rc)
-	    return 1;
+	temp = temp->next;
     }
-
-    ca->num_cats++;
-    ca->array = realloc(ca->array, ca->num_cats * sizeof(category_t));
-    ca->array[ca->num_cats-1] = c;
-    return rc;
 }
 
 
-void cat_id_to_names(const cat_array_t *ca, int cat_id, char** cat_name, 
-	char** subcat_name) {
-    category_t *cat = get_cat(ca, cat_id);
+int cat_name_to_id(const llist_t *cl, const char* name, int p_cat_id) {
+    if (!cl)
+	return 0;
 
-    // If no subcat, return
-    if (cat->parent_id == 0) {
-	*cat_name = cat->name;
-	*subcat_name = NULL;
-	return;
-    }
-
-    category_t *subcat = cat;
-    cat = get_cat(ca, subcat->parent_id);
-
-    *subcat_name = subcat->name;
-    *cat_name = cat->name;
-}
-
-
-int cat_name_to_id(const cat_array_t *ca, const char* name, int is_main_cat) {
-    for (int i = 0; i < ca->num_cats; i++) {
-	if (strcmp(name, ca->array[i]->name) == 0) {
-	    if ((is_main_cat && ca->array[i]->parent_id == 0) ||
-		     (!is_main_cat && ca->array[i]->parent_id != 0))
-		return ca->array[i]->id;
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	// is a main cat, just check those names
+	if (!p_cat_id) {
+	    if (strcmp(name, t_cat->name) == 0)
+		return t_cat->id;
 	}
+	else if (p_cat_id == t_cat->id) {
+	    if(!t_cat->subcats)
+		return 0;
+	    temp = t_cat->subcats->head;
+	    while (temp) {
+		t_cat = (category_t *)temp->data;
+		if (strcmp(name, t_cat->name) == 0)
+		    return t_cat->id;
+		temp = temp->next;
+	    }
+	    return 0;
+	}
+	temp = temp->next;
     }
     return 0;
 }
 
 
-category_t* get_cat(const cat_array_t *ca, int cat_id) {
-    for (int i = 0; i < ca->num_cats; i++) {
-	if (ca->array[i]->id == cat_id)
-	    return ca->array[i];
+// If cat_id is subcat of p_cat_id, return true. Note that all main categories
+// are subcategories of p_cat_id 0
+int cat_is_sub(const llist_t *cl, int cat_id, int p_cat_id) {
+    
+    if (!cl)
+	return 0;
+
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	if (t_cat->id == p_cat_id) {
+	    if (!t_cat->subcats)
+		return 0;
+	    temp = t_cat->subcats->head;
+	    while (temp) {
+		t_cat = (category_t *)temp->data;
+		if (t_cat->id == cat_id)
+		    return 1;
+		temp = temp->next;
+	    }
+	    return 0;
+	}
+	temp = temp->next;
+    }
+
+    return 0;
+}
+
+
+void cat_set_sum_idxs(const llist_t *cl, int *next_idx) {
+
+    if (!cl || cl->num_nodes == 0)
+	return;
+   
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	t_cat->sum_idx = (*next_idx)++;
+	if (t_cat->subcats)
+	     cat_set_sum_idxs(t_cat->subcats, next_idx);
+	temp = temp->next;
+    }
+}
+
+
+category_t *cat_get_from_id(const llist_t *cl, int cat_id) {
+
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	if (t_cat->id == cat_id)
+	    return t_cat;
+	if (t_cat->subcats) {
+	    category_t *sub_t_cat = cat_get_from_id(t_cat->subcats, cat_id);
+	    if (sub_t_cat)
+		return sub_t_cat;
+	}
+	temp = temp->next;
     }
     return NULL;
 }
 
 
-// If cat_id is subcat of p_cat_id, return true. Note that all main categories
-// are subcategories of p_cat_id 0
-int is_sub_cat(const cat_array_t *ca, int cat_id, int p_cat_id) {
-    int found = 0;
-    for (int i = 0; i < ca->num_cats; i++) {
-	if (ca->array[i]->id == cat_id &&
-		ca->array[i]->parent_id == p_cat_id) {
-	    found = 1;
-	}
+void cat_flatten_names(const llist_t *cl, char **flat_names[], int *next_idx) {
+    if (!cl || cl->num_nodes == 0)
+	return;
+   
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	if (!t_cat->p_id)
+	    (*flat_names)[*next_idx] = strndup(t_cat->name, MAX_CAT_BYTES);
+	// insert space at the stat for subcategories
+	else { 
+	    char *new_str = malloc(sizeof(char) * (MAX_CAT_BYTES + 1));
+	    snprintf(new_str, MAX_CAT_BYTES, " %s", t_cat->name);
+	    (*flat_names)[*next_idx] = strndup(new_str, MAX_CAT_BYTES);
+	    free(new_str);
+	} 
+	(*next_idx)++;
+	if (t_cat->subcats)
+	    cat_flatten_names(t_cat->subcats, flat_names, next_idx);
+	temp = temp->next;
     }
-    return found;
-}
-
-
-int get_next_id(const cat_array_t *ca) {
-    if (ca->num_cats > 0)
-	return (ca->array[ca->num_cats - 1]->id + 1);
-    return 1;
 }

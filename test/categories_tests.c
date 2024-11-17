@@ -1,86 +1,238 @@
 #include "test.h"
 
 int categories_tests() {
-    mu_run_test(cat_array_test);
+    mu_run_test(init_categories_test);
     mu_run_test(cat_id_to_names_test);
+    mu_run_test(cat_name_to_id_test);
+    mu_run_test(cat_is_sub_test);
+    mu_run_test(cat_set_sum_idxs_test);
+    mu_run_test(cat_flatten_names_test);
     return 0;
 }
 
 
-int cat_array_test() {
+int init_categories_test() {
 
-    int rc;
-    // empty category array
-    g_categories = init_cat_array();
-    mu_assert(!g_categories->array, "Categories", 1);
-    mu_assert(!g_categories->num_cats, "Categories", 2);
+    g_categories = init_llist();
 
-    // Signature of (parent_id, id, name). 0 is NULL category
     category_t *c1 = init_category(1, 0, "Food");
-    mu_assert(c1->id == 1, "Categories", 3);
-    mu_assert(c1->parent_id == 0, "Categories", 4);
-    mu_assert(strcmp(c1->name, "Food") == 0, "Categories", 5);
+    mu_assert(c1->id == 1, "Categories", 1);
+    mu_assert(c1->p_id == 0, "Categories", 2);
+    mu_assert(strcmp(c1->name, "Food") == 0, "Categories", 3);
+    mu_assert(!c1->subcats, "Categories", 4);
 
-    free_category(c1);
+    llist_node_t *cn1 = init_llist_node(c1);
+    llist_insert_node(g_categories, cn1, (llist_comp_fn_t)cat_comp);
 
-    // Parent category is NULL, ie Food will be a main category. legal
-    c1 = init_category(1, 0, "Food");
-    rc = append_to_cat_array(g_categories, c1);
-    mu_assert(g_categories->array[0] == c1, "Categories", 6);
-    mu_assert(!rc, "Categories", 7);
+    mu_assert(g_categories->head == cn1, "Categories", 3);
+    mu_assert(g_categories->tail == cn1, "Categories", 4);
+    mu_assert(g_categories->num_nodes == 1, "Categories", 5);
+    mu_assert(!c1->subcats, "Categories", 6);
 
-    // Parent category is Food, which is already in array. legal
+    // subcateogry of prev cat
     category_t *c2 = init_category(2, 1, "Cafe");
-    append_to_cat_array(g_categories, c2);
-    mu_assert(g_categories->array[0] == c1, "Categories", 8);
-    mu_assert(g_categories->array[1] == c2, "Categories", 9);
-    mu_assert(!rc, "Categories", 10);
+    llist_node_t *cn2 = init_llist_node(c2);
+    llist_insert_node(g_categories, cn2, (llist_comp_fn_t)cat_comp);
+    mu_assert(c1->subcats->num_nodes == 1, "Categories", 7);
+    mu_assert(c1->subcats->head == cn2, "Categories", 8);
+    mu_assert(c1->subcats->tail == cn2, "Categories", 9);
+    mu_assert(g_categories->num_nodes == 1, "Categories", 10);
 
-    // Parent category does not exist. should fail
-    category_t *c3 = init_category(3, 3, "Cafe");
-    rc = append_to_cat_array(g_categories, c3);
-    mu_assert(rc, "Categories", 11);
-    mu_assert(g_categories->num_cats == 2, "Categories", 12);
-    free_category(c3);
+    // subcateogory with higher name
+    category_t *c3 = init_category(3, 1, "Banana");
+    llist_node_t *cn3 = init_llist_node(c3);
+    llist_insert_node(g_categories, cn3, (llist_comp_fn_t)cat_comp);
+    mu_assert(c1->subcats->num_nodes == 2, "Categories", 11);
+    mu_assert(c1->subcats->head == cn3, "Categories", 12);
+    mu_assert(c1->subcats->tail == cn2, "Categories", 13);
+    mu_assert(g_categories->num_nodes == 1, "Categories", 14);
 
-    // Parent category is subcategory. should fail
-    c3 = init_category(3, 2, "Cafe");
-    rc = append_to_cat_array(g_categories, c3);
-    mu_assert(rc, "Categories", 13);
-    mu_assert(g_categories->num_cats == 2, "Categories", 14);
-    free_category(c3);
+    // main category with higher name
+    category_t *c4 = init_category(4, 0, "Apparel");
+    llist_node_t *cn4 = init_llist_node(c4);
+    llist_insert_node(g_categories, cn4, (llist_comp_fn_t)cat_comp);
+    mu_assert(c1->subcats->num_nodes == 2, "Categories", 15);
+    mu_assert(c1->subcats->head == cn3, "Categories", 16);
+    mu_assert(c1->subcats->tail == cn2, "Categories", 17);
+    mu_assert(g_categories->num_nodes == 2, "Categories", 18);
+    mu_assert(g_categories->head == cn4, "Categories", 19);
+    mu_assert(g_categories->tail == cn1, "Categories", 20);
 
-    free_cat_array(g_categories);
+    // lower case should be bottom
+    category_t *c5 = init_category(5, 0, "apparel");
+    llist_node_t *cn5 = init_llist_node(c5);
+    llist_insert_node(g_categories, cn5, (llist_comp_fn_t)cat_comp);
+    // now 
+    // cn4 
+    //  |
+    //  v
+    // cn1 -> (cn3 -> cn2)
+    //  |
+    //  v
+    // cn5
+    mu_assert(g_categories->num_nodes == 3, "Categories", 21);
+    mu_assert(g_categories->head == cn4, "Categories", 22);
+    mu_assert(g_categories->tail == cn5, "Categories", 23);
 
+    // subcat of new bottom
+    category_t *c6 = init_category(6, 5, "Shoes");
+    llist_node_t *cn6 = init_llist_node(c6);
+    llist_insert_node(g_categories, cn6, (llist_comp_fn_t)cat_comp);
+    // now 
+    // cn4 
+    //  |
+    //  v
+    // cn1 -> (cn3 -> cn2)
+    //  |
+    //  v
+    // cn5 -> (cn6)
+    
+    // c1 shouldn't change
+    mu_assert(c1->subcats->num_nodes == 2, "Categories", 24);
+    mu_assert(c1->subcats->head == cn3, "Categories", 25);
+    mu_assert(c1->subcats->tail == cn2, "Categories", 26);
+    mu_assert(g_categories->num_nodes == 3, "Categories", 27);
+    mu_assert(g_categories->head == cn4, "Categories", 28);
+    mu_assert(g_categories->tail == cn5, "Categories", 29);
+    mu_assert(c5->subcats->num_nodes == 1, "Categories", 30);
+    mu_assert(c5->subcats->head == cn6, "Categories", 31);
+    mu_assert(c5->subcats->tail == cn6, "Categories", 32);
+
+    // can't make subcategory of subcategory
+    category_t *c7 = init_category(7, 6, "Shoes");
+    llist_node_t *cn7 = init_llist_node(c7);
+    int r = llist_insert_node(g_categories, cn7, (llist_comp_fn_t)cat_comp);
+    mu_assert(!r, "Categories", 33);
+    // everything should stay the same
+    mu_assert(c1->subcats->num_nodes == 2, "Categories", 34);
+    mu_assert(c1->subcats->head == cn3, "Categories", 35);
+    mu_assert(c1->subcats->tail == cn2, "Categories", 36);
+    mu_assert(g_categories->num_nodes == 3, "Categories", 37);
+    mu_assert(g_categories->head == cn4, "Categories", 38);
+    mu_assert(g_categories->tail == cn5, "Categories", 39);
+    mu_assert(c5->subcats->num_nodes == 1, "Categories", 40);
+    mu_assert(c5->subcats->head == cn6, "Categories", 41);
+    mu_assert(c5->subcats->tail == cn6, "Categories", 42);
+    free_llist_node(cn7, (llist_free_data_fn_t)free_category);
+
+    // inserting subcategory at head (same name as other category which is
+    // allowed)
+    category_t *c8 = init_category(8, 4, "apparel");
+    llist_node_t *cn8 = init_llist_node(c8);
+    llist_insert_node(g_categories, cn8, (llist_comp_fn_t)cat_comp);
+    // now 
+    // cn4 -> (cn8)
+    //  |
+    //  v
+    // cn1 -> (cn3 -> cn2)
+    //  |
+    //  v
+    // cn5 -> (cn6)
+    mu_assert(c1->subcats->num_nodes == 2, "Categories", 43);
+    mu_assert(c1->subcats->head == cn3, "Categories", 44);
+    mu_assert(c1->subcats->tail == cn2, "Categories", 45);
+    mu_assert(g_categories->num_nodes == 3, "Categories", 46);
+    mu_assert(g_categories->head == cn4, "Categories", 47);
+    mu_assert(g_categories->tail == cn5, "Categories", 48);
+    mu_assert(c5->subcats->num_nodes == 1, "Categories", 49);
+    mu_assert(c5->subcats->head == cn6, "Categories", 50);
+    mu_assert(c5->subcats->tail == cn6, "Categories", 51);
+    mu_assert(c4->subcats->num_nodes == 1, "Categories", 52);
+    mu_assert(c4->subcats->head == cn8, "Categories", 53);
+    mu_assert(c4->subcats->tail == cn8, "Categories", 54);
+
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
     return 0;
 }
-
 
 int cat_id_to_names_test() {
+    char *main_name, *subname;
+    llist_t* tcl = test_dummy_cat_list(5);
 
-    char *cat, *subcat;
+    cat_id_to_names(tcl, 3, &main_name, &subname);
+    mu_assert(strcmp(main_name, "Cat3") == 0, "Categories", 55);
+    mu_assert(!subname, "Categories", 56);
 
-    g_categories = init_cat_array();
-    category_t *c1 = init_category(1, 0, "Food");
-    append_to_cat_array(g_categories, c1);
+    cat_id_to_names(tcl, 4, &main_name, &subname);
+    mu_assert(strcmp(main_name, "Cat3") == 0, "Categories", 57);
+    mu_assert(strcmp(subname, "Cat4") == 0, "Categories", 58);
 
-    cat_id_to_names(g_categories, 1, &cat, &subcat);
-    mu_assert(strcmp(cat, "Food") == 0, "Categories", 15);
-    mu_assert(!subcat, "Categories", 16);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+    return 0;
+}
 
-    category_t *c2 = init_category(2, 1, "Cafe");
-    append_to_cat_array(g_categories, c2);
+int cat_name_to_id_test() {
+    int id;
+    llist_t* tcl = test_dummy_cat_list(5);
 
-    // category one is still just food without subcat
-    cat_id_to_names(g_categories, 1, &cat, &subcat);
-    mu_assert(strcmp(cat, "Food") == 0, "Categories", 17);
-    mu_assert(!subcat, "Categories", 18);
-    
-    // category one is still just food without subcat
-    cat_id_to_names(g_categories, 2, &cat, &subcat);
-    mu_assert(strcmp(cat, "Food") == 0, "Categories", 19);
-    mu_assert(strcmp(subcat, "Cafe") == 0, "Categories", 20);
+    id = cat_name_to_id(tcl, "Cat5", 0);
+    mu_assert(id == 5, "Categories", 59);
+    id = cat_name_to_id(tcl, "Cat4", 3);
+    mu_assert(id == 4, "Categories", 60);
+    // cat 4 exists but not as a main category. should fail
+    id = cat_name_to_id(tcl, "Cat4", 0);
+    mu_assert(id == 0, "Categories", 61);
+    // cat 4 exists but not as a subcategory of id 1
+    id = cat_name_to_id(tcl, "Cat4", 1);
+    mu_assert(id == 0, "Categories", 62);
 
-    free_cat_array(g_categories);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+    return 0;
+}
+
+int cat_is_sub_test() {
+
+    llist_t* tcl = test_dummy_cat_list(5);
+
+    mu_assert(cat_is_sub(tcl, 2, 1), "Categories", 63);
+    mu_assert(!cat_is_sub(tcl, 3, 1), "Categories", 64);
+    mu_assert(!cat_is_sub(tcl, 4, 1), "Categories", 65);
+
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+    return 0;
+}
+
+int cat_set_sum_idxs_test() {
+    int next_id = 0;
+
+    llist_t* tcl = init_llist();
+    cat_set_sum_idxs(tcl, &next_id);
+    mu_assert(next_id == 0, "Categories", 66);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+
+    tcl = test_dummy_cat_list(5);
+    cat_set_sum_idxs(tcl, &next_id);
+    mu_assert(next_id == 5, "Categories", 67);
+    mu_assert(((category_t *)tcl->head->data)->sum_idx == 0 , "Categories", 68);
+    mu_assert(((category_t *)tcl->tail->data)->sum_idx == 4 , "Categories", 69);
+
+    // insert node and update idxs
+    category_t *c6 = init_category(6, 0, "Cat21");
+    llist_node_t *cn6 = init_llist_node(c6);
+    llist_insert_node(tcl, cn6, (llist_comp_fn_t)cat_comp);
+    next_id = 0;
+    cat_set_sum_idxs(tcl, &next_id);
+    mu_assert(((category_t *)tcl->head->data)->sum_idx == 0 , "Categories", 70);
+    mu_assert(c6->sum_idx == 2, "Categories", 71);
+    mu_assert(((category_t *)tcl->tail->data)->sum_idx == 5 , "Categories", 72);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+
+    return 0;
+}
+
+int cat_flatten_names_test() {
+
+    int temp_idx = 0;
+    char **flat_names = malloc(sizeof(char *) * 5);
+    llist_t *tcl = test_dummy_cat_list(5);
+    cat_flatten_names(tcl, &flat_names, &temp_idx);
+    mu_assert(strcmp(flat_names[0], "Cat1") == 0 , "Categories", 73);
+    mu_assert(strcmp(flat_names[3], " Cat4") == 0 , "Categories", 74);
+    mu_assert(strcmp(flat_names[4], "Cat5") == 0 , "Categories", 75);
+    for (int i = 0; i < 5; i++)
+	free(flat_names[i]);
+    free(flat_names);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+
     return 0;
 }

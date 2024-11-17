@@ -16,6 +16,7 @@
 #include <time.h>
 
 #include "llist.h"
+#include "categories.h"
 
 extern llist_t *g_entries;
 
@@ -24,21 +25,21 @@ typedef struct entry {
     char *name;
     time_t date;
     float amount;
-    int category_id;
+    category_t *cat;
     char *note;
 } entry_t;
 
 // entry declarations
 entry_t *init_entry(int id, const char *name, time_t date, float amount, 
-	int category_id, const char *note);
+	category_t *c, const char *note);
 void free_entry(entry_t *e);
 void entry_set_date(entry_t *e, time_t date);
 void entry_set_name(entry_t *e, const char *name);
 void entry_set_amount(entry_t *e, float amount);
-void entry_set_cat_id(entry_t *e, int cat_id);
+void entry_set_cat(entry_t *e, category_t *c);
 void entry_set_note(entry_t *e, const char *note);
 
 // for comparing two entries 
-int entry_date_comp_gte(entry_t *e1, entry_t *e2);
+int entry_date_comp_gte(llist_node_t *en1, llist_node_t *en2, int inverse);
 
 #endif

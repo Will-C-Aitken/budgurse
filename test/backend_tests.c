@@ -14,12 +14,12 @@ int backend_tests() {
 
 
 int entry_to_sql_insert_test() {
-    int cat_id = 1;
+    category_t *tc = init_category(1, 0, "Food");
 
     // sec, min, hour, day, month, year, is_dst
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
-    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -12.00, cat_id, 
+    entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -12.00, tc, 
 	    "this was fun");
 
     char* sql = entry_to_sql_insert(test_entry1);
@@ -30,6 +30,7 @@ int entry_to_sql_insert_test() {
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 1);
     free_entry(test_entry1);
+    free_category(tc);
     free(sql);
     return 0;
 }
@@ -39,13 +40,13 @@ int load_empty_db_test() {
 
     init_db("data/test.db");
     g_entries = init_llist();
-    g_categories = init_cat_array();
+    g_categories = init_llist();
     load_db();
     mu_assert(g_entries->num_nodes == 0, "Backend", 2);
-    mu_assert(g_categories->num_cats == 0, "Backend", 3);
+    mu_assert(g_categories->num_nodes == 0, "Backend", 3);
 
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
-    free_cat_array(g_categories);
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
     int result = sqlite3_close(g_db);
     mu_assert(result == SQLITE_OK, "Backend", 4);
 
@@ -55,12 +56,12 @@ int load_empty_db_test() {
 
 int write_entry_test() {
     // First write normal entry, then entry with NULL note
-    int cat_id = 1;
+    category_t *tc = init_category(1, 0, "Food");
     
     // sec, min, hour, day, month, year, is_dst
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
-    entry_t* e1 = init_entry(1, "Starbucks", test_date, -12.00, cat_id, 
+    entry_t* e1 = init_entry(1, "Starbucks", test_date, -12.00, tc, 
 	    "this was fun");
 
     init_db("data/test.db");
@@ -69,7 +70,7 @@ int write_entry_test() {
     mu_assert(result == 0, "Backend", 5);
 
     // NULL note 
-    entry_t* e2 = init_entry(2, "Tim Horton's", test_date, -11.00, cat_id, 
+    entry_t* e2 = init_entry(2, "Tim Horton's", test_date, -11.00, tc, 
             NULL);
     
     result = db_exec(e2, (gen_sql_fn_t)entry_to_sql_insert);
@@ -77,6 +78,7 @@ int write_entry_test() {
 
     result = sqlite3_close(g_db);
     mu_assert(result == SQLITE_OK, "Backend", 7);
+    free_category(tc);
     free_entry(e1);
     free_entry(e2);
     return 0;
@@ -88,7 +90,7 @@ int load_db_test() {
     
     init_db("data/test.db");
     g_entries = init_llist();
-    g_categories = init_cat_array();
+    g_categories = init_llist();
     load_db();
     mu_assert(g_entries->num_nodes == 2, "Backend", 8);
 
@@ -102,7 +104,7 @@ int load_db_test() {
     mu_assert(difftime(test_time1, tail->date) == 0.0, "Backend", 11);
 
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
-    free_cat_array(g_categories);
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
 
     int result = sqlite3_close(g_db);
     mu_assert(result == SQLITE_OK, "Backend", 12);
@@ -116,8 +118,8 @@ int cat_to_sql_insert_test() {
     category_t *c = init_category(1, 0, "Food");
 
     char* sql = cat_to_sql_insert(c);
-    char* expected_statement = "INSERT INTO Categories (id, parent_id, name) "
-        		       "VALUES (1, 0, 'Food');";
+    char* expected_statement = "INSERT INTO Categories (parent_id, name) "
+        		       "VALUES (0, 'Food');";
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 13);
     free_category(c);
@@ -128,7 +130,7 @@ int cat_to_sql_insert_test() {
 
 
 int del_entry_to_sql_test() {
-    entry_t *e = init_entry(1, "A Name", 0, -12.00, 1, "A Note");
+    entry_t *e = init_entry(1, "A Name", 0, -12.00, NULL, "A Note");
     char *sql = del_entry_to_sql(e);
     char *expected_statement = "DELETE FROM Entries WHERE id=1;";
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 14);
@@ -139,11 +141,11 @@ int del_entry_to_sql_test() {
 
 
 int edit_entry_to_sql_update_test() {
-    int cat_id = 1;
+    category_t *tc = init_category(1, 0, "Food");
     int id = 1;
     struct tm tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t d1 = mktime(&tm1);
-    entry_t *e = init_entry(id, "Starbucks", d1, -0.21, cat_id, NULL);
+    entry_t *e = init_entry(id, "Starbucks", d1, -0.21, tc, NULL);
 
     char *sql = edit_entry_to_sql_update(e);
     char* expected_statement = "UPDATE Entries SET name = 'Starbucks', "
@@ -153,6 +155,8 @@ int edit_entry_to_sql_update_test() {
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 15);
     free_entry(e);
+    free_category(tc);
     free(sql);
     return 0;
+
 }

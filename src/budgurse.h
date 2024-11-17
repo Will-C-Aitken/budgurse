@@ -20,6 +20,7 @@
 #include "wins.h"
 #include "prompt.h"
 #include "summary.h"
+#include "util.h"
 
 #define TIME_T_32 (sizeof(time_t) == 4)
 
@@ -27,7 +28,6 @@
 #define BUDGURSE_SUCCESS 0
 
 #define MAX_NAME_BYTES 64
-#define MAX_CAT_BYTES 32
 #define MAX_NOTE_BYTES 1024
 
 #define MAX_AMOUNT_VAL 999999.99

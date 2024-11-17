@@ -55,8 +55,12 @@ int browser_insert_after_date_test();
 
 // Categories tests
 int categories_tests();
-int cat_array_test();
+int init_categories_test();
 int cat_id_to_names_test();
+int cat_name_to_id_test();
+int cat_is_sub_test();
+int cat_set_sum_idxs_test();
+int cat_flatten_names_test();
 
 // Prompt tests
 int prompt_tests();
@@ -67,8 +71,10 @@ int cat_proc_test();
 // Summary tests
 int summary_tests();
 int summary_init_test();
+int summary_calc_test();
+int summary_scroll_test();
 
 // Utility functions
 llist_t* test_dummy_list(int num_nodes);
-cat_array_t* test_dummy_cat_array(int num_cats);
+llist_t* test_dummy_cat_list(int num_cats);
 int is_amount_eq(float candidate, float actual);

@@ -3,6 +3,8 @@
 
 #include "budgurse.h"
 
+extern const char *mnth_hdrs[];
+
 typedef enum delin {
     WEEK,
     MONTH,
@@ -20,14 +22,25 @@ typedef struct summary {
     int y_start;
     int y_sel;
     int y_end;
+    int newest_date;
+    char **cat_name_list;
 } summary_t;
 
 extern summary_t *g_summary;
 
 summary_t* init_summary(delin_t d, int height, int width);
-void calc_summary();
-void summary_update_cell(llist_node_t *en, int max_date_part);
 void free_summary(summary_t* s);
+
+void summary_calc();
+void summary_update_on_entry(entry_t *e);
+void summary_inc_cell(int x, int y, int value);
+
+void summary_draw();
+void summary_draw_header();
+void summary_draw_mnth_hdr(int m, int ref_m, int y);
+
+void summary_scroll(int num_times, dir_t dir);
+void summary_mv_idxs(int *i_start, int *i_sel, int *i_end, int amt, int lim);
 
 int summary_handle_key(int ch);
 
