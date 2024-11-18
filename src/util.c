@@ -1,6 +1,6 @@
 #include "util.h"
 
-const int days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const int days_in_mnth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 void draw_amount(WINDOW *w, float amount, int max_width, 
 	const char *delim_str, int attrs) {
@@ -97,7 +97,7 @@ int check_time_bounds(int day, int month, int year) {
 	if (year < 1900 || year > 2037) return 1;
     if (month < 1 || month > 12) 
 	return 1;
-    if (day < 0 || day > days[month-1])
+    if (day < 0 || day > days_in_mnth[month-1])
 	return 1;
     return 0;
 }

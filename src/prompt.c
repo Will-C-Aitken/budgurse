@@ -39,6 +39,7 @@ llist_node_t *prompt_new_entry_node() {
     e->id = sqlite3_last_insert_rowid(g_db);
     llist_node_t* en = init_llist_node(e);
     llist_insert_node(g_entries, en, (llist_comp_fn_t)entry_date_comp_gte);
+    summary_calc();
 
     werase(g_wins[PROMPT].win);
     wrefresh(g_wins[PROMPT].win);
@@ -60,11 +61,7 @@ int prompt_add_category(const char *cat_name, int parent_id) {
 	    new_cat = init_category(0, parent_id, cat_name);
 	    llist_node_t *nd = init_llist_node(new_cat);
 	    llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
-	    if (g_summary) {
-		delin_t d = g_summary->delin;
-		free(g_summary);
-		g_summary = init_summary(d, -1, -1);
-	    }
+	    summary_reset(g_summary->delin);
 	    db_exec(new_cat, (gen_sql_fn_t)cat_to_sql_insert);
 	    new_cat->id = sqlite3_last_insert_rowid(g_db);
 	    return new_cat->id;

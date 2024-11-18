@@ -44,6 +44,13 @@ int browser_handle_key(int ch) {
 	case 'e':
 	    browser_edit_entry();
 	    break;
+	case 'g':
+	    if (wgetch(g_wins[BROWSER].win) == 'g')
+		browser_to_top();
+	    break;
+	case 'G':
+	    free_browser(g_browser);
+	    g_browser = init_browser(g_entries, -1);
 	case 'j':
 	case KEY_DOWN:
 	    browser_scroll(1, DOWN);
@@ -54,6 +61,7 @@ int browser_handle_key(int ch) {
 	    break;
 	case 's':
 	    state = SUMMARY;
+	    summary_calc();
 	    summary_draw();
 	    return 1;
 	case 'q':
@@ -90,6 +98,16 @@ void browser_scroll(int num_times, dir_t dir) {
 
 	num_times--;
     }
+}
+
+
+void browser_to_top() {
+    if (g_browser->num_entries < 2 || g_browser->sel == g_entries->head)
+	return;
+
+    g_browser->start = g_browser->sel = g_browser->end = g_entries->head;
+    for (int i = 0; i < g_browser->num_entries - 1; i++)
+	g_browser->end = g_browser->end->next;
 }
 
 

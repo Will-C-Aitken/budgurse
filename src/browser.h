@@ -28,6 +28,7 @@ void free_browser(browser_t* b);
 
 int browser_handle_key(int ch);
 void browser_scroll(int num_times, dir_t dir);
+void browser_to_top();
 void browser_add_entry();
 void browser_insert(llist_node_t *en);
 void browser_edit_entry();

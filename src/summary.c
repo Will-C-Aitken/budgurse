@@ -4,7 +4,6 @@ summary_t *g_summary = NULL;
 const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-
 summary_t* init_summary(delin_t d, int height, int width) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
@@ -55,8 +54,9 @@ summary_t* init_summary(delin_t d, int height, int width) {
     s->data = malloc(sizeof(float) * n);
     memset(s->data, 0.00, sizeof(float) * n);
 
-    // set newest date to today as default 
-    s->newest_date = time(NULL);
+    // set n and o date to same as default
+    s->n_date = time(NULL);
+    s->o_date = time(NULL);
 
     return s;
 }
@@ -78,6 +78,8 @@ void summary_calc() {
     EXIT_IF(!g_entries, "Entries must be initialized before calculating "
 	    "summary\n");
 
+    summary_clear();
+
     if (g_entries->num_nodes == 0)
 	return;
 
@@ -88,19 +90,28 @@ void summary_calc() {
     while (curr_en) {
 	e = (entry_t*)curr_en->data;
 	if (first) {
+	    summary_set_date_bounds(e->date);
 	    first = 0;
-	    g_summary->newest_date = e->date;
 	}
-	summary_update_on_entry(e);
+	if (!summary_update_on_entry(e))
+	    return;
 	curr_en = curr_en->prev; 
     }
 }
 
 
-void summary_update_on_entry(entry_t *e) {
+int summary_update_on_entry(entry_t *e) {
     int x, y;
     int max_x = g_summary->num_cols - 1;
     int max_y = g_summary->num_rows - 1;
+
+    if (e->date < g_summary->o_date)
+	return 0; 
+    // if outside upper bound, calc again to reset bounds
+    if (e->date > g_summary->n_date) {
+	summary_calc();
+	return 0;
+    }
 
     x = date_part_from_delin(e->date, g_summary->delin);
     y = e->cat->sum_idx;
@@ -119,6 +130,8 @@ void summary_update_on_entry(entry_t *e) {
 	summary_inc_cell(max_x, y, e->amount);
 	// except for column total because that would be a duplicate
     }
+
+    return 1;
 }
 
 
@@ -126,6 +139,39 @@ void summary_inc_cell(int x, int y, int value) {
     EXIT_IF(x >= g_summary->num_cols || y >= g_summary->num_rows, 
 	    "Invalid summary table idx(s)\n");
     g_summary->data[y*g_summary->num_cols + x] += value;
+}
+
+
+void summary_set_date_bounds(time_t date) {
+    delin_t d = g_summary->delin;
+    struct tm *date_tm = gmtime(&date);
+    struct tm o_date_tm = *date_tm;
+    struct tm n_date_tm = *date_tm;
+
+    switch (d) {
+	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	case MONTH: 
+	    n_date_tm.tm_mday = days_in_mnth[n_date_tm.tm_mon];
+	    o_date_tm.tm_mday = 1;
+	    o_date_tm.tm_year--;
+	    break;
+	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
+    }
+
+    g_summary->n_date = mktime(&n_date_tm);
+    g_summary->o_date = mktime(&o_date_tm);
+}
+
+
+void summary_reset(delin_t d) {
+    free_summary(g_summary);
+    g_summary = init_summary(d, -1, -1);
+}
+
+
+void summary_clear() {
+    int n = g_summary->num_rows * g_summary->num_cols;
+    memset(g_summary->data, 0.00, sizeof(float) * n);
 }
 
 
@@ -166,7 +212,7 @@ void summary_draw() {
     switch (g_summary->delin) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	case MONTH: 
-	    date_offset = date_part_from_delin(g_summary->newest_date, MONTH);
+	    date_offset = date_part_from_delin(g_summary->n_date, MONTH);
 	    break;
 	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
     }
@@ -239,8 +285,8 @@ void summary_draw() {
 void summary_draw_header() {
     int x_start = g_summary->x_start;
     int x_end = g_summary->x_end;
-    int curr_yr = date_part_from_delin(g_summary->newest_date, YEAR);
-    int n_mnth = date_part_from_delin(g_summary->newest_date, MONTH);
+    int curr_yr = date_part_from_delin(g_summary->n_date, YEAR);
+    int n_mnth = date_part_from_delin(g_summary->n_date, MONTH);
 
     mvwaddch(g_wins[SUMMARY].win, 1, CAT_STR_LEN + 3, ACS_VLINE);
 
@@ -343,10 +389,20 @@ int summary_handle_key(int ch) {
     EXIT_IF(!g_summary, "Summary not initialized");
 
     switch (ch) {
+	case '0':
+	    summary_scroll(g_summary->num_cols, LEFT);
+	    break;
 	case 'b':
 	    state = BROWSER;
 	    browser_draw();
 	    return 1;
+	case 'g':
+	    if (wgetch(g_wins[SUMMARY].win) == 'g')
+		summary_scroll(g_summary->num_rows, UP);
+	    break;
+	case 'G':
+	    summary_scroll(g_summary->num_rows, DOWN);
+	    break;
 	case 'h':
 	case KEY_LEFT:
 	    summary_scroll(1, LEFT);
@@ -365,6 +421,9 @@ int summary_handle_key(int ch) {
 	    break;
 	case 'q':
 	    return 0;
+	case '$':
+	    summary_scroll(g_summary->num_cols, RIGHT);
+	    break;
     }
     summary_draw();
     return 1;

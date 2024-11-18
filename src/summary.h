@@ -22,7 +22,8 @@ typedef struct summary {
     int y_start;
     int y_sel;
     int y_end;
-    int newest_date;
+    time_t o_date;
+    time_t n_date;
     char **cat_name_list;
 } summary_t;
 
@@ -32,8 +33,11 @@ summary_t* init_summary(delin_t d, int height, int width);
 void free_summary(summary_t* s);
 
 void summary_calc();
-void summary_update_on_entry(entry_t *e);
+int summary_update_on_entry(entry_t *e);
 void summary_inc_cell(int x, int y, int value);
+void summary_set_date_bounds(time_t n_date);
+void summary_clear();
+void summary_reset(delin_t d);
 
 void summary_draw();
 void summary_draw_header();

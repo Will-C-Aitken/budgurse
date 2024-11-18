@@ -3,6 +3,8 @@
 
 #include "budgurse.h"
 
+extern const int days_in_mnth[12]; 
+
 // generic drawing functions
 void draw_amount(WINDOW *w, float amount, int max_width, 
 	const char *delim_str, int attrs);
