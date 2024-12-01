@@ -60,7 +60,8 @@ int cat_id_to_names_test();
 int cat_name_to_id_test();
 int cat_is_sub_test();
 int cat_set_sum_idxs_test();
-int cat_flatten_names_test();
+int cat_llist_to_array_test();
+int cat_get_from_name_test();
 
 // Prompt tests
 int prompt_tests();

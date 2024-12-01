@@ -17,12 +17,12 @@ llist_node_t *prompt_new_entry_node() {
     int cat_id;
     char note[MAX_NOTE_BYTES];
 
-    if ((prompt_for_entry(date_prompt, &date, (input_proc_fn_t)date_proc) || 
-         prompt_for_entry(name_prompt, name, (input_proc_fn_t)name_proc) ||
-         prompt_for_entry(amnt_prompt, &amnt, (input_proc_fn_t)amount_proc) ||
-         prompt_for_entry(m_cat_prompt, &cat_id, (input_proc_fn_t)m_cat_proc) ||
-	 prompt_for_entry(s_cat_prompt, &cat_id, (input_proc_fn_t)s_cat_proc) ||
-         prompt_for_entry(note_prompt, note, (input_proc_fn_t)note_proc))
+    if ((prompt_for_input(date_prompt, &date, (input_proc_fn_t)date_proc) || 
+         prompt_for_input(name_prompt, name, (input_proc_fn_t)name_proc) ||
+         prompt_for_input(amnt_prompt, &amnt, (input_proc_fn_t)amount_proc) ||
+         prompt_for_input(m_cat_prompt, &cat_id, (input_proc_fn_t)m_cat_proc) ||
+	 prompt_for_input(s_cat_prompt, &cat_id, (input_proc_fn_t)s_cat_proc) ||
+         prompt_for_input(note_prompt, note, (input_proc_fn_t)note_proc))
 	== BUDGURSE_FAILURE) {
 
 	werase(g_wins[PROMPT].win);
@@ -71,6 +71,18 @@ int prompt_add_category(const char *cat_name, int parent_id) {
     }
 }
 
+
+void prompt_edit_category(category_t *c) {
+    char new_name[MAX_CAT_BYTES];
+    const char *edit_prompt = "New category name:";
+    if (prompt_for_input(edit_prompt, 
+	    new_name, (input_proc_fn_t)cat_name_proc))
+	return;
+    cat_set_name(c, new_name);
+    db_exec(c, (gen_sql_fn_t)edit_cat_to_sql_update);
+}
+
+
 void prompt_edit_entry(llist_node_t *cur) {
     int ch, rc = 1;
     const char *edit_prompt = "Edit: (1) Date, (2) Name, (3) Amount, "
@@ -83,31 +95,31 @@ void prompt_edit_entry(llist_node_t *cur) {
 	switch (ch) {
 	    case '1': {
 		time_t new_date;
-		if ((rc = prompt_for_entry(date_prompt, &new_date, 
+		if ((rc = prompt_for_input(date_prompt, &new_date, 
 			(input_proc_fn_t)date_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_date(cur->data, new_date);
 		break;
 	    } 
 	    case '2': {
 		char new_name[MAX_NAME_BYTES];
-		if ((rc = prompt_for_entry(name_prompt, new_name, 
+		if ((rc = prompt_for_input(name_prompt, new_name, 
 			(input_proc_fn_t)name_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_name(cur->data, new_name);
 		break;
 	    } 
 	    case '3': {
 		float new_amount;
-		if ((rc = prompt_for_entry(amnt_prompt, &new_amount, 
+		if ((rc = prompt_for_input(amnt_prompt, &new_amount, 
 			(input_proc_fn_t)amount_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_amount(cur->data, new_amount);
 		break;
 	    } 
 	    case '4': {
 		int new_id;
-		if ((rc = prompt_for_entry(m_cat_prompt, &new_id, 
+		if ((rc = prompt_for_input(m_cat_prompt, &new_id, 
 			(input_proc_fn_t)m_cat_proc)) == BUDGURSE_FAILURE)
 		    break;
-		if ((rc = prompt_for_entry(s_cat_prompt, &new_id, 
+		if ((rc = prompt_for_input(s_cat_prompt, &new_id, 
 			(input_proc_fn_t)s_cat_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_cat(cur->data, 
 			    cat_get_from_id(g_categories, new_id));
@@ -115,7 +127,7 @@ void prompt_edit_entry(llist_node_t *cur) {
 	    } 
 	    case '5': {
 		char new_note[MAX_NOTE_BYTES];
-		if ((rc = prompt_for_entry(note_prompt, new_note, 
+		if ((rc = prompt_for_input(note_prompt, new_note, 
 			(input_proc_fn_t)note_proc)) == BUDGURSE_SUCCESS)
 		    entry_set_note(cur->data, new_note);
 		break;
@@ -134,7 +146,7 @@ void prompt_edit_entry(llist_node_t *cur) {
 }
 
 
-int prompt_for_entry(const char *prompt_str, void *output, 
+int prompt_for_input(const char *prompt_str, void *output, 
 	input_proc_fn_t p_fn) {
 
     const char *err_str = "Invalid format. Press 'q' to cancel entry or any "
@@ -178,6 +190,7 @@ int prompt_get_response(char* pr) {
     noecho();
     return rc;
 }
+
 
 int date_proc(char *buf, time_t *date) {
 
@@ -296,6 +309,14 @@ int cat_proc(char *buf, int *id, int is_main_cat) {
 	} else
 	    return 1;
     }
+    return 0;
+}
+
+
+int cat_name_proc(char *buf, char *name) {
+    if (strlen(buf) == 0)
+	return 1;
+    snprintf(name, MAX_CAT_BYTES, "%s", buf);
     return 0;
 }
 

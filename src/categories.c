@@ -177,7 +177,25 @@ category_t *cat_get_from_id(const llist_t *cl, int cat_id) {
 }
 
 
-void cat_flatten_names(const llist_t *cl, char **flat_names[], int *next_idx) {
+category_t *cat_get_from_name(const llist_t *cl, const char *name) {
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	if (strcmp(name, t_cat->name) == 0)
+	    return t_cat;
+	if (t_cat->subcats) {
+	    category_t *sub_t_cat = cat_get_from_name(t_cat->subcats, name);
+	    if (sub_t_cat)
+		return sub_t_cat;
+	}
+	temp = temp->next;
+    }
+    return NULL;
+}
+
+
+void cat_llist_to_array(const llist_t *cl, category_t **ca[], int *next_idx) {
     if (!cl || cl->num_nodes == 0)
 	return;
    
@@ -185,18 +203,17 @@ void cat_flatten_names(const llist_t *cl, char **flat_names[], int *next_idx) {
     category_t *t_cat; 
     while (temp) {
 	t_cat = (category_t *)temp->data;
-	if (!t_cat->p_id)
-	    (*flat_names)[*next_idx] = strndup(t_cat->name, MAX_CAT_BYTES);
-	// insert space at the stat for subcategories
-	else { 
-	    char *new_str = malloc(sizeof(char) * (MAX_CAT_BYTES + 1));
-	    snprintf(new_str, MAX_CAT_BYTES, " %s", t_cat->name);
-	    (*flat_names)[*next_idx] = strndup(new_str, MAX_CAT_BYTES);
-	    free(new_str);
-	} 
+	(*ca)[*next_idx] = t_cat;
 	(*next_idx)++;
 	if (t_cat->subcats)
-	    cat_flatten_names(t_cat->subcats, flat_names, next_idx);
+	    cat_llist_to_array(t_cat->subcats, ca, next_idx);
 	temp = temp->next;
     }
 }
+
+
+void cat_set_name(category_t *c, const char *name) {
+    free(c->name);
+    c->name = strdup(name);
+}
+

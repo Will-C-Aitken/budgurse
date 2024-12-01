@@ -6,7 +6,8 @@ int categories_tests() {
     mu_run_test(cat_name_to_id_test);
     mu_run_test(cat_is_sub_test);
     mu_run_test(cat_set_sum_idxs_test);
-    mu_run_test(cat_flatten_names_test);
+    mu_run_test(cat_llist_to_array_test);
+    mu_run_test(cat_get_from_name_test);
     return 0;
 }
 
@@ -220,19 +221,27 @@ int cat_set_sum_idxs_test() {
     return 0;
 }
 
-int cat_flatten_names_test() {
+int cat_llist_to_array() {
 
     int temp_idx = 0;
-    char **flat_names = malloc(sizeof(char *) * 5);
+    category_t **ca = malloc(sizeof(category_t *) * 5);
     llist_t *tcl = test_dummy_cat_list(5);
-    cat_flatten_names(tcl, &flat_names, &temp_idx);
-    mu_assert(strcmp(flat_names[0], "Cat1") == 0 , "Categories", 73);
-    mu_assert(strcmp(flat_names[3], " Cat4") == 0 , "Categories", 74);
-    mu_assert(strcmp(flat_names[4], "Cat5") == 0 , "Categories", 75);
-    for (int i = 0; i < 5; i++)
-	free(flat_names[i]);
-    free(flat_names);
+    cat_llist_to_array(tcl, &ca);
+    mu_assert(strcmp(ca[0]->name, "Cat1") == 0 , "Categories", 73);
+    mu_assert(strcmp(ca[3]->name, "Cat4") == 0 , "Categories", 74);
+    mu_assert(strcmp(ca[4]->name, "Cat5") == 0 , "Categories", 75);
+    free(ca);
     free_llist(tcl, (llist_free_data_fn_t)free_category);
 
+    return 0;
+}
+
+int cat_get_from_name_test() {
+    llist_t *tcl = test_dummy_cat_list(5);
+    category_t *c = cat_get_from_name(tcl, "Cat4");
+    mu_assert(c->id == 4, "Categories", 76);
+    c = cat_get_from_name(tcl, "Cat1000");
+    mu_assert(!c, "Categories", 77);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
     return 0;
 }

@@ -24,7 +24,7 @@ typedef struct summary {
     int y_end;
     time_t o_date;
     time_t n_date;
-    char **cat_name_list;
+    category_t **cat_array;
 } summary_t;
 
 extern summary_t *g_summary;
@@ -42,11 +42,14 @@ void summary_reset(delin_t d);
 void summary_draw();
 void summary_draw_header();
 void summary_draw_mnth_hdr(int m, int ref_m, int y);
+void summary_redraw_sel_cat(int blink);
 
 void summary_scroll(int num_times, dir_t dir);
 void summary_mv_idxs(int *i_start, int *i_sel, int *i_end, int amt, int lim);
 
 int summary_handle_key(int ch);
+
+void summary_edit_category();
 
 int date_part_from_delin(time_t date, delin_t d);
 

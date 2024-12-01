@@ -29,6 +29,9 @@ int cat_name_to_id(const llist_t *cl, const char* name, int p_cat_id);
 int cat_is_sub(const llist_t *cl, int cat_id, int p_cat_id);
 void cat_set_sum_idxs(const llist_t *cl, int *next_idx);
 category_t *cat_get_from_id(const llist_t *cl, int cat_id);
-void cat_flatten_names(const llist_t *cl, char **flat_names[], int *next_idx);
+category_t *cat_get_from_name(const llist_t *cl, const char *name);
+void cat_llist_to_array(const llist_t *cl, category_t **ca[], int *next_idx);
+
+void cat_set_name(category_t *c, const char *name);
 
 #endif

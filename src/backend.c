@@ -177,6 +177,28 @@ char *edit_entry_to_sql_update(entry_t *e) {
 }
 
 
+char *edit_cat_to_sql_update(category_t *c) {
+
+    char *sql_to_append = "UPDATE Categories SET name = "; 
+
+    char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
+    sql[0] = '\0';
+    strcat(sql, sql_to_append);
+
+    append_to_sql(&sql, NULL, c->name, 1);
+
+    sql_to_append = " WHERE id=";
+    char id_str[11];
+    sprintf(id_str, "%d", c->id);
+    append_to_sql(&sql, sql_to_append, id_str, 0);
+
+    sql_to_append = ";";
+    append_to_sql(&sql, sql_to_append, "", 0);
+
+    return sql;
+}
+
+
 char *cat_to_sql_insert(category_t *c) {
     char *sql_to_append = "INSERT INTO Categories (parent_id, name) "
 			  "VALUES (";

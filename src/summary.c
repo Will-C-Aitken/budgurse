@@ -29,13 +29,12 @@ summary_t* init_summary(delin_t d, int height, int width) {
     s->num_rows = 0;
     cat_set_sum_idxs(g_categories, &s->num_rows);
 
+    s->cat_array = malloc(sizeof(category_t *) * s->num_rows);
+    int temp_idx = 0;
+    cat_llist_to_array(g_categories, &s->cat_array, &temp_idx);
+
     // 1 more for totals
     s->num_rows++;
-    s->cat_name_list = malloc(sizeof(char *) * s->num_rows);
-
-    int temp_idx = 0;
-    cat_flatten_names(g_categories, &s->cat_name_list, &temp_idx);
-    s->cat_name_list[s->num_rows - 1] = "Total";
 
     // set starting position to end
     s->x_sel = s->x_end = s->num_cols - 1;
@@ -65,10 +64,7 @@ summary_t* init_summary(delin_t d, int height, int width) {
 void free_summary(summary_t* s) {
     if (!s)
 	return;
-    // minus 1 because "Total" is not on heap
-    for (int i = 0; i < s->num_rows - 1; i++)
-    	free(s->cat_name_list[i]);
-    free(s->cat_name_list);
+    free(s->cat_array);
     free(s->data);
     free(s);
 }
@@ -233,17 +229,29 @@ void summary_draw() {
 	    y_idx = nr - 1;
 	}
 
-	char *cat = g_summary->cat_name_list[y_idx];
-
-	// space at start indicates subcategory
-	if (cat[0] != ' ') 
-	    row_attrs |= A_BOLD;
-	if (i == y_end)
-	    row_attrs |= A_ITALIC;
-
 	wmove(g_wins[SUMMARY].win, row++, 1);
-	draw_str(g_wins[SUMMARY].win, cat, CAT_STR_LEN, " ", row_attrs);
 
+	category_t *c;
+	char* cat_name;
+	int cat_name_len = CAT_STR_LEN;
+
+	// Total category is not a real category
+	if (i == y_end) {
+	    cat_name = "Total";
+	    row_attrs |= A_ITALIC;
+	}
+	else {
+	    c = g_summary->cat_array[y_idx];
+	    // insert space for subcategories
+	    if (c->p_id != 0) {
+		waddch(g_wins[SUMMARY].win, ' ');
+		cat_name_len--;
+	    } else 
+		row_attrs |= A_BOLD;
+	    cat_name = c->name;
+	}
+
+	draw_str(g_wins[SUMMARY].win, cat_name, cat_name_len, " ", row_attrs);
 	waddch(g_wins[SUMMARY].win, ' ');
 	waddch(g_wins[SUMMARY].win, ACS_VLINE);
 
@@ -328,6 +336,30 @@ void summary_draw_mnth_hdr(int m, int ref_m, int y) {
 }
 
 
+void summary_redraw_sel_cat(int blink) {
+    int y_sel = g_summary->y_sel;
+
+    // cannot total (last) category
+    if (y_sel >= g_summary->num_rows - 1)
+	return;
+
+    attr_t cur_attrs = A_BLINK;
+    int y_start = g_summary->y_start;
+    category_t *cat = g_summary->cat_array[y_sel];
+
+    wmove(g_wins[SUMMARY].win, y_sel - y_start + 3, 1);
+    wattr_get(g_wins[SUMMARY].win, &cur_attrs, NULL, NULL);
+    if (blink)
+        cur_attrs |= A_BLINK;
+
+    // draw space in front for subcategory
+    if (cat->p_id != 0)
+	draw_str(g_wins[SUMMARY].win, " ", 1, "", cur_attrs);
+    draw_str(g_wins[SUMMARY].win, cat->name, CAT_STR_LEN, " ", cur_attrs);
+    wrefresh(g_wins[SUMMARY].win);
+}
+
+
 void summary_scroll(int num_times, dir_t dir) {
     int nc = g_summary->num_cols;
     int nr = g_summary->num_rows;
@@ -396,6 +428,9 @@ int summary_handle_key(int ch) {
 	    state = BROWSER;
 	    browser_draw();
 	    return 1;
+	case 'e':
+	    summary_edit_category();
+	    break;
 	case 'g':
 	    if (wgetch(g_wins[SUMMARY].win) == 'g')
 		summary_scroll(g_summary->num_rows, UP);
@@ -430,8 +465,17 @@ int summary_handle_key(int ch) {
 }
 
 
-int date_part_from_delin(time_t date, delin_t d) {
-    int date_part;
+void summary_edit_category() {
+    if (g_summary->y_sel >= g_summary->num_rows - 1) {
+	prompt_display("Cannot rename Total category", 0, 1);
+	return;
+    }
+    summary_redraw_sel_cat(1);
+    prompt_edit_category(g_summary->cat_array[g_summary->y_sel]);
+}
+
+
+int date_part_from_delin(time_t date, delin_t d) { int date_part;
     struct tm *tm_from_date = gmtime(&date);
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
@@ -444,3 +488,4 @@ int date_part_from_delin(time_t date, delin_t d) {
     }
     return date_part;
 }
+
