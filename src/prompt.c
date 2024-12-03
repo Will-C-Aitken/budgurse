@@ -83,14 +83,49 @@ void prompt_edit_category(category_t *c) {
 }
 
 
+int prompt_del_category(category_t *c) {
+    int alt_cat_id;
+    const char *alt_cat_prompt = "Input another or new category to "
+	"change pre-existing entries with this category to:";
+    
+    llist_t *temp_matches = llist_get_matches(g_entries, c,
+	    (llist_cond_fn_t)entry_cat_cond_eq);
+    llist_node_t *temp_nd = temp_matches->head;
+
+    // possibly the ugliest statement ever. refactor
+    if (temp_matches->num_nodes > 0) {
+	if (prompt_for_input(alt_cat_prompt, 
+			     &alt_cat_id, 
+			     (input_proc_fn_t)m_cat_proc) 
+		|| prompt_for_input(s_cat_prompt, 
+				    &alt_cat_id, 
+				    (input_proc_fn_t)s_cat_proc) 
+		== BUDGURSE_FAILURE)
+	{
+	    free_llist(temp_matches, (llist_free_data_fn_t)free_nop);
+	    return 0;
+	}
+	while (temp_nd) {
+	    entry_set_cat(temp_nd->data, 
+		cat_get_from_id(g_categories, alt_cat_id));
+	    db_exec(temp_nd->data, (gen_sql_fn_t)edit_entry_to_sql_update);
+	    temp_nd = temp_nd->next;
+	}
+    }
+
+    // no inner free
+    free_llist(temp_matches, (llist_free_data_fn_t)free_nop);
+    return 1;
+}
+
+
 void prompt_edit_entry(llist_node_t *cur) {
     int ch, rc = 1;
     const char *edit_prompt = "Edit: (1) Date, (2) Name, (3) Amount, "
-	"(4) Categories, (5) Note";
-
-    prompt_display(edit_prompt, 0, 1);
+	"(4) Categories, (5) Note, (Esc/q) Cancel";
 
     while (rc == BUDGURSE_FAILURE) {
+	prompt_display(edit_prompt, 0, 1);
 	ch = wgetch(g_wins[PROMPT].win);
 	switch (ch) {
 	    case '1': {
@@ -149,7 +184,7 @@ void prompt_edit_entry(llist_node_t *cur) {
 int prompt_for_input(const char *prompt_str, void *output, 
 	input_proc_fn_t p_fn) {
 
-    const char *err_str = "Invalid format. Press 'q' to cancel entry or any "
+    const char *err_str = "Invalid format. Press 'q' to cancel or any "
 	"other key to try again";
     char response[BUFSIZ];
     int poll = 1;
@@ -178,6 +213,7 @@ void prompt_display(const char *prompt_str, int line, int refresh) {
 	werase(g_wins[PROMPT].win);
     wmove(g_wins[PROMPT].win, line, 1);
     waddstr(g_wins[PROMPT].win, prompt_str);
+    // draw empty spaces 
     wrefresh(g_wins[PROMPT].win);
 }
 

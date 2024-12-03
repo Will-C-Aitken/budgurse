@@ -55,6 +55,9 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
     while (num_spaces-- > 0) 
 	waddch(g_wins[SUMMARY].win, ' ');
 
+    if (attrs)
+	wattrset(g_wins[SUMMARY].win, attrs);
+
     // trunacte string
     if (sl > max_width) {
 	char trunc_str[max_width+1];
@@ -62,6 +65,10 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
 	wprintw(g_wins[SUMMARY].win, "%s", trunc_str);
     } else
 	wprintw(g_wins[SUMMARY].win, "%s", str);
+
+    // turn off attributes
+    if (attrs)
+	wattrset(g_wins[SUMMARY].win, 0);
 }
 
 

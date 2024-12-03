@@ -212,6 +212,31 @@ void cat_llist_to_array(const llist_t *cl, category_t **ca[], int *next_idx) {
 }
 
 
+int cat_del_from_llist(llist_t *cl, category_t *c) {
+    llist_node_t *temp = cl->head;
+    category_t *t_cat; 
+
+    while (temp) {
+	t_cat = (category_t *)temp->data;
+	if (t_cat == c) {
+	    llist_del_node(cl, temp, (llist_free_data_fn_t)free_category);
+	    return 1;
+	}
+	if (t_cat->subcats) {
+	    int rc = cat_del_from_llist(t_cat->subcats, c);
+	    if (t_cat->subcats->num_nodes == 0) {
+		free(t_cat->subcats);
+		t_cat->subcats = NULL;
+	    }
+	    if (rc)
+		return rc;
+	}
+	temp = temp->next;
+    }
+    return 0;
+}
+
+
 void cat_set_name(category_t *c, const char *name) {
     free(c->name);
     c->name = strdup(name);

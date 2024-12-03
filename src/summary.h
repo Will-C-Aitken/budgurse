@@ -50,6 +50,7 @@ void summary_mv_idxs(int *i_start, int *i_sel, int *i_end, int amt, int lim);
 int summary_handle_key(int ch);
 
 void summary_edit_category();
+void summary_del_category();
 
 int date_part_from_delin(time_t date, delin_t d);
 

@@ -4,6 +4,7 @@ summary_t *g_summary = NULL;
 const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
+
 summary_t* init_summary(delin_t d, int height, int width) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
@@ -343,19 +344,21 @@ void summary_redraw_sel_cat(int blink) {
     if (y_sel >= g_summary->num_rows - 1)
 	return;
 
-    attr_t cur_attrs = A_BLINK;
+    int attrs = 0;
     int y_start = g_summary->y_start;
     category_t *cat = g_summary->cat_array[y_sel];
 
     wmove(g_wins[SUMMARY].win, y_sel - y_start + 3, 1);
-    wattr_get(g_wins[SUMMARY].win, &cur_attrs, NULL, NULL);
     if (blink)
-        cur_attrs |= A_BLINK;
+        attrs |= A_BLINK;
 
     // draw space in front for subcategory
     if (cat->p_id != 0)
-	draw_str(g_wins[SUMMARY].win, " ", 1, "", cur_attrs);
-    draw_str(g_wins[SUMMARY].win, cat->name, CAT_STR_LEN, " ", cur_attrs);
+	draw_str(g_wins[SUMMARY].win, " ", 1, "", attrs);
+    else
+	attrs |= A_BOLD;
+
+    draw_str(g_wins[SUMMARY].win, cat->name, CAT_STR_LEN, " ", attrs);
     wrefresh(g_wins[SUMMARY].win);
 }
 
@@ -428,6 +431,9 @@ int summary_handle_key(int ch) {
 	    state = BROWSER;
 	    browser_draw();
 	    return 1;
+	case 'd':
+	    summary_del_category();
+	    break;
 	case 'e':
 	    summary_edit_category();
 	    break;
@@ -472,6 +478,31 @@ void summary_edit_category() {
     }
     summary_redraw_sel_cat(1);
     prompt_edit_category(g_summary->cat_array[g_summary->y_sel]);
+}
+
+
+void summary_del_category() {
+    if (g_summary->y_sel >= g_summary->num_rows - 1) {
+	prompt_display("Cannot delete Total category", 0, 1);
+	return;
+    }
+
+    category_t *sel_cat = g_summary->cat_array[g_summary->y_sel];
+
+    if (sel_cat->subcats) {
+	prompt_display("Delete subcategories first", 0, 1);
+	return;
+    }
+
+    // handles changing the existing entries w/ category
+    if (!prompt_del_category(sel_cat))
+	return;
+
+    db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
+    cat_del_from_llist(g_categories, sel_cat);
+
+    summary_reset(g_summary->delin);
+    summary_calc();
 }
 
 

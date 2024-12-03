@@ -3,7 +3,7 @@
 
 #include "budgurse.h"
 
-#define NUM_WINS 2
+#define NUM_WINS 3
 
 typedef struct win {
     WINDOW *win;

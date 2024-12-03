@@ -58,6 +58,21 @@ int summary_init_test() {
 
     free_summary(g_summary);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
+
+    // empty cat list 
+    g_categories = test_dummy_cat_list(0);
+    g_summary = init_summary(MONTH, 18, 76);
+    mu_assert(g_summary->num_rows == 1, "Summary", 20);
+    mu_assert(g_summary->num_cols == 13, "Summary", 21);
+    mu_assert(g_summary->x_start == 10, "Summary", 22);
+    mu_assert(g_summary->x_sel == 12, "Summary", 23);
+    mu_assert(g_summary->x_end == 12, "Summary", 24);
+    mu_assert(g_summary->y_start == 0, "Summary", 25);
+    mu_assert(g_summary->y_sel == 0, "Summary", 26);
+    mu_assert(g_summary->y_end == 0, "Summary", 27);
+    free_summary(g_summary);
+    free_llist(g_categories, (llist_free_data_fn_t)free_category);
+
     return 0;
 }
 
@@ -112,18 +127,18 @@ int summary_calc_test() {
     g_summary = init_summary(MONTH, 18, 72);
     summary_calc();
 
-    mu_assert(is_amount_eq(g_summary->data[0], -12.00), "Summary", 20);
-    mu_assert(is_amount_eq(g_summary->data[1], -13.00), "Summary", 21);
-    mu_assert(is_amount_eq(g_summary->data[12], -25.00), "Summary", 22);
-    mu_assert(is_amount_eq(g_summary->data[13], 0.00), "Summary", 23);
-    mu_assert(is_amount_eq(g_summary->data[14], -5.00), "Summary", 24);
-    mu_assert(is_amount_eq(g_summary->data[25], -5.00), "Summary", 25);
-    mu_assert(is_amount_eq(g_summary->data[26], 450.00), "Summary", 26);
-    mu_assert(is_amount_eq(g_summary->data[27], -100.00), "Summary", 27);
-    mu_assert(is_amount_eq(g_summary->data[38], 350.00), "Summary", 28);
-    mu_assert(is_amount_eq(g_summary->data[39], 438.00), "Summary", 29);
-    mu_assert(is_amount_eq(g_summary->data[40], -113.00), "Summary", 30);
-    mu_assert(is_amount_eq(g_summary->data[51], 325.00), "Summary", 31);
+    mu_assert(is_amount_eq(g_summary->data[0], -12.00), "Summary", 29);
+    mu_assert(is_amount_eq(g_summary->data[1], -13.00), "Summary", 30);
+    mu_assert(is_amount_eq(g_summary->data[12], -25.00), "Summary", 31);
+    mu_assert(is_amount_eq(g_summary->data[13], 0.00), "Summary", 32);
+    mu_assert(is_amount_eq(g_summary->data[14], -5.00), "Summary", 33);
+    mu_assert(is_amount_eq(g_summary->data[25], -5.00), "Summary", 34);
+    mu_assert(is_amount_eq(g_summary->data[26], 450.00), "Summary", 35);
+    mu_assert(is_amount_eq(g_summary->data[27], -100.00), "Summary", 36);
+    mu_assert(is_amount_eq(g_summary->data[38], 350.00), "Summary", 37);
+    mu_assert(is_amount_eq(g_summary->data[39], 438.00), "Summary", 38);
+    mu_assert(is_amount_eq(g_summary->data[40], -113.00), "Summary", 39);
+    mu_assert(is_amount_eq(g_summary->data[51], 325.00), "Summary", 40);
 
     free_summary(g_summary);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
@@ -146,46 +161,46 @@ int summary_scroll_test() {
     // already at bottom and right, should do nothing
     summary_scroll(1, DOWN);
     summary_scroll(1, RIGHT);
-    mu_assert(g_summary->x_start == 0, "Summary", 32);
-    mu_assert(g_summary->x_sel == 12, "Summary", 33);
-    mu_assert(g_summary->x_end == 12, "Summary", 34);
-    mu_assert(g_summary->y_start == 0, "Summary", 35);
-    mu_assert(g_summary->y_sel == 3, "Summary", 36);
-    mu_assert(g_summary->y_end == 3, "Summary", 37);
+    mu_assert(g_summary->x_start == 0, "Summary", 41);
+    mu_assert(g_summary->x_sel == 12, "Summary", 42);
+    mu_assert(g_summary->x_end == 12, "Summary", 43);
+    mu_assert(g_summary->y_start == 0, "Summary", 44);
+    mu_assert(g_summary->y_sel == 3, "Summary", 45);
+    mu_assert(g_summary->y_end == 3, "Summary", 46);
 
     // left 11 times should bring to col idx 1
     summary_scroll(11, LEFT);
-    mu_assert(g_summary->x_start == 0, "Summary", 38);
-    mu_assert(g_summary->x_sel == 1, "Summary", 39);
-    mu_assert(g_summary->x_end == 12, "Summary", 40);
-    mu_assert(g_summary->y_start == 0, "Summary", 41);
-    mu_assert(g_summary->y_sel == 3, "Summary", 42);
-    mu_assert(g_summary->y_end == 3, "Summary", 43);
+    mu_assert(g_summary->x_start == 0, "Summary", 47);
+    mu_assert(g_summary->x_sel == 1, "Summary", 48);
+    mu_assert(g_summary->x_end == 12, "Summary", 49);
+    mu_assert(g_summary->y_start == 0, "Summary", 50);
+    mu_assert(g_summary->y_sel == 3, "Summary", 51);
+    mu_assert(g_summary->y_end == 3, "Summary", 52);
 
     // two more times would be beyond left edge. should stop at 0
     summary_scroll(2, LEFT);
-    mu_assert(g_summary->x_start == 0, "Summary", 44);
-    mu_assert(g_summary->x_sel == 0, "Summary", 45);
-    mu_assert(g_summary->x_end == 12, "Summary", 46);
-    mu_assert(g_summary->y_start == 0, "Summary", 47);
-    mu_assert(g_summary->y_sel == 3, "Summary", 48);
-    mu_assert(g_summary->y_end == 3, "Summary", 49);
+    mu_assert(g_summary->x_start == 0, "Summary", 53);
+    mu_assert(g_summary->x_sel == 0, "Summary", 54);
+    mu_assert(g_summary->x_end == 12, "Summary", 55);
+    mu_assert(g_summary->y_start == 0, "Summary", 56);
+    mu_assert(g_summary->y_sel == 3, "Summary", 57);
+    mu_assert(g_summary->y_end == 3, "Summary", 58);
 
     // same deal up
     summary_scroll(2, UP);
-    mu_assert(g_summary->x_start == 0, "Summary", 50);
-    mu_assert(g_summary->x_sel == 0, "Summary", 51);
-    mu_assert(g_summary->x_end == 12, "Summary", 52);
-    mu_assert(g_summary->y_start == 0, "Summary", 53);
-    mu_assert(g_summary->y_sel == 1, "Summary", 54);
-    mu_assert(g_summary->y_end == 3, "Summary", 55);
+    mu_assert(g_summary->x_start == 0, "Summary", 59);
+    mu_assert(g_summary->x_sel == 0, "Summary", 60);
+    mu_assert(g_summary->x_end == 12, "Summary", 61);
+    mu_assert(g_summary->y_start == 0, "Summary", 62);
+    mu_assert(g_summary->y_sel == 1, "Summary", 63);
+    mu_assert(g_summary->y_end == 3, "Summary", 64);
     summary_scroll(2, UP);
-    mu_assert(g_summary->x_start == 0, "Summary", 56);
-    mu_assert(g_summary->x_sel == 0, "Summary", 57);
-    mu_assert(g_summary->x_end == 12, "Summary", 58);
-    mu_assert(g_summary->y_start == 0, "Summary", 59);
-    mu_assert(g_summary->y_sel == 0, "Summary", 60);
-    mu_assert(g_summary->y_end == 3, "Summary", 61);
+    mu_assert(g_summary->x_start == 0, "Summary", 65);
+    mu_assert(g_summary->x_sel == 0, "Summary", 66);
+    mu_assert(g_summary->x_end == 12, "Summary", 67);
+    mu_assert(g_summary->y_start == 0, "Summary", 68);
+    mu_assert(g_summary->y_sel == 0, "Summary", 69);
+    mu_assert(g_summary->y_end == 3, "Summary", 70);
 
     free_summary(g_summary);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
@@ -200,50 +215,50 @@ int summary_scroll_test() {
 
     // past the top
     summary_scroll(11, UP);
-    mu_assert(g_summary->x_start == 9, "Summary", 62);
-    mu_assert(g_summary->x_sel == 12, "Summary", 63);
-    mu_assert(g_summary->x_end == 12, "Summary", 64);
-    mu_assert(g_summary->y_start == 0, "Summary", 65);
-    mu_assert(g_summary->y_sel == 0, "Summary", 66);
-    mu_assert(g_summary->y_end == 2, "Summary", 67);
+    mu_assert(g_summary->x_start == 9, "Summary", 71);
+    mu_assert(g_summary->x_sel == 12, "Summary", 72);
+    mu_assert(g_summary->x_end == 12, "Summary", 73);
+    mu_assert(g_summary->y_start == 0, "Summary", 74);
+    mu_assert(g_summary->y_sel == 0, "Summary", 75);
+    mu_assert(g_summary->y_end == 2, "Summary", 76);
 
     // down, but not enough to shift context to bottom. the selected row should
     // not move beyond y_end - 1, in effect freezing the bottom row 
     summary_scroll(7, DOWN);
-    mu_assert(g_summary->x_start == 9, "Summary", 68);
-    mu_assert(g_summary->x_sel == 12, "Summary", 69);
-    mu_assert(g_summary->x_end == 12, "Summary", 70);
-    mu_assert(g_summary->y_start == 6, "Summary", 71);
-    mu_assert(g_summary->y_sel == 7, "Summary", 72);
-    mu_assert(g_summary->y_end == 8, "Summary", 73);
+    mu_assert(g_summary->x_start == 9, "Summary", 77);
+    mu_assert(g_summary->x_sel == 12, "Summary", 78);
+    mu_assert(g_summary->x_end == 12, "Summary", 79);
+    mu_assert(g_summary->y_start == 6, "Summary", 80);
+    mu_assert(g_summary->y_sel == 7, "Summary", 81);
+    mu_assert(g_summary->y_end == 8, "Summary", 82);
 
     // move left, but not to end 
     summary_scroll(7, LEFT);
-    mu_assert(g_summary->x_start == 5, "Summary", 74);
-    mu_assert(g_summary->x_sel == 5, "Summary", 75);
-    mu_assert(g_summary->x_end == 8, "Summary", 76);
-    mu_assert(g_summary->y_start == 6, "Summary", 77);
-    mu_assert(g_summary->y_sel == 7, "Summary", 78);
-    mu_assert(g_summary->y_end == 8, "Summary", 79);
+    mu_assert(g_summary->x_start == 5, "Summary", 83);
+    mu_assert(g_summary->x_sel == 5, "Summary", 84);
+    mu_assert(g_summary->x_end == 8, "Summary", 85);
+    mu_assert(g_summary->y_start == 6, "Summary", 86);
+    mu_assert(g_summary->y_sel == 7, "Summary", 87);
+    mu_assert(g_summary->y_end == 8, "Summary", 88);
 
     // move left beyond end 
     summary_scroll(7, LEFT);
-    mu_assert(g_summary->x_start == 0, "Summary", 80);
-    mu_assert(g_summary->x_sel == 0, "Summary", 81);
-    mu_assert(g_summary->x_end == 3, "Summary", 82);
-    mu_assert(g_summary->y_start == 6, "Summary", 83);
-    mu_assert(g_summary->y_sel == 7, "Summary", 84);
-    mu_assert(g_summary->y_end == 8, "Summary", 85);
+    mu_assert(g_summary->x_start == 0, "Summary", 89);
+    mu_assert(g_summary->x_sel == 0, "Summary", 90);
+    mu_assert(g_summary->x_end == 3, "Summary", 91);
+    mu_assert(g_summary->y_start == 6, "Summary", 92);
+    mu_assert(g_summary->y_sel == 7, "Summary", 93);
+    mu_assert(g_summary->y_end == 8, "Summary", 94);
 
     // as with moving down, last col should stay ahead (frozen) when moving 
     // right
     summary_scroll(5, RIGHT);
-    mu_assert(g_summary->x_start == 3, "Summary", 86);
-    mu_assert(g_summary->x_sel == 5, "Summary", 87);
-    mu_assert(g_summary->x_end == 6, "Summary", 88);
-    mu_assert(g_summary->y_start == 6, "Summary", 89);
-    mu_assert(g_summary->y_sel == 7, "Summary", 90);
-    mu_assert(g_summary->y_end == 8, "Summary", 91);
+    mu_assert(g_summary->x_start == 3, "Summary", 95);
+    mu_assert(g_summary->x_sel == 5, "Summary", 96);
+    mu_assert(g_summary->x_end == 6, "Summary", 97);
+    mu_assert(g_summary->y_start == 6, "Summary", 98);
+    mu_assert(g_summary->y_sel == 7, "Summary", 99);
+    mu_assert(g_summary->y_end == 8, "Summary", 100);
 
     free_summary(g_summary);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);

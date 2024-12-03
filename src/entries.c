@@ -53,10 +53,17 @@ void entry_set_note(entry_t *e, const char *note) {
     e->note = strdup(note);
 }
 
+
 int entry_date_comp_gte(llist_node_t *en1, llist_node_t *en2, int inverse) {
     entry_t *e1 = (entry_t *)en1->data;
     entry_t *e2 = (entry_t *)en2->data;
     if (inverse)
 	return (e2->date >= e1->date);
     return (e1->date >= e2->date);
+}
+
+
+int entry_cat_cond_eq(llist_node_t *en, category_t *c) {
+    entry_t *e = (entry_t *)en->data;
+    return (e->cat == c);
 }

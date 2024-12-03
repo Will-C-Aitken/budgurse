@@ -219,10 +219,31 @@ void llist_del_node(llist_t *l, llist_node_t *nd, llist_free_data_fn_t f_fn) {
 
 
 void free_llist(llist_t *l, llist_free_data_fn_t f_fn) {
-    if (!l)
+    if (!l || !f_fn)
 	return;
 
     while(l->num_nodes > 0)
 	llist_del_tail(l, f_fn);
     free(l);
 }
+
+
+llist_t *llist_get_matches(llist_t *ll, void *data, llist_cond_fn_t c_fn) {
+    llist_t *matches = init_llist();
+    if (!ll || ll->num_nodes == 0)
+	return matches;
+
+    llist_node_t *temp = ll->head;
+    llist_node_t *matched_ln;
+    while (temp) {
+	if (c_fn(temp, data)) {
+	    matched_ln = init_llist_node(temp->data);
+	    llist_insert_to_tail(matches, matched_ln);
+	}
+	temp = temp->next;
+    }
+    return matches;
+}
+
+
+void free_nop(void *d) {}

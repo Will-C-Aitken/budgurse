@@ -42,4 +42,7 @@ void entry_set_note(entry_t *e, const char *note);
 // for comparing two entries 
 int entry_date_comp_gte(llist_node_t *en1, llist_node_t *en2, int inverse);
 
+// checking if category matches
+int entry_cat_cond_eq(llist_node_t *en, category_t *c);
+
 #endif

@@ -31,6 +31,7 @@ void cat_set_sum_idxs(const llist_t *cl, int *next_idx);
 category_t *cat_get_from_id(const llist_t *cl, int cat_id);
 category_t *cat_get_from_name(const llist_t *cl, const char *name);
 void cat_llist_to_array(const llist_t *cl, category_t **ca[], int *next_idx);
+int cat_del_from_llist(llist_t *cl, category_t *c);
 
 void cat_set_name(category_t *c, const char *name);
 

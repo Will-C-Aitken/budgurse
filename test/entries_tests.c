@@ -2,6 +2,7 @@
 
 int entries_tests() {
     mu_run_test(insert_after_date_test);
+    mu_run_test(get_matches_test);
     return 0;
 }
 
@@ -77,5 +78,49 @@ int insert_after_date_test() {
     mu_assert(en1->prev == en5, "Entries", 25);
 
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+    return 0;
+}
+
+
+int get_matches_test() {
+    category_t *c1 = init_category(1, 0, "Food");
+    category_t *c2 = init_category(2, 0, "Home");
+    category_t *c3 = init_category(3, 0, "Electronics");
+
+    g_entries = init_llist();
+
+    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date1 = mktime(&tm1);
+    entry_t *e1 = init_entry(1, "A Name", date1, -12.00, c1, "A Note");
+    llist_node_t *en1= init_llist_node(e1);
+    llist_insert_to_tail(g_entries, en1);
+
+    entry_t *e2 = init_entry(2, "A Name", date1, -12.00, c2, "A Note");
+    llist_node_t *en2= init_llist_node(e2);
+    llist_insert_to_tail(g_entries, en2);
+
+    llist_t *m_ll = llist_get_matches(g_entries, c1, 
+	    (llist_cond_fn_t)entry_cat_cond_eq);
+    mu_assert(m_ll->num_nodes == 1, "Entries", 26);
+    mu_assert(m_ll->tail->data == g_entries->head->data, "Entries", 27);
+    free_llist(m_ll, (llist_free_data_fn_t)free_nop);
+
+    m_ll = llist_get_matches(g_entries, c2, 
+	    (llist_cond_fn_t)entry_cat_cond_eq);
+    mu_assert(m_ll->num_nodes == 1, "Entries", 28);
+    mu_assert(m_ll->head->data == g_entries->tail->data, "Entries", 29);
+    free_llist(m_ll, (llist_free_data_fn_t)free_nop);
+
+    m_ll = llist_get_matches(g_entries, c3, 
+	    (llist_cond_fn_t)entry_cat_cond_eq);
+    mu_assert(m_ll->num_nodes == 0, "Entries", 30);
+    mu_assert(!m_ll->head, "Entries", 31);
+    free_llist(m_ll, (llist_free_data_fn_t)free_nop);
+
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+    free_category(c1);
+    free_category(c2);
+    free_category(c3);
     return 0;
 }

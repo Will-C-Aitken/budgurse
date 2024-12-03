@@ -8,6 +8,7 @@ int categories_tests() {
     mu_run_test(cat_set_sum_idxs_test);
     mu_run_test(cat_llist_to_array_test);
     mu_run_test(cat_get_from_name_test);
+    mu_run_test(cat_del_from_llist_test);
     return 0;
 }
 
@@ -221,12 +222,12 @@ int cat_set_sum_idxs_test() {
     return 0;
 }
 
-int cat_llist_to_array() {
+int cat_llist_to_array_test() {
 
     int temp_idx = 0;
     category_t **ca = malloc(sizeof(category_t *) * 5);
     llist_t *tcl = test_dummy_cat_list(5);
-    cat_llist_to_array(tcl, &ca);
+    cat_llist_to_array(tcl, &ca, &temp_idx);
     mu_assert(strcmp(ca[0]->name, "Cat1") == 0 , "Categories", 73);
     mu_assert(strcmp(ca[3]->name, "Cat4") == 0 , "Categories", 74);
     mu_assert(strcmp(ca[4]->name, "Cat5") == 0 , "Categories", 75);
@@ -242,6 +243,36 @@ int cat_get_from_name_test() {
     mu_assert(c->id == 4, "Categories", 76);
     c = cat_get_from_name(tcl, "Cat1000");
     mu_assert(!c, "Categories", 77);
+    free_llist(tcl, (llist_free_data_fn_t)free_category);
+    return 0;
+}
+
+
+int cat_del_from_llist_test() {
+    int rc;
+    llist_t *tcl = test_dummy_cat_list(5);
+    category_t *c = cat_get_from_name(tcl, "Cat1");
+
+    rc = cat_del_from_llist(tcl, c);
+    mu_assert(rc == 1, "Categories", 78);
+    mu_assert(tcl->num_nodes == 2, "Categories", 79);
+
+    c = cat_get_from_name(tcl, "Cat5");
+    rc = cat_del_from_llist(tcl, c);
+    mu_assert(rc == 1, "Categories", 80);
+    mu_assert(tcl->num_nodes == 1, "Categories", 81);
+
+    c = cat_get_from_name(tcl, "Cat4");
+    rc = cat_del_from_llist(tcl, c);
+    mu_assert(rc == 1, "Categories", 82);
+    mu_assert(tcl->num_nodes == 1, "Categories", 83);
+    mu_assert(!((category_t *)tcl->head->data)->subcats, "Categories", 84);
+
+    c = cat_get_from_name(tcl, "Cat3");
+    rc = cat_del_from_llist(tcl, c);
+    mu_assert(rc == 1, "Categories", 85);
+    mu_assert(tcl->num_nodes == 0, "Categories", 86);
+
     free_llist(tcl, (llist_free_data_fn_t)free_category);
     return 0;
 }

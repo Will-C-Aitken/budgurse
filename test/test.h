@@ -34,6 +34,7 @@ int dist_between_test();
 // Entries Tests
 int entries_tests();
 int insert_after_date_test();
+int get_matches_test();
 
 // Backend tests
 int backend_tests();
@@ -62,6 +63,7 @@ int cat_is_sub_test();
 int cat_set_sum_idxs_test();
 int cat_llist_to_array_test();
 int cat_get_from_name_test();
+int cat_del_from_llist_test();
 
 // Prompt tests
 int prompt_tests();

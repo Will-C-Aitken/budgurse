@@ -69,19 +69,30 @@ void init_db(const char *file_name) {
 
 
 void load_db() {
-    
+    load_cat_table();
+    load_entry_table();
+}
+
+
+void load_entry_table() {
     int rc;
     char *err_msg;
-    char *sql = "SELECT * from Categories";
-    rc = sqlite3_exec(g_db, sql, load_categories_callback, NULL, &err_msg);
-    EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
-	    err_msg);
-
-    sql = "SELECT * FROM Entries ORDER BY date ASC";
+    char *sql = "SELECT * FROM Entries ORDER BY date ASC";
     rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", 
 	    err_msg);
 
+    sqlite3_free(err_msg);
+}
+
+
+void load_cat_table() {
+    int rc;
+    char *err_msg;
+    char *sql = "SELECT * FROM Categories";
+    rc = sqlite3_exec(g_db, sql, load_categories_callback, NULL, &err_msg);
+    EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
+	    err_msg);
     sqlite3_free(err_msg);
 }
 
@@ -229,6 +240,24 @@ char *del_entry_to_sql(entry_t *e) {
 
     char id_str[11];
     sprintf(id_str, "%d", e->id);
+    append_to_sql(&sql, NULL, id_str, 0);
+
+    sql_to_append = ";";
+    append_to_sql(&sql, sql_to_append, "", 0);
+
+    return sql;
+}
+
+
+char *del_cat_to_sql(category_t *c) {
+    char *sql_to_append = "DELETE FROM Categories WHERE id=";
+
+    char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
+    sql[0] = '\0';
+    strcat(sql, sql_to_append);
+
+    char id_str[11];
+    sprintf(id_str, "%d", c->id);
     append_to_sql(&sql, NULL, id_str, 0);
 
     sql_to_append = ";";
