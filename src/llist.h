@@ -54,5 +54,7 @@ void llist_insert_to_head(llist_t *l, llist_node_t *nd);
 void llist_insert_after_node(llist_node_t *prev_nd, llist_node_t *nd);
 
 llist_t *llist_get_matches(llist_t *ll, void *data, llist_cond_fn_t c_fn);
+llist_node_t *llist_sort_node(llist_t *l, llist_node_t *nd, 
+	llist_comp_fn_t c_fn);
 
 #endif

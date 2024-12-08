@@ -246,4 +246,15 @@ llist_t *llist_get_matches(llist_t *ll, void *data, llist_cond_fn_t c_fn) {
 }
 
 
+llist_node_t *llist_sort_node(llist_t *l, llist_node_t *nd, 
+	llist_comp_fn_t c_fn) {
+    llist_node_t *n_nd = init_llist_node(nd->data);
+    // pop original node without deleting inner data
+    llist_del_node(l, nd, (llist_free_data_fn_t)free_nop);
+    // now insert back into list
+    llist_insert_node(l, n_nd, c_fn);
+    return n_nd;
+}
+
+
 void free_nop(void *d) {}

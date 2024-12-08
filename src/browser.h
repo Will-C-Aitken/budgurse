@@ -23,7 +23,8 @@ typedef struct browser {
 
 extern browser_t *g_browser;
 
-browser_t* init_browser(llist_t* el, int max_num_entries);
+browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_pos, 
+	int max_num_entries);
 void free_browser(browser_t* b);
 
 int browser_handle_key(int ch);

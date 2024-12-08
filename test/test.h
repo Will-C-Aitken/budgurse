@@ -35,6 +35,7 @@ int dist_between_test();
 int entries_tests();
 int insert_after_date_test();
 int get_matches_test();
+int sort_entry_test();
 
 // Backend tests
 int backend_tests();

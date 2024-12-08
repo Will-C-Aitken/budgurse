@@ -131,8 +131,16 @@ void prompt_edit_entry(llist_node_t *cur) {
 	    case '1': {
 		time_t new_date;
 		if ((rc = prompt_for_input(date_prompt, &new_date, 
-			(input_proc_fn_t)date_proc)) == BUDGURSE_SUCCESS)
+			(input_proc_fn_t)date_proc)) == BUDGURSE_SUCCESS) {
 		    entry_set_date(cur->data, new_date);
+		    int sel_to_end_dist = 
+		        llist_dist_between(cur, g_entries->tail);
+		    cur = llist_sort_node(g_entries, cur, 
+		            (llist_comp_fn_t)entry_date_comp_gte);
+		    free_browser(g_browser);
+		    g_browser = init_browser(g_entries, cur, 
+			    sel_to_end_dist, -1);
+		}
 		break;
 	    } 
 	    case '2': {

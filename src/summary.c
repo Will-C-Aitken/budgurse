@@ -225,6 +225,7 @@ void summary_draw() {
 	    wmove(g_wins[SUMMARY].win, row, 0);
 	    waddch(g_wins[SUMMARY].win, ACS_LTEE);
 	    whline(g_wins[SUMMARY].win, ACS_HLINE, g_wins[SUMMARY].w - 2);
+	    mvwaddch(g_wins[SUMMARY].win, row, g_wins[SUMMARY].w-1, ACS_RTEE);
 	    mvwaddch(g_wins[SUMMARY].win, row, vert_idx_1, ACS_PLUS);
 	    mvwaddch(g_wins[SUMMARY].win, row++, vert_idx_2, ACS_PLUS);
 	    y_idx = nr - 1;
@@ -280,13 +281,18 @@ void summary_draw() {
     }
     
     // fill empty rows with just the vertical cat separator
-    while (row < g_wins[SUMMARY].h - 1) {
-	mvwaddch(g_wins[SUMMARY].win, row, vert_idx_1, ACS_VLINE);
-	mvwaddch(g_wins[SUMMARY].win, row++, vert_idx_2, ACS_VLINE);
+
+    if (row < g_wins[SUMMARY].h - 1) {
+	mvwhline(g_wins[SUMMARY].win, row, 1, ACS_HLINE, 
+		g_wins[SUMMARY].w - 2);
+	mvwaddch(g_wins[SUMMARY].win, row, 0, ACS_LTEE);
+	mvwaddch(g_wins[SUMMARY].win, row, g_wins[SUMMARY].w-1, ACS_RTEE);
     }
 
     mvwaddch(g_wins[SUMMARY].win, row, vert_idx_1, ACS_BTEE);
     mvwaddch(g_wins[SUMMARY].win, row, vert_idx_2, ACS_BTEE);
+
+
     wrefresh(g_wins[SUMMARY].win);
 }
 
@@ -473,7 +479,7 @@ int summary_handle_key(int ch) {
 
 void summary_edit_category() {
     if (g_summary->y_sel >= g_summary->num_rows - 1) {
-	prompt_display("Cannot rename Total category", 0, 1);
+	prompt_display("Cannot edit Total category", 0, 1);
 	return;
     }
     summary_redraw_sel_cat(1);

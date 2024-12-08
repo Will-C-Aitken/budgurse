@@ -36,7 +36,7 @@ void init_budgurse() {
     init_db("data/budgurse.db");
     load_db();
 
-    g_browser = init_browser(g_entries, -1);
+    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
     g_summary = init_summary(MONTH, -1, -1);
     summary_calc();
 

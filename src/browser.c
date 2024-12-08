@@ -3,7 +3,9 @@
 browser_t *g_browser = NULL;
 
 // set max_num_entries to -1 to calculate it with actual window size
-browser_t* init_browser(llist_t* el, int max_num_entries){
+// set sel_to_end to -1 to assume halfway
+browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end, 
+	int max_num_entries) {
 
     browser_t *b = malloc(sizeof(browser_t));
 
@@ -12,17 +14,35 @@ browser_t* init_browser(llist_t* el, int max_num_entries){
     else
 	b->max_num_entries = max_num_entries;
 
-    if (!el || (!el->num_nodes) || (b->max_num_entries < 1)) {
+    if (!el || !sel_node || (!el->num_nodes) || (b->max_num_entries < 1)) {
 	b->start = b->sel = b->end = NULL;
 	b->num_entries = 0;
 	return b;
     }
 
-    // select tail at startup
-    b->end = b->sel = b->start = el->tail;
+    b->end = b->sel = b->start = sel_node;
     b->num_entries = 1;
-    while (b->num_entries < b->max_num_entries && !llist_is_head(b->start)) {
+
+    if (sel_to_end == -1)
+	sel_to_end = (b->max_num_entries - 1)/2;
+
+    while (b->num_entries <= sel_to_end && !llist_is_tail(b->end)) {
+	b->end = b->end->next;
+	b->num_entries++;
+    }
+
+    while ((b->num_entries < b->max_num_entries)
+	    && !llist_is_head(b->start)) {
 	b->start = b->start->prev;
+	b->num_entries++;
+    }
+
+    // sometimes sel_to_end is the ideal case but is not possible (e.g. in the 
+    // case of an edit that moves the entry near head or tail). In this case,
+    // make sure as much of list is showing by extending the end even if it 
+    // does not match sel_to_end
+    while (b->num_entries < b->max_num_entries && !llist_is_tail(b->end)) {
+	b->end = b->end->next;
 	b->num_entries++;
     }
 
@@ -50,7 +70,7 @@ int browser_handle_key(int ch) {
 	    break;
 	case 'G':
 	    free_browser(g_browser);
-	    g_browser = init_browser(g_entries, -1);
+	    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
 	case 'j':
 	case KEY_DOWN:
 	    browser_scroll(1, DOWN);

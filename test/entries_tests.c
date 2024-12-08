@@ -3,6 +3,7 @@
 int entries_tests() {
     mu_run_test(insert_after_date_test);
     mu_run_test(get_matches_test);
+    mu_run_test(sort_entry_test);
     return 0;
 }
 
@@ -122,5 +123,66 @@ int get_matches_test() {
     free_category(c1);
     free_category(c2);
     free_category(c3);
+    return 0;
+}
+
+
+int sort_entry_test() {
+    g_entries = init_llist();
+
+    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date1 = mktime(&tm1);
+    entry_t *e1 = init_entry(1, "A Name", date1, -12.00, NULL, "A Note");
+    llist_node_t *en1= init_llist_node(e1);
+    llist_insert_to_tail(g_entries, en1);
+
+    // two days newer
+    struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=14, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date2 = mktime(&tm2);
+    entry_t *e2 = init_entry(2, "A Name", date2, -12.00, NULL, "A Note");
+    llist_node_t *en2 = init_llist_node(e2);
+    llist_insert_to_tail(g_entries, en2);
+
+    // between
+    struct tm tm3 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=13, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date3 = mktime(&tm3);
+    entry_t *e3 = init_entry(3, "A Name", date3, -12.00, NULL, "A Note");
+    llist_node_t *en3 = init_llist_node(e3);
+    llist_insert_to_tail(g_entries, en3);
+
+    // earliest
+    struct tm tm0 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
+	   .tm_mday=11, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    time_t date0 = mktime(&tm0);
+
+    // change last to earliest (now: en3, en1, en2)
+    entry_set_date(e3, date0);
+    en3 = llist_sort_node(g_entries, en3, (llist_comp_fn_t)entry_date_comp_gte);
+    mu_assert(g_entries->head == en3, "Entries", 32);
+    mu_assert(g_entries->head->next == en1, "Entries", 33);
+    mu_assert(g_entries->num_nodes == 3, "Entries", 34);
+
+    // change middle to tie for earliest (now: en1, en3, en2)
+    entry_set_date(e1, date0);
+    en1 = llist_sort_node(g_entries, en1, (llist_comp_fn_t)entry_date_comp_gte);
+    mu_assert(g_entries->head == en1, "Entries", 35);
+    mu_assert(g_entries->head->next == en3, "Entries", 36);
+    mu_assert(en1->next == en3, "Entries", 37);
+    mu_assert(en1->prev == NULL, "Entries", 38);
+    mu_assert(g_entries->num_nodes == 3, "Entries", 39);
+
+    // change first to latest (now: en3, en2, en1)
+    entry_set_date(e1, date2);
+    en1 = llist_sort_node(g_entries, en1, (llist_comp_fn_t)entry_date_comp_gte);
+    mu_assert(g_entries->head == en3, "Entries", 40);
+    mu_assert(g_entries->head->next == en2, "Entries", 41);
+    mu_assert(g_entries->tail == en1, "Entries", 42);
+    mu_assert(g_entries->num_nodes == 3, "Entries", 43);
+
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+
     return 0;
 }
