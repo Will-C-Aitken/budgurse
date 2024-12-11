@@ -349,7 +349,7 @@ void browser_draw_entry(const entry_t *e, int row) {
 
 
 void browser_draw_date(time_t date, int max_width){
-    struct tm *tmp_date = gmtime(&date);
+    struct tm *tmp_date = localtime(&date);
     wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", ++(tmp_date->tm_mon), 
 	    tmp_date->tm_mday, tmp_date->tm_year + 1900);
 }

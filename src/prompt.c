@@ -61,7 +61,7 @@ int prompt_add_category(const char *cat_name, int parent_id) {
 	    new_cat = init_category(0, parent_id, cat_name);
 	    llist_node_t *nd = init_llist_node(new_cat);
 	    llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
-	    summary_reset(g_summary->delin);
+	    summary_reset(g_summary->max_date, g_summary->delin);
 	    db_exec(new_cat, (gen_sql_fn_t)cat_to_sql_insert);
 	    new_cat->id = sqlite3_last_insert_rowid(g_db);
 	    return new_cat->id;
@@ -289,6 +289,7 @@ int date_proc(char *buf, time_t *date) {
     struct tm result_tm = {.tm_mday=data[1],
 			   .tm_mon=--data[0],
 			   .tm_year=data[2] - 1900};
+    clean_tm(&result_tm);
 
     *date = mktime(&result_tm);
     return 0;

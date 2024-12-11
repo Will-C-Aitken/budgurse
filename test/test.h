@@ -77,6 +77,8 @@ int summary_tests();
 int summary_init_test();
 int summary_calc_test();
 int summary_scroll_test();
+int update_date_test();
+int summary_clear_test();
 
 // Utility functions
 llist_t* test_dummy_list(int num_nodes);

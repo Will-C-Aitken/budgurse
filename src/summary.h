@@ -5,12 +5,6 @@
 
 extern const char *mnth_hdrs[];
 
-typedef enum delin {
-    WEEK,
-    MONTH,
-    YEAR,
-} delin_t;
-
 typedef struct summary {
     delin_t delin;
     int num_cols;
@@ -22,22 +16,22 @@ typedef struct summary {
     int y_start;
     int y_sel;
     int y_end;
-    time_t o_date;
-    time_t n_date;
+    time_t min_date;
+    time_t max_date;
     category_t **cat_array;
 } summary_t;
 
 extern summary_t *g_summary;
 
-summary_t* init_summary(delin_t d, int height, int width);
+summary_t* init_summary(time_t n_date, delin_t d, int height, int width);
 void free_summary(summary_t* s);
 
 void summary_calc();
 int summary_update_on_entry(entry_t *e);
 void summary_inc_cell(int x, int y, int value);
-void summary_set_date_bounds(time_t n_date);
+int summary_set_date_bounds(time_t *n_date, time_t *o_date, delin_t d);
 void summary_clear();
-void summary_reset(delin_t d);
+void summary_reset(time_t max_date, delin_t d);
 
 void summary_draw();
 void summary_draw_header();
@@ -47,11 +41,9 @@ void summary_redraw_sel_cat(int blink);
 void summary_scroll(int num_times, dir_t dir);
 void summary_mv_idxs(int *i_start, int *i_sel, int *i_end, int amt, int lim);
 
-int summary_handle_key(int ch);
-
 void summary_edit_category();
 void summary_del_category();
 
-int date_part_from_delin(time_t date, delin_t d);
+int summary_handle_key(int ch);
 
 #endif

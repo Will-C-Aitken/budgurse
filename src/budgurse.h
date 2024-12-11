@@ -14,13 +14,13 @@
 
 #include "llist.h"
 #include "entries.h"
+#include "util.h"
 #include "backend.h"
 #include "browser.h"
 #include "categories.h"
 #include "wins.h"
 #include "prompt.h"
 #include "summary.h"
-#include "util.h"
 
 #define TIME_T_32 (sizeof(time_t) == 4)
 

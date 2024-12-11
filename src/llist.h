@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef enum delin {
+    WEEK,
+    MONTH,
+    YEAR,
+} delin_t;
+
 typedef struct llist_node {
     struct llist_node *next;
     struct llist_node *prev;

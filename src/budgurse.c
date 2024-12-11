@@ -37,7 +37,7 @@ void init_budgurse() {
     load_db();
 
     g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
-    g_summary = init_summary(MONTH, -1, -1);
+    g_summary = init_summary(0, MONTH, -1, -1);
     summary_calc();
 
     state = BROWSER;

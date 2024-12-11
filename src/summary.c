@@ -5,18 +5,18 @@ const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 
-summary_t* init_summary(delin_t d, int height, int width) {
+summary_t* init_summary(time_t max_date, delin_t d, int height, int width) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
-    
-    int num_cols;
-    switch (d) {
-	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
-	case MONTH: num_cols = 12; break;
-	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
-    }
 
     summary_t *s = malloc(sizeof(summary_t));
+
+    // if no supplied date, use current date as newest in summary
+    if (!max_date)
+	s->max_date = time(NULL);
+    else
+	s->max_date = max_date;
+    int num_cols = summary_set_date_bounds(&s->max_date, &s->min_date, d);
 
     s->delin = d;
 
@@ -54,10 +54,6 @@ summary_t* init_summary(delin_t d, int height, int width) {
     s->data = malloc(sizeof(float) * n);
     memset(s->data, 0.00, sizeof(float) * n);
 
-    // set n and o date to same as default
-    s->n_date = time(NULL);
-    s->o_date = time(NULL);
-
     return s;
 }
 
@@ -83,32 +79,26 @@ void summary_calc() {
     llist_node_t *curr_en = g_entries->tail;
     entry_t *e;
 
-    int first = 1;
     while (curr_en) {
 	e = (entry_t*)curr_en->data;
-	if (first) {
-	    summary_set_date_bounds(e->date);
-	    first = 0;
-	}
-	if (!summary_update_on_entry(e))
+	// end early if past earliest date in sum 
+	if (summary_update_on_entry(e) == -1)
 	    return;
 	curr_en = curr_en->prev; 
     }
 }
 
 
+// returns -1 if entry is before summary bounds, 1 if beyond, and 0 if in
 int summary_update_on_entry(entry_t *e) {
     int x, y;
     int max_x = g_summary->num_cols - 1;
     int max_y = g_summary->num_rows - 1;
 
-    if (e->date < g_summary->o_date)
-	return 0; 
-    // if outside upper bound, calc again to reset bounds
-    if (e->date > g_summary->n_date) {
-	summary_calc();
-	return 0;
-    }
+    if (e->date < g_summary->min_date)
+	return -1; 
+    if (e->date > g_summary->max_date)
+	return 1;
 
     x = date_part_from_delin(e->date, g_summary->delin);
     y = e->cat->sum_idx;
@@ -128,7 +118,7 @@ int summary_update_on_entry(entry_t *e) {
 	// except for column total because that would be a duplicate
     }
 
-    return 1;
+    return 0;
 }
 
 
@@ -139,30 +129,39 @@ void summary_inc_cell(int x, int y, int value) {
 }
 
 
-void summary_set_date_bounds(time_t date) {
-    delin_t d = g_summary->delin;
-    struct tm *date_tm = gmtime(&date);
-    struct tm o_date_tm = *date_tm;
-    struct tm n_date_tm = *date_tm;
+// returns num cols for between max_date and min_date (inclusive)
+int summary_set_date_bounds(time_t *max_date, time_t *min_date, delin_t d) {
+    struct tm max_tm = *localtime(max_date);
+    struct tm min_tm;
+    int num_cols;
 
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
-	case MONTH: 
-	    n_date_tm.tm_mday = days_in_mnth[n_date_tm.tm_mon];
-	    o_date_tm.tm_mday = 1;
-	    o_date_tm.tm_year--;
+	case MONTH:
+	    num_cols = 12; 
+	    max_tm.tm_mday=days_in_mnth[max_tm.tm_mon];
+	    min_tm = max_tm;
+	    min_tm.tm_mon = max_tm.tm_mon + 1;
+	    min_tm.tm_year = max_tm.tm_year - 1;
+	    if (min_tm.tm_mon > 11)
+		min_tm.tm_year++;
+	    min_tm.tm_mon %= 12;
+	    min_tm.tm_mday = 1;
 	    break;
 	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
     }
 
-    g_summary->n_date = mktime(&n_date_tm);
-    g_summary->o_date = mktime(&o_date_tm);
+    clean_tm(&max_tm);
+    clean_tm(&min_tm);
+    *max_date = mktime(&max_tm);
+    *min_date = mktime(&min_tm);
+    return num_cols; 
 }
 
 
-void summary_reset(delin_t d) {
+void summary_reset(time_t max_date, delin_t d) {
     free_summary(g_summary);
-    g_summary = init_summary(d, -1, -1);
+    g_summary = init_summary(max_date, d, -1, -1);
 }
 
 
@@ -209,7 +208,7 @@ void summary_draw() {
     switch (g_summary->delin) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	case MONTH: 
-	    date_offset = date_part_from_delin(g_summary->n_date, MONTH);
+	    date_offset = date_part_from_delin(g_summary->max_date, MONTH);
 	    break;
 	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
     }
@@ -300,8 +299,8 @@ void summary_draw() {
 void summary_draw_header() {
     int x_start = g_summary->x_start;
     int x_end = g_summary->x_end;
-    int curr_yr = date_part_from_delin(g_summary->n_date, YEAR);
-    int n_mnth = date_part_from_delin(g_summary->n_date, MONTH);
+    int curr_yr = date_part_from_delin(g_summary->max_date, YEAR);
+    int n_mnth = date_part_from_delin(g_summary->max_date, MONTH);
 
     mvwaddch(g_wins[SUMMARY].win, 1, CAT_STR_LEN + 3, ACS_VLINE);
 
@@ -426,6 +425,41 @@ void summary_mv_idxs(int *i_start, int *i_sel, int *i_end, int pos, int lim) {
 }
 
 
+void summary_edit_category() {
+    if (g_summary->y_sel >= g_summary->num_rows - 1) {
+	prompt_display("Cannot edit Total category", 0, 1);
+	return;
+    }
+    summary_redraw_sel_cat(1);
+    prompt_edit_category(g_summary->cat_array[g_summary->y_sel]);
+}
+
+
+void summary_del_category() {
+    if (g_summary->y_sel >= g_summary->num_rows - 1) {
+	prompt_display("Cannot delete Total category", 0, 1);
+	return;
+    }
+
+    category_t *sel_cat = g_summary->cat_array[g_summary->y_sel];
+
+    if (sel_cat->subcats) {
+	prompt_display("Delete subcategories first", 0, 1);
+	return;
+    }
+
+    // handles changing the existing entries w/ category
+    if (!prompt_del_category(sel_cat))
+	return;
+
+    db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
+    cat_del_from_llist(g_categories, sel_cat);
+
+    summary_reset(g_summary->max_date, g_summary->delin);
+    summary_calc();
+}
+
+
 int summary_handle_key(int ch) {
     EXIT_IF(!g_summary, "Summary not initialized");
 
@@ -466,8 +500,28 @@ int summary_handle_key(int ch) {
 	case KEY_RIGHT:
 	    summary_scroll(1, RIGHT);
 	    break;
+	case 'm':
+	    update_date(&g_summary->min_date, MONTH, 1);
+	    update_date(&g_summary->max_date, MONTH, 1);
+	    summary_calc();
+	    break;
+	case 'M':
+	    update_date(&g_summary->min_date, MONTH, -1);
+	    update_date(&g_summary->max_date, MONTH, -1);
+	    summary_calc();
+	    break;
 	case 'q':
 	    return 0;
+	case 'y':
+	    update_date(&g_summary->min_date, YEAR, 1);
+	    update_date(&g_summary->max_date, YEAR, 1);
+	    summary_calc();
+	    break;
+	case 'Y':
+	    update_date(&g_summary->min_date, YEAR, -1);
+	    update_date(&g_summary->max_date, YEAR, -1);
+	    summary_calc();
+	    break;
 	case '$':
 	    summary_scroll(g_summary->num_cols, RIGHT);
 	    break;
@@ -475,54 +529,3 @@ int summary_handle_key(int ch) {
     summary_draw();
     return 1;
 }
-
-
-void summary_edit_category() {
-    if (g_summary->y_sel >= g_summary->num_rows - 1) {
-	prompt_display("Cannot edit Total category", 0, 1);
-	return;
-    }
-    summary_redraw_sel_cat(1);
-    prompt_edit_category(g_summary->cat_array[g_summary->y_sel]);
-}
-
-
-void summary_del_category() {
-    if (g_summary->y_sel >= g_summary->num_rows - 1) {
-	prompt_display("Cannot delete Total category", 0, 1);
-	return;
-    }
-
-    category_t *sel_cat = g_summary->cat_array[g_summary->y_sel];
-
-    if (sel_cat->subcats) {
-	prompt_display("Delete subcategories first", 0, 1);
-	return;
-    }
-
-    // handles changing the existing entries w/ category
-    if (!prompt_del_category(sel_cat))
-	return;
-
-    db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
-    cat_del_from_llist(g_categories, sel_cat);
-
-    summary_reset(g_summary->delin);
-    summary_calc();
-}
-
-
-int date_part_from_delin(time_t date, delin_t d) { int date_part;
-    struct tm *tm_from_date = gmtime(&date);
-    switch (d) {
-	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
-	case MONTH: 
-	    date_part = tm_from_date->tm_mon;
-	    break;
-	case YEAR: 
-	    date_part = tm_from_date->tm_year + 1900;
-	    break;
-    }
-    return date_part;
-}
-
