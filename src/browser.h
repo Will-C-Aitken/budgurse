@@ -1,13 +1,17 @@
 #ifndef BROWSER_H
 #define BROWSER_H
 
+#include "llist.h"
+#include "categories.h"
+#include "entries.h"
+#include "backend.h"
+#include "prompt.h"
+#include "summary.h"
+#include "help.h"
+#include "wins.h"
+#include "util.h"
+#include "global.h"
 #include "budgurse.h"
-
-#define DATE_STR_LEN 10
-#define NAME_STR_LEN 22
-#define AMOUNT_STR_LEN 11
-#define CAT_STR_LEN 18
-#define SUBCAT_STR_LEN 18
 
 static const int browser_col_widths[] = {DATE_STR_LEN, NAME_STR_LEN, 
     AMOUNT_STR_LEN, CAT_STR_LEN, SUBCAT_STR_LEN};

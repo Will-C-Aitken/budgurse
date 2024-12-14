@@ -79,15 +79,18 @@ int browser_handle_key(int ch) {
 	case KEY_UP:
 	    browser_scroll(1, UP);
 	    break;
+	case 'q':
+	    return 0;
 	case 's':
 	    state = SUMMARY;
 	    summary_calc();
-	    summary_draw();
-	    return 1;
-	case 'q':
-	    return 0;
+	    break;
+	case '?':
+	    g_help = init_help(state);
+	    state = HELP;
+	    break;
     }
-    browser_draw();
+
     return 1;
 }
 

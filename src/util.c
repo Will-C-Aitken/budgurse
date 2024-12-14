@@ -21,12 +21,12 @@ void draw_amount(WINDOW *w, float amount, int max_width,
     // print negative (if necessary) and dollar sign 
     if (amount < 0) {
 	if (attrs)
-	    wattrset(g_wins[SUMMARY].win, attrs);
+	    wattrset(w, attrs);
 	waddch(w, '-');
     } else 
 	waddch(w, ' ');
     if (attrs)
-	wattrset(g_wins[SUMMARY].win, attrs);
+	wattrset(w, attrs);
     waddch(w, '$');
 
     amount = fabs(amount);
@@ -40,7 +40,7 @@ void draw_amount(WINDOW *w, float amount, int max_width,
 
     // turn off attributes
     if (attrs)
-	wattrset(g_wins[SUMMARY].win, 0);
+	wattrset(w, 0);
 }
 
 
@@ -53,22 +53,22 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
     int sl = strlen(str);
     int num_spaces = (sl > max_width) ? 0 : max_width - sl;
     while (num_spaces-- > 0) 
-	waddch(g_wins[SUMMARY].win, ' ');
+	waddch(w, ' ');
 
     if (attrs)
-	wattrset(g_wins[SUMMARY].win, attrs);
+	wattrset(w, attrs);
 
     // trunacte string
     if (sl > max_width) {
 	char trunc_str[max_width+1];
 	snprintf(trunc_str, max_width+1, "%-*s", max_width, str);
-	wprintw(g_wins[SUMMARY].win, "%s", trunc_str);
+	wprintw(w, "%s", trunc_str);
     } else
-	wprintw(g_wins[SUMMARY].win, "%s", str);
+	wprintw(w, "%s", str);
 
     // turn off attributes
     if (attrs)
-	wattrset(g_wins[SUMMARY].win, 0);
+	wattrset(w, 0);
 }
 
 
@@ -78,7 +78,7 @@ void draw_str(WINDOW *w, const char *str, int max_width,
     waddstr(w, delim_str);
 
     if (attrs)
-	wattrset(g_wins[SUMMARY].win, attrs);
+	wattrset(w, attrs);
 
     // trunacte string
     char trunc_str[max_width+1];
@@ -87,14 +87,7 @@ void draw_str(WINDOW *w, const char *str, int max_width,
 
     // turn off attributes
     if (attrs)
-	wattrset(g_wins[SUMMARY].win, 0);
-}
-
-
-int num_places_in_amount(int n) {
-    if (n < 0) return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
-    if (n < 10) return 1;
-    return 1 + num_places_in_amount(n / 10);
+	wattrset(w, 0);
 }
 
 
@@ -156,4 +149,11 @@ void update_date(time_t *date, delin_t d, int amount) {
     }
 
     *date = mktime(tm_from_date);
+}
+
+
+int num_places_in_amount(int n) {
+    if (n < 0) return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
+    if (n < 10) return 1;
+    return 1 + num_places_in_amount(n / 10);
 }

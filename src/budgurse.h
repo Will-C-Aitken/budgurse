@@ -1,48 +1,15 @@
 #ifndef BUDGURSE_H
 #define BUDGURSE_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <math.h>
-#include <limits.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sqlite3.h>
-#include <ncurses.h>
-
 #include "llist.h"
-#include "entries.h"
 #include "util.h"
 #include "backend.h"
 #include "browser.h"
 #include "categories.h"
 #include "wins.h"
-#include "prompt.h"
 #include "summary.h"
-
-#define TIME_T_32 (sizeof(time_t) == 4)
-
-#define BUDGURSE_FAILURE 1
-#define BUDGURSE_SUCCESS 0
-
-#define MAX_NAME_BYTES 64
-#define MAX_NOTE_BYTES 1024
-
-#define MAX_AMOUNT_VAL 999999.99
-#define MIN_AMOUNT_VAL -99999.99
-
-#define KEY_ESC 27
-
-typedef enum state {
-    BROWSER,
-    PROMPT,
-    SUMMARY,
-} state_t;
-
-extern state_t state;
-extern int curses_mode;
+#include "help.h"
+#include "global.h"
 
 // the following three macros are adapted from calcurse/src/calcurse.h
 #define ERROR_MSG(...) do {                                                  \
@@ -66,8 +33,12 @@ extern int curses_mode;
 	EXIT(__VA_ARGS__);                                                   \
 } while (0)
 
+extern int curses_mode;
+extern state_t state;
+
 void init_budgurse();
 int handle_input();
+void draw(state_t s);
 void end_budgurse();
 
 #endif

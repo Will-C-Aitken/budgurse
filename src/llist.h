@@ -1,14 +1,7 @@
 #ifndef LLIST_H
 #define LLIST_H
 
-#include <stdio.h>
-#include <stdlib.h>
-
-typedef enum delin {
-    WEEK,
-    MONTH,
-    YEAR,
-} delin_t;
+#include "global.h"
 
 typedef struct llist_node {
     struct llist_node *next;
@@ -21,13 +14,6 @@ typedef struct llist {
     llist_node_t *tail;
     int num_nodes;
 } llist_t;
-
-typedef enum direction {
-    DOWN = 0,
-    UP = 1,
-    LEFT = 2,
-    RIGHT = 3
-} dir_t;
 
 // For comparing two nodes
 typedef int (*llist_comp_fn_t) (llist_node_t *, llist_node_t *, int);

@@ -1,9 +1,7 @@
 #ifndef WINS_H
 #define WINS_H
 
-#include "budgurse.h"
-
-#define NUM_WINS 3
+#include "global.h"
 
 typedef struct win {
     WINDOW *win;
@@ -20,5 +18,6 @@ void free_wins();
 win_t init_browser_win();
 win_t init_prompt_win();
 win_t init_summary_win();
+win_t init_help_win();
 
 #endif

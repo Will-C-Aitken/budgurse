@@ -1,14 +1,9 @@
 #ifndef BACKEND_H
 #define BACKEND_H
 
-#include <sqlite3.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/stat.h>
-
 #include "entries.h"
 #include "categories.h"
+#include "global.h"
 #include "budgurse.h"
 
 extern sqlite3 *g_db;

@@ -1,6 +1,12 @@
 #ifndef SUMMARY_H
 #define SUMMARY_H
 
+#include "entries.h"
+#include "categories.h"
+#include "wins.h"
+#include "browser.h"
+#include "util.h"
+#include "global.h"
 #include "budgurse.h"
 
 extern const char *mnth_hdrs[];

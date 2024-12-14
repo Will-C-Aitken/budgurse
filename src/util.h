@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include "budgurse.h"
+#include "global.h"
 
 extern const int days_in_mnth[12]; 
 
@@ -20,6 +21,6 @@ int date_part_from_delin(time_t date, delin_t d);
 void update_date(time_t *date, delin_t d, int amount);
 
 // miscellaneous
-int num_places_in_amount (int n);
+int num_places_in_amount(int n);
 
 #endif

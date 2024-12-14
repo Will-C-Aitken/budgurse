@@ -1,7 +1,14 @@
 #ifndef PROMPT_H
 #define PROMPT_H
 
+#include "llist.h"
+#include "categories.h"
+#include "entries.h"
+#include "backend.h"
+#include "util.h"
+#include "wins.h"
 #include "budgurse.h"
+#include "global.h"
 
 // Processing function takes a string as input, validates it, then, if valid, 
 // converts it to the correct type and writes it to the second input pointer

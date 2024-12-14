@@ -469,8 +469,7 @@ int summary_handle_key(int ch) {
 	    break;
 	case 'b':
 	    state = BROWSER;
-	    browser_draw();
-	    return 1;
+	    break;
 	case 'd':
 	    summary_del_category();
 	    break;
@@ -522,10 +521,13 @@ int summary_handle_key(int ch) {
 	    update_date(&g_summary->max_date, YEAR, -1);
 	    summary_calc();
 	    break;
+	case '?':
+	    g_help = init_help(state);
+	    state = HELP;
+	    break;
 	case '$':
 	    summary_scroll(g_summary->num_cols, RIGHT);
 	    break;
     }
-    summary_draw();
     return 1;
 }

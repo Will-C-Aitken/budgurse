@@ -1,15 +1,10 @@
 #ifndef CATEGORIES_H
 #define CATEGORIES_H
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
 #include "llist.h"
+#include "global.h"
 
 extern llist_t *g_categories;
-
-#define MAX_CAT_BYTES 32
 
 typedef struct category {
     int id;

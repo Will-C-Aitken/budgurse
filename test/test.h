@@ -1,7 +1,9 @@
-// modified from https://jera.com/techinfo/jtns/jtn002
+#ifndef TEST_H
+#define TEST_H
 
 #include "budgurse.h"
 
+// modified from https://jera.com/techinfo/jtns/jtn002
 // Unit tests
 #define mu_assert(test, test_suite, test_num) \
     do { tests_run++; \
@@ -80,7 +82,9 @@ int summary_scroll_test();
 int update_date_test();
 int summary_clear_test();
 
-// Utility functions
+// Test utility functions
 llist_t* test_dummy_list(int num_nodes);
 llist_t* test_dummy_cat_list(int num_cats);
 int is_amount_eq(float candidate, float actual);
+
+#endif
