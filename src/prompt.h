@@ -24,6 +24,7 @@ int prompt_for_input(const char *prompt_str, void *output,
 	input_proc_fn_t p_fn);
 void prompt_display(const char* prompt_str, int line, int refresh);
 int prompt_get_response(char* pr);
+void prompt_default();
 
 int date_proc(char *buf, time_t *date);
 int name_proc(char *buf, char *name);

@@ -70,7 +70,8 @@ void help_draw() {
     const char **t_table = g_help->txt_table;
     werase(g_wins[HELP].win);
     box(g_wins[HELP].win, 0, 0);
-    mvwaddstr(g_wins[HELP].win, 0, 2, "budgurse");
+    mvwaddstr(g_wins[HELP].win, 0, 2, "budgurse~");
+    mvwaddstr(g_wins[HELP].win, 0, 11, "v0.1.0");
 
     int row = 2;
     for (int i = g_help->first_row_idx; i < g_help->num_rows; i++) {

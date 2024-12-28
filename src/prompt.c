@@ -372,3 +372,8 @@ int note_proc(char *buf, char *note) {
     snprintf(note, MAX_NOTE_BYTES, "%s", buf);
     return 0;
 }
+
+
+void prompt_default() {
+    prompt_display("Press ? for help", 1, 1);
+}

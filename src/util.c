@@ -113,7 +113,7 @@ void clean_tm(struct tm *tm_to_clean) {
 
 
 int date_part_from_delin(time_t date, delin_t d) { 
-    int date_part;
+    int date_part = -1;
     struct tm *tm_from_date = localtime(&date);
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");

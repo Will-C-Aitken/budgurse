@@ -301,6 +301,7 @@ void browser_draw() {
 	temp = temp->next;
     } 
 
+    prompt_default();
     wrefresh(g_wins[BROWSER].win);
 }
 
@@ -356,5 +357,3 @@ void browser_draw_date(time_t date, int max_width){
     wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", ++(tmp_date->tm_mon), 
 	    tmp_date->tm_mday, tmp_date->tm_year + 1900);
 }
-
-

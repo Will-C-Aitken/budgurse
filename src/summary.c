@@ -186,7 +186,7 @@ void summary_draw() {
     int row = 3;
     int row_attrs, col_attrs;
     float amt;
-    int date_offset;
+    int date_offset = 0;
 
 
     werase(g_wins[SUMMARY].win);
@@ -292,6 +292,7 @@ void summary_draw() {
     mvwaddch(g_wins[SUMMARY].win, row, vert_idx_2, ACS_BTEE);
 
 
+    prompt_default();
     wrefresh(g_wins[SUMMARY].win);
 }
 
