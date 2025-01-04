@@ -32,10 +32,33 @@ static int load_entries_callback(void *_, int argc, char **argv,
 }
 
 
+void init_data_path(char **db_path) {
+    EXIT_IF(*db_path, "Custom db_path not supported, pass NULL ptr instead");
+
+    const char *db_file = "budgurse.db";
+    char *ddir_path = malloc(sizeof(char) * (BUFSIZ-strlen(db_file)));
+    *db_path = malloc(sizeof(char) * BUFSIZ);
+
+    const char *home_dir = getenv("HOME");
+    if (home_dir)
+	snprintf(ddir_path, BUFSIZ-strlen(db_file), "%s/.budgurse/", home_dir);
+    else
+	EXIT("HOME environment variable not set");
+
+    errno = 0;
+    
+    if (mkdir(ddir_path, 0777) && errno != EEXIST)
+	EXIT("failed to make data directory %s with error: %s", 
+		ddir_path, strerror(errno));
+    
+    snprintf(*db_path, BUFSIZ, "%s%s",ddir_path, db_file);
+    free(ddir_path);
+}
+
+
 void init_db(const char *file_name) {
 
     char *err_msg;
-    mkdir("data/", 0777);
     int rc = sqlite3_open(file_name, &g_db);
     
     EXIT_IF(rc, "Failed to open database with error message: %s\n", 

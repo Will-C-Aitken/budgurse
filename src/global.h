@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <sqlite3.h>
 #include <ncurses.h>
 

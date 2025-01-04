@@ -16,14 +16,13 @@ src/*.o
 src/.deps/
 src/.dirstamp
 
-data/
-
 unit_tests
 test-driver
 *.trs
 test/*.o
 test/.dirstamp
 test/.deps/
+test.db
 
 TODO
 *.log

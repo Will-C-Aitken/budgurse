@@ -21,6 +21,8 @@ int main(int argc, char *argv[]) {
 
 void init_budgurse() {
 
+    char *db_path = NULL;
+
     // start ncurses
     initscr();
     curs_set(0);
@@ -33,8 +35,10 @@ void init_budgurse() {
     g_entries = init_llist();
     g_categories = init_llist();
 
-    init_db("data/budgurse.db");
+    init_data_path(&db_path);
+    init_db(db_path);
     load_db();
+    free(db_path);
 
     g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
     g_summary = init_summary(0, MONTH, -1, -1);

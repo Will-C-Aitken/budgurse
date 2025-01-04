@@ -6,22 +6,18 @@ state_t state = BROWSER;
 
 int main(int argc, char **argv) {
 
-    if (!llist_tests())
-	printf("All Llist Tests Passed\n");
-    if (!entries_tests())
-	printf("All Entries Tests Passed\n");
-    if (!backend_tests())
-        printf("All Backend Tests Passed\n");
-    if (!browser_tests())
-        printf("All Browser Tests Passed\n");
-    if (!categories_tests())
-        printf("All Categories Tests Passed\n");
-    if (!prompt_tests())
-        printf("All Prompt Tests Passed\n");
-    if (!summary_tests())
-        printf("All Summary Tests Passed\n");
+    if (
+	llist_tests() || 
+	entries_tests() ||
+	backend_tests() ||
+	browser_tests() || 
+	categories_tests() ||
+	prompt_tests() ||
+	summary_tests()
+    ) return 1;
 
-    printf("Tests run: %d\n", tests_run);
+    printf("All Tests Passed. Tests run: %d\n", tests_run);
+    return 0;
 }
 
 

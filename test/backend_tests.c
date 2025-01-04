@@ -9,6 +9,7 @@ int backend_tests() {
     mu_run_test(cat_to_sql_insert_test);
     mu_run_test(del_entry_to_sql_test);
     mu_run_test(edit_entry_to_sql_update_test);
+    remove("test.db");
     return 0;
 }
 
@@ -38,7 +39,7 @@ int entry_to_sql_insert_test() {
 
 int load_empty_db_test() {
 
-    init_db("data/test.db");
+    init_db("test.db");
     g_entries = init_llist();
     g_categories = init_llist();
     load_db();
@@ -64,7 +65,7 @@ int write_entry_test() {
     entry_t* e1 = init_entry(1, "Starbucks", test_date, -12.00, tc, 
 	    "this was fun");
 
-    init_db("data/test.db");
+    init_db("test.db");
 
     int result = db_exec(e1, (gen_sql_fn_t)entry_to_sql_insert);
     mu_assert(result == 0, "Backend", 5);
@@ -88,7 +89,7 @@ int write_entry_test() {
 int load_db_test() {
     // assumes the tests from prior fn have been executed
     
-    init_db("data/test.db");
+    init_db("test.db");
     g_entries = init_llist();
     g_categories = init_llist();
     load_db();

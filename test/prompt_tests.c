@@ -23,13 +23,17 @@ int date_proc_test() {
     test_string = "11172024";
     mu_assert(date_proc(test_string, &result), "Prompt", 5);
 
+
+    // get current year
+    time_t curr_t = time(NULL);
+    struct tm curr_tm = *localtime(&curr_t);
     // valid shortform
     test_string = "11/12";
     mu_assert(!date_proc(test_string, &result), "Prompt", 6);
     result_tm = localtime(&result);
     mu_assert(result_tm->tm_mday == 12, "Prompt", 7);
     mu_assert(result_tm->tm_mon == 11-1, "Prompt", 8);
-    mu_assert(result_tm->tm_year == 2024 - 1900, "Prompt", 9);
+    mu_assert(result_tm->tm_year == curr_tm.tm_year, "Prompt", 9);
 
     // invalid month
     test_string = "13/14";

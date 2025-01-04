@@ -22,7 +22,7 @@ AC_CHECK_LIB([sqlite3],
 
 # Checks for header files.
 AC_CHECK_HEADERS([time.h stdio.h stdlib.h string.h math.h limits.h \
-		  sys/types.h sys/stat.h], [],
+		  sys/types.h sys/stat.h errno.h], [],
 		  AC_MSG_ERROR([required header file not found]))
 
 # Checks for typedefs, structures, and compiler characteristics.

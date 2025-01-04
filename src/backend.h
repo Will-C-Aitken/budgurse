@@ -11,6 +11,7 @@ extern sqlite3 *g_db;
 void load_db();
 void load_entry_table();
 void load_cat_table();
+void init_data_path(char **db_path);
 void init_db(const char *file_name);
 
 typedef char *(*gen_sql_fn_t) (void *);
