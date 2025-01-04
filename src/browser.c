@@ -308,16 +308,17 @@ void browser_draw() {
 
 void browser_draw_header() {
     char *col_names[] = {"Date", "Name", "     Amount", "Category", 
-		       "Subcategory"};
+	"Subcategory"};
 
     wmove(g_wins[BROWSER].win, 1, 1);
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++) {
 	if (i == 0)
 	    draw_str(g_wins[BROWSER].win, col_names[i], browser_col_widths[i], 
-		    " ", 0);
+		" ", 0);
 	else
 	    draw_str(g_wins[BROWSER].win, col_names[i], browser_col_widths[i], 
-		    "  ", 0);
+		"  ", 0);
+    }
 }
 
 
@@ -331,9 +332,9 @@ void browser_draw_entry(const entry_t *e, int row) {
 
     browser_draw_date(e->date, browser_col_widths[i++]);
     draw_str(g_wins[BROWSER].win, e->name, browser_col_widths[i++], 
-	    delim_str, 0);
+	delim_str, 0);
     draw_amount(g_wins[BROWSER].win, e->amount, browser_col_widths[i++], 
-	    delim_str, 0);
+	delim_str, 0);
 
     char* cat;
     char* subcat;
@@ -341,10 +342,10 @@ void browser_draw_entry(const entry_t *e, int row) {
     draw_str(g_wins[BROWSER].win, cat, browser_col_widths[i++], delim_str, 0);
     if (subcat)
 	draw_str(g_wins[BROWSER].win, subcat, browser_col_widths[i++], 
-		delim_str, 0);
+	    delim_str, 0);
     else
 	draw_str(g_wins[BROWSER].win, "", browser_col_widths[i++], 
-		delim_str, 0);
+	    delim_str, 0);
 
     // pad with blank spaces
     int pad_len = getmaxx(g_wins[BROWSER].win) - getcurx(g_wins[BROWSER].win) - 1;
@@ -355,5 +356,5 @@ void browser_draw_entry(const entry_t *e, int row) {
 void browser_draw_date(time_t date, int max_width){
     struct tm *tmp_date = localtime(&date);
     wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", ++(tmp_date->tm_mon), 
-	    tmp_date->tm_mday, tmp_date->tm_year + 1900);
+	tmp_date->tm_mday, tmp_date->tm_year + 1900);
 }

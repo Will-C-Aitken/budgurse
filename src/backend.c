@@ -5,9 +5,8 @@ sqlite3 *g_db = NULL;
 static int load_categories_callback(void *_, int argc, char **argv, 
 	char **azColName) {
 
-    category_t *c = init_category(strtol(argv[0], NULL, 10), 
-				  strtol(argv[1], NULL, 10), 
-				  argv[2]);
+    category_t *c = init_category(strtol(argv[0], NULL, 10),
+	strtol(argv[1], NULL, 10), argv[2]);
 
     llist_node_t *nd = init_llist_node(c);
     llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
@@ -18,13 +17,9 @@ static int load_categories_callback(void *_, int argc, char **argv,
 static int load_entries_callback(void *_, int argc, char **argv, 
 	char **azColName) {
 
-    entry_t *entry = init_entry(strtol(argv[0], NULL, 10),
-			    argv[1], 
-			    (time_t)strtol(argv[2], NULL, 10),
-			    strtof(argv[3], NULL), 
-			    cat_get_from_id(g_categories, 
-				strtol(argv[4], NULL, 10)),
-			    argv[5]);
+    entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
+	(time_t)strtol(argv[2], NULL, 10), strtof(argv[3], NULL), 
+	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
 
     llist_node_t *nd = init_llist_node(entry);
     llist_insert_to_tail(g_entries, nd);
@@ -49,7 +44,7 @@ void init_data_path(char **db_path) {
     
     if (mkdir(ddir_path, 0777) && errno != EEXIST)
 	EXIT("failed to make data directory %s with error: %s", 
-		ddir_path, strerror(errno));
+	    ddir_path, strerror(errno));
     
     snprintf(*db_path, BUFSIZ, "%s%s",ddir_path, db_file);
     free(ddir_path);
@@ -85,7 +80,7 @@ void init_db(const char *file_name) {
     rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
 
     EXIT_IF(rc, "Failed to initialize database with error message: %s\n", 
-	    err_msg);
+	err_msg);
     
     sqlite3_free(err_msg);
 }
@@ -102,8 +97,7 @@ void load_entry_table() {
     char *err_msg;
     char *sql = "SELECT * FROM Entries ORDER BY date ASC";
     rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
-    EXIT_IF(rc, "Failed to load entries with error message: %s\n", 
-	    err_msg);
+    EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
 
     sqlite3_free(err_msg);
 }
@@ -115,7 +109,7 @@ void load_cat_table() {
     char *sql = "SELECT * FROM Categories";
     rc = sqlite3_exec(g_db, sql, load_categories_callback, NULL, &err_msg);
     EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
-	    err_msg);
+	err_msg);
     sqlite3_free(err_msg);
 }
 
@@ -128,7 +122,7 @@ int db_exec(void *data, gen_sql_fn_t gen_sql) {
     
     int rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
     EXIT_IF(rc, "Failed to execute sql command with error message:\n%s\n", 
-	    err_msg);
+	err_msg);
 
     sqlite3_free(err_msg);
     free(sql);
@@ -139,8 +133,7 @@ int db_exec(void *data, gen_sql_fn_t gen_sql) {
 char *entry_to_sql_insert(entry_t *e) {
 
     char *sql_to_append = "INSERT INTO Entries (name, date, amount, "
-			  "category_id, note) "
-			  "VALUES (";
+	"category_id, note) VALUES (";
 
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
@@ -235,7 +228,7 @@ char *edit_cat_to_sql_update(category_t *c) {
 
 char *cat_to_sql_insert(category_t *c) {
     char *sql_to_append = "INSERT INTO Categories (parent_id, name) "
-			  "VALUES (";
+	"VALUES (";
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
     strcat(sql, sql_to_append);
@@ -299,7 +292,7 @@ void append_to_sql(char **cur_sql, const char *sql_to_append,
     int data_len = strlen(sql_casted_data);
 
     *cur_sql = realloc(*cur_sql, 1 + 
-	    (sizeof(char) * (sql_len + strlen(*cur_sql) + data_len)));
+	(sizeof(char) * (sql_len + strlen(*cur_sql) + data_len)));
 
     if (sql_to_append != NULL)
 	strcat(*cur_sql, sql_to_append);

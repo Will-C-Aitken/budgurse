@@ -84,7 +84,7 @@ void end_budgurse(int status) {
 
     if (sqlite3_close(g_db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",
-		  sqlite3_errmsg(g_db));
+	    sqlite3_errmsg(g_db));
 
     // stop ncurses
     endwin();

@@ -16,9 +16,6 @@
 
 #define TIME_T_32 (sizeof(time_t) == 4)
 
-#define BUDGURSE_FAILURE 1
-#define BUDGURSE_SUCCESS 0
-
 #define MAX_CAT_BYTES 32
 #define MAX_NAME_BYTES 64
 #define MAX_NOTE_BYTES 1024

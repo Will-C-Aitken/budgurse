@@ -21,13 +21,12 @@ int entry_to_sql_insert_test() {
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
     entry_t* test_entry1 = init_entry(1, "Starbucks", test_date, -12.00, tc, 
-	    "this was fun");
+	"this was fun");
 
     char* sql = entry_to_sql_insert(test_entry1);
     char* expected_statement = "INSERT INTO Entries (name, date, amount, " 
-        		       "category_id, note) VALUES "
-        		       "('Starbucks', 1644642000, -12.00, 1, "
-        		       "'this was fun');"; 
+	"category_id, note) VALUES ('Starbucks', 1644642000, -12.00, 1, " 
+	"'this was fun');"; 
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 1);
     free_entry(test_entry1);
@@ -63,7 +62,7 @@ int write_entry_test() {
     struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2022 - 1900, 1};
     time_t test_date = mktime(&test_time_tm1);
     entry_t* e1 = init_entry(1, "Starbucks", test_date, -12.00, tc, 
-	    "this was fun");
+	"this was fun");
 
     init_db("test.db");
 
@@ -71,8 +70,7 @@ int write_entry_test() {
     mu_assert(result == 0, "Backend", 5);
 
     // NULL note 
-    entry_t* e2 = init_entry(2, "Tim Horton's", test_date, -11.00, tc, 
-            NULL);
+    entry_t* e2 = init_entry(2, "Tim Horton's", test_date, -11.00, tc, NULL);
     
     result = db_exec(e2, (gen_sql_fn_t)entry_to_sql_insert);
     mu_assert(result == 0, "Backend", 6);
@@ -120,7 +118,7 @@ int cat_to_sql_insert_test() {
 
     char* sql = cat_to_sql_insert(c);
     char* expected_statement = "INSERT INTO Categories (parent_id, name) "
-        		       "VALUES (0, 'Food');";
+	"VALUES (0, 'Food');";
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 13);
     free_category(c);
@@ -149,10 +147,9 @@ int edit_entry_to_sql_update_test() {
     entry_t *e = init_entry(id, "Starbucks", d1, -0.21, tc, NULL);
 
     char *sql = edit_entry_to_sql_update(e);
-    char* expected_statement = "UPDATE Entries SET name = 'Starbucks', "
-			       "date = 1644642000, amount = -0.21, "
-        		       "category_id = 1, note = NULL WHERE"
-        		       " id=1;"; 
+    char* expected_statement = "UPDATE Entries SET name = 'Starbucks', " 
+	"date = 1644642000, amount = -0.21, category_id = 1, note = NULL "
+	"WHERE id=1;"; 
 
     mu_assert(strcmp(sql, expected_statement) == 0, "Backend", 15);
     free_entry(e);

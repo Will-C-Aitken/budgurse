@@ -87,7 +87,7 @@ int browser_init_test() {
     // but both tail and head out of context
     g_browser = init_browser(g_entries, cur, 2, 7);
     mu_assert(g_browser->start == cur->prev->prev->prev->prev, 
-	    "Browser", 25);
+	"Browser", 25);
     mu_assert(g_browser->sel == cur, "Browser", 26);
     mu_assert(g_browser->end == cur->next->next, "Browser", 27);
     free_browser(g_browser);
@@ -366,7 +366,7 @@ int browser_insert_after_date_test() {
     g_browser = init_browser(g_entries, g_entries->tail, 0, 3);
 
     struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+       .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date1 = mktime(&tm1);
     entry_t *e1 = init_entry(1, "A Name", date1, -12.00, tc, "A Note");
     llist_node_t *en1= init_llist_node(e1);
@@ -380,7 +380,7 @@ int browser_insert_after_date_test() {
 
     // earlier date
     struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=1, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+       .tm_mday=1, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date2 = mktime(&tm2);
     entry_t *e2 = init_entry(2, "A Name", date2, -12.00, tc, "A Note");
     llist_node_t *en2= init_llist_node(e2);
@@ -394,7 +394,7 @@ int browser_insert_after_date_test() {
 
     // between the two
     struct tm tm3 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=4, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+       .tm_mday=4, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date3 = mktime(&tm3);
     entry_t *e3 = init_entry(3, "A Name", date3, -12.00, tc, "A Note");
     llist_node_t *en3= init_llist_node(e3);
@@ -408,7 +408,7 @@ int browser_insert_after_date_test() {
 
     // new en at where start was
     struct tm tm4 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=3, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+       .tm_mday=3, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date4 = mktime(&tm4);
     entry_t *e4 = init_entry(4, "A Name", date4, -12.00, tc, "A Note");
     llist_node_t *en4= init_llist_node(e4);
@@ -423,7 +423,7 @@ int browser_insert_after_date_test() {
 
     // new en at where end was
     struct tm tm5 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=9, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+       .tm_mday=9, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date5 = mktime(&tm5);
     entry_t *e5 = init_entry(5, "A Name", date5, -12.00, tc, "A Note");
     llist_node_t *en5= init_llist_node(e5);
@@ -439,7 +439,7 @@ int browser_insert_after_date_test() {
     // new en at head (tail already covered in `append_llist_to_tail, NULL` tests)
     // while not at head
     struct tm tm6 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=29, .tm_mon=11, .tm_year=2021 - 1900, .tm_isdst=1}; 
+       .tm_mday=29, .tm_mon=11, .tm_year=2021 - 1900, .tm_isdst=1}; 
     time_t date6 = mktime(&tm6);
     entry_t *e6 = init_entry(6, "A Name", date6, -12.00, tc, "A Note");
     llist_node_t *en6= init_llist_node(e6);
@@ -455,7 +455,7 @@ int browser_insert_after_date_test() {
     // new en at head (tail already covered in `append_llist_to_tail, NULL` tests)
     // while at head
     struct tm tm9 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=29, .tm_mon=10, .tm_year=2021 - 1900, .tm_isdst=1}; 
+       .tm_mday=29, .tm_mon=10, .tm_year=2021 - 1900, .tm_isdst=1}; 
     time_t date9 = mktime(&tm9);
     entry_t *e9 = init_entry(9, "A Name", date9, -12.00, tc, "A Note");
     llist_node_t *en9= init_llist_node(e9);

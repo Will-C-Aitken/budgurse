@@ -69,7 +69,7 @@ void free_summary(summary_t* s) {
 
 void summary_calc() {
     EXIT_IF(!g_entries, "Entries must be initialized before calculating "
-	    "summary\n");
+	"summary\n");
 
     summary_clear();
 
@@ -124,7 +124,7 @@ int summary_update_on_entry(entry_t *e) {
 
 void summary_inc_cell(int x, int y, int value) {
     EXIT_IF(x >= g_summary->num_cols || y >= g_summary->num_rows, 
-	    "Invalid summary table idx(s)\n");
+	"Invalid summary table idx(s)\n");
     g_summary->data[y*g_summary->num_cols + x] += value;
 }
 
@@ -275,7 +275,7 @@ void summary_draw() {
 		col_attrs |= A_ITALIC;
 
 	    draw_amount(g_wins[SUMMARY].win, amt, AMOUNT_STR_LEN, " ", 
-		    col_attrs);
+		col_attrs);
 	}
     }
     
@@ -283,7 +283,7 @@ void summary_draw() {
 
     if (row < g_wins[SUMMARY].h - 1) {
 	mvwhline(g_wins[SUMMARY].win, row, 1, ACS_HLINE, 
-		g_wins[SUMMARY].w - 2);
+	    g_wins[SUMMARY].w - 2);
 	mvwaddch(g_wins[SUMMARY].win, row, 0, ACS_LTEE);
 	mvwaddch(g_wins[SUMMARY].win, row, g_wins[SUMMARY].w-1, ACS_RTEE);
     }
@@ -325,11 +325,8 @@ void summary_draw_header() {
 
 void summary_draw_mnth_hdr(int m, int ref_m, int y) {
     if (m == 12) {
-	draw_ra_string(g_wins[SUMMARY].win, 
-		       "12m Total", 
-		       AMOUNT_STR_LEN, 
-		       " ", 
-		       A_ITALIC);
+	draw_ra_string(g_wins[SUMMARY].win, "12m Total", AMOUNT_STR_LEN, 
+	    " ", A_ITALIC);
 	return;
     }
 
@@ -376,28 +373,20 @@ void summary_scroll(int num_times, dir_t dir) {
     while (num_times > 0) {
 	switch (dir) {
 	    case UP:
-		summary_mv_idxs(&g_summary->y_start, 
-			        &g_summary->y_sel, 
-				&g_summary->y_end, 
-				0, 0);
+		summary_mv_idxs(&g_summary->y_start, &g_summary->y_sel, 
+		    &g_summary->y_end, 0, 0);
 		break;
 	    case DOWN:
-		summary_mv_idxs(&g_summary->y_start, 
-				&g_summary->y_sel, 
-				&g_summary->y_end, 
-				1, nr-1);
+		summary_mv_idxs(&g_summary->y_start, &g_summary->y_sel, 
+		    &g_summary->y_end, 1, nr-1);
 		break;
 	    case LEFT:
-		summary_mv_idxs(&g_summary->x_start, 
-				&g_summary->x_sel, 
-				&g_summary->x_end, 
-				0, 0);
+		summary_mv_idxs(&g_summary->x_start, &g_summary->x_sel, 
+		    &g_summary->x_end, 0, 0);
 		break;
 	    case RIGHT:
-		summary_mv_idxs(&g_summary->x_start, 
-				&g_summary->x_sel, 
-				&g_summary->x_end, 
-				1, nc-1);
+		summary_mv_idxs(&g_summary->x_start, &g_summary->x_sel, 
+		    &g_summary->x_end, 1, nc-1);
 		break;
 	}
     num_times--;

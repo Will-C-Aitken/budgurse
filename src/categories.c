@@ -241,4 +241,3 @@ void cat_set_name(category_t *c, const char *name) {
     free(c->name);
     c->name = strdup(name);
 }
-

@@ -55,7 +55,7 @@ int summary_init_test() {
     mu_assert(g_summary->y_end == 5, "Summary", 11);
     // last pos
     mu_assert(is_amount_eq(g_summary->data[5*g_summary->num_rows + 12], 0.00), 
-	    "Summary", 12);
+	"Summary", 12);
     free_summary(g_summary);
 
     // room for all cats but just not enough for 4 cols
@@ -107,35 +107,35 @@ int summary_calc_test() {
 | Total              |      438.00     -113.00			325.00       |
 +------------------------------------79width---------------------------------+
 */
-    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=12, .tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0, .tm_mday=12, 
+	.tm_mon=0, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date1 = mktime(&tm1);
     entry_t *e1 = init_entry(1, "A Name", date1, -10.00, 
-	    cat_get_from_id(g_categories, 1), "A Note");
+	cat_get_from_id(g_categories, 1), "A Note");
     llist_node_t *en1 = init_llist_node(e1);
     llist_insert_node(g_entries, en1, (llist_comp_fn_t)entry_date_comp_gte);
     entry_t *e2 = init_entry(2, "A Name", date1, -2.00, 
-	    cat_get_from_id(g_categories, 1), "A Note");
+	cat_get_from_id(g_categories, 1), "A Note");
     llist_node_t *en2 = init_llist_node(e2);
     llist_insert_node(g_entries, en2, (llist_comp_fn_t)entry_date_comp_gte);
     entry_t *e3 = init_entry(3, "A Name", date1, 450.00, 
-	    cat_get_from_id(g_categories, 3), "A Note");
+	cat_get_from_id(g_categories, 3), "A Note");
     llist_node_t *en3 = init_llist_node(e3);
     llist_insert_node(g_entries, en3, (llist_comp_fn_t)entry_date_comp_gte);
 
-    struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=12, .tm_mon=1, .tm_year=2022 - 1900, .tm_isdst=1}; 
+    struct tm tm2 = {.tm_sec=0, .tm_min=0, .tm_hour=0, .tm_mday=12, 
+	.tm_mon=1, .tm_year=2022 - 1900, .tm_isdst=1}; 
     time_t date2 = mktime(&tm2);
     entry_t *e4 = init_entry(4, "A Name", date2, -8.00, 
-	    cat_get_from_id(g_categories, 1), "A Note");
+	cat_get_from_id(g_categories, 1), "A Note");
     llist_node_t *en4 = init_llist_node(e4);
     llist_insert_node(g_entries, en4, (llist_comp_fn_t)entry_date_comp_gte);
     entry_t *e5 = init_entry(5, "A Name", date2, -5.00, 
-	    cat_get_from_id(g_categories, 2), "A Note");
+	cat_get_from_id(g_categories, 2), "A Note");
     llist_node_t *en5 = init_llist_node(e5);
     llist_insert_node(g_entries, en5, (llist_comp_fn_t)entry_date_comp_gte);
     entry_t *e6 = init_entry(6, "A Name", date2, -100.00, 
-	    cat_get_from_id(g_categories, 3), "A Note");
+	cat_get_from_id(g_categories, 3), "A Note");
     llist_node_t *en6 = init_llist_node(e6);
     llist_insert_node(g_entries, en6, (llist_comp_fn_t)entry_date_comp_gte);
 
@@ -283,8 +283,8 @@ int summary_scroll_test() {
 
 
 int update_date_test() {
-    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0,
-	   .tm_mday=12, .tm_mon=11, .tm_year=2022 - 1900, .tm_isdst=0}; 
+    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0, .tm_mday=12, 
+	.tm_mon=11, .tm_year=2022 - 1900, .tm_isdst=0}; 
     time_t date1 = mktime(&tm1);
 
     update_date(&date1, MONTH, 1);
@@ -338,7 +338,7 @@ int summary_clear_test() {
     g_summary->data[5*g_summary->num_rows + 12] = 1.00; 
     summary_clear();
     mu_assert(is_amount_eq(g_summary->data[5*g_summary->num_rows + 12], 
-		0.00), "Summary", 131);
+	0.00), "Summary", 131);
     free_summary(g_summary);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
     return 0;

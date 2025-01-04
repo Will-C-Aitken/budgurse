@@ -16,22 +16,27 @@ llist_node_t *init_llist_node(void *data) {
 }
 
 void llist_node_traverse(llist_node_t **curr, dir_t dir) {
-    if (dir == DOWN && (*curr)->next) *curr = (*curr)->next;
-    if (dir == UP && (*curr)->prev) *curr = (*curr)->prev;
+    if (dir == DOWN && (*curr)->next) 
+	*curr = (*curr)->next;
+    if (dir == UP && (*curr)->prev) 
+	*curr = (*curr)->prev;
 }
 
 int llist_is_end_node(const llist_node_t* curr) {
-    if (curr == NULL || llist_is_head(curr) || llist_is_tail(curr)) return 1;
+    if (curr == NULL || llist_is_head(curr) || llist_is_tail(curr)) 
+	return 1;
     return 0;
 }
 
 int llist_is_head (const llist_node_t* curr) {
-    if (!curr->prev) return 1;
+    if (!curr->prev) 
+	return 1;
     return 0;
 }
 
 int llist_is_tail (const llist_node_t* curr) {
-    if (!curr->next) return 1;
+    if (!curr->next) 
+	return 1;
     return 0;
 }
 

@@ -31,7 +31,7 @@ void end_budgurse(int status) {
     free_summary(g_summary);
     if (sqlite3_close(g_db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",
-		  sqlite3_errmsg(g_db));
+	  sqlite3_errmsg(g_db));
 
     // stop ncurses
     endwin();
@@ -43,6 +43,6 @@ void print_err_str(const char *test_suite, const char *test_fn_name,
 	int test_num) {
     char err_str[128];
     snprintf(err_str, 128, "Failure in %s Tests, %s: %d", 
-	    test_suite, test_fn_name, test_num);
+	test_suite, test_fn_name, test_num);
     printf("%s\n", err_str);
 }
