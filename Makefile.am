@@ -1,9 +1,10 @@
 AM_CFLAGS = -Wall
-AM_CPPFLAGS = -I$(srcdir)/src
+AM_CPPFLAGS = -I$(srcdir)/src -I$(srcdir)/deps
 
 bin_PROGRAMS = budgurse
 
 budgurse_SOURCES = \
+	deps/status.h \
 	src/backend.c \
 	src/backend.h \
 	src/browser.c \
@@ -31,6 +32,7 @@ budgurse_SOURCES = \
 TESTS = unit_tests
 check_PROGRAMS = unit_tests
 unit_tests_SOURCES = \
+	deps/status.h \
 	test/test.c \
 	test/test.h \
 	test/backend_tests.c \
