@@ -56,7 +56,7 @@ tagged as a `0.*` version) until I implement the following core functionality:
     $x.xxxM formats for thousands and millions respectively
 
 Once minimum functionality has been met, the following are features I want to
-and/or think could be valuable if implemented, in order of importance:
+add and/or think could be valuable if implemented, in order of importance:
 
 ### Feature Roadmap
 
