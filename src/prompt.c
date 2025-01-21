@@ -40,6 +40,7 @@ llist_node_t *prompt_new_entry_node() {
     float amnt; 
     int cat_id;
     char note[MAX_NOTE_BYTES];
+    note[0] = '\0';
 
     if (
 	!prompt_for_input(date_prompt, &date, (input_proc_fn_t)date_proc) || 
@@ -212,6 +213,7 @@ void prompt_edit_entry(llist_node_t *cur) {
 
 	    case '5': {
 		char new_note[MAX_NOTE_BYTES];
+		new_note[0] = '\0';
 		if (
 		    (rc = prompt_for_input(note_prompt, new_note, 
 			(input_proc_fn_t)note_proc))
@@ -265,8 +267,7 @@ void prompt_display(const char *prompt_str, int line, int refresh) {
     if (refresh)
 	werase(g_wins[PROMPT].win);
     wmove(g_wins[PROMPT].win, line, 1);
-    waddstr(g_wins[PROMPT].win, prompt_str);
-    // draw empty spaces 
+    draw_str(g_wins[PROMPT].win, prompt_str, g_wins[PROMPT].w - 2, "", 0);
     wrefresh(g_wins[PROMPT].win);
 }
 

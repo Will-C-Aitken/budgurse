@@ -27,6 +27,8 @@
 
 #include "llist.h"
 #include "categories.h"
+#include "wins.h"
+#include "util.h"
 #include "global.h"
 
 extern llist_t *g_entries;
@@ -55,5 +57,8 @@ int entry_date_comp_gte(llist_node_t *en1, llist_node_t *en2, int inverse);
 
 // checking if category matches
 int entry_cat_cond_eq(llist_node_t *en, category_t *c);
+
+// GUI fn for viewing entry in full form
+void entry_view(const entry_t *e);
 
 #endif

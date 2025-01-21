@@ -44,4 +44,8 @@ win_t init_prompt_win();
 win_t init_summary_win();
 win_t init_help_win();
 
+// popup windows are not saved in global array of windows
+win_t *init_popup_win();
+void free_popup_win(win_t *puw);
+
 #endif

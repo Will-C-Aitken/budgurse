@@ -27,7 +27,8 @@
 browser_t *g_browser = NULL;
 
 // set max_num_entries to -1 to calculate it with actual window size
-// set sel_to_end to -1 to assume halfway
+// set sel_to_end to -1 to assume halfway (sel_to_end is the distance between
+// the selected node and the end node)
 browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end, 
 	int max_num_entries) {
 
@@ -108,6 +109,11 @@ int browser_handle_key(int ch) {
 	case 's':
 	    state = SUMMARY;
 	    summary_calc();
+	    break;
+	case 'v':
+	// enter key (carriage return)
+	case 10:
+	    browser_view_sel_entry();
 	    break;
 	case '?':
 	    g_help = init_help(state);
@@ -287,6 +293,17 @@ llist_node_t *browser_pop_sel_entry() {
 }
 
 
+void browser_view_sel_entry() {
+
+    // nothing to view
+    if (!g_browser || g_browser->num_entries == 0)
+	return;
+
+    entry_view(g_browser->sel->data);
+
+}
+
+
 void free_browser(browser_t* b) {
     if (!b)
 	return;
@@ -334,7 +351,7 @@ void browser_draw_header() {
     char *col_names[] = {"Date", "Name", "     Amount", "Category", 
 	"Subcategory"};
 
-    wmove(g_wins[BROWSER].win, 1, 1);
+    wmove(g_wins[BROWSER].win, 1, 3);
     for (int i = 0; i < 5; i++) {
 	if (i == 0)
 	    draw_str(g_wins[BROWSER].win, col_names[i], browser_col_widths[i], 
@@ -348,17 +365,24 @@ void browser_draw_header() {
 
 void browser_draw_entry(const entry_t *e, int row) {
     const char *delim_str = "  ";
-    int i = 0;
+    int i = 1;
 
-    // skip border
     wmove(g_wins[BROWSER].win, row, 1);
     waddch(g_wins[BROWSER].win, ' ');
 
-    browser_draw_date(e->date, browser_col_widths[i++]);
+    // Add note marker
+    if (e->note)
+	waddch(g_wins[BROWSER].win, '*');
+    else
+	waddch(g_wins[BROWSER].win, ' ');
+
+    waddch(g_wins[BROWSER].win, ' ');
+
+    draw_date(g_wins[BROWSER].win, e->date, 0);
     draw_str(g_wins[BROWSER].win, e->name, browser_col_widths[i++], 
 	delim_str, 0);
     draw_amount(g_wins[BROWSER].win, e->amount, browser_col_widths[i++], 
-	delim_str, 0);
+	delim_str, 1, 0);
 
     char* cat;
     char* subcat;
@@ -374,11 +398,4 @@ void browser_draw_entry(const entry_t *e, int row) {
     // pad with blank spaces
     int pad_len = getmaxx(g_wins[BROWSER].win) - getcurx(g_wins[BROWSER].win) - 1;
     draw_str(g_wins[BROWSER].win, "", pad_len, "", 0);
-}
-
-
-void browser_draw_date(time_t date, int max_width){
-    struct tm *tmp_date = localtime(&date);
-    wprintw(g_wins[BROWSER].win, "%02d/%02d/%04d", ++(tmp_date->tm_mon), 
-	tmp_date->tm_mday, tmp_date->tm_year + 1900);
 }

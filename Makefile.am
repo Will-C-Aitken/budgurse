@@ -5,16 +5,16 @@ bin_PROGRAMS = budgurse
 
 budgurse_SOURCES = \
 	deps/status.h \
+	src/budgurse.c \
+	src/budgurse.h \
+	src/entries.c \
+	src/entries.h \
 	src/backend.c \
 	src/backend.h \
 	src/browser.c \
 	src/browser.h \
-	src/budgurse.c \
-	src/budgurse.h \
 	src/categories.c \
 	src/categories.h \
-	src/entries.c \
-	src/entries.h \
 	src/global.h \
 	src/help.c \
 	src/help.h \

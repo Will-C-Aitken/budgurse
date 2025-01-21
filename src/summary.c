@@ -32,6 +32,8 @@ const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 summary_t* init_summary(time_t max_date, delin_t d, int height, int width) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
+    EXIT_IF(d == WEEK, "Week delineation not implemented yet. Exiting\n");
+    EXIT_IF(d == YEAR, "Year delineation not implemented yet. Exiting\n");
 
     summary_t *s = malloc(sizeof(summary_t));
 
@@ -230,11 +232,15 @@ void summary_draw() {
     mvwaddch(g_wins[SUMMARY].win, 2, g_wins[SUMMARY].w - 1, ACS_RTEE);
 
     switch (g_summary->delin) {
-	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	case WEEK: 
+	    // To be filled in when WEEK is implemented
+	    break;
 	case MONTH: 
 	    date_offset = date_part_from_delin(g_summary->max_date, MONTH);
 	    break;
-	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
+	case YEAR: 
+	    // To be filled in when YEAR is implemented
+	    break;
     }
 
     for (int i = y_start; i <= y_end; i++) {
@@ -299,7 +305,7 @@ void summary_draw() {
 		col_attrs |= A_ITALIC;
 
 	    draw_amount(g_wins[SUMMARY].win, amt, AMOUNT_STR_LEN, " ", 
-		col_attrs);
+		1, col_attrs);
 	}
     }
     

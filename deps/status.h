@@ -29,7 +29,6 @@
 
 // the following three macros are adapted from the src code for calcurse,
 // specifically `calcurse/src/calcurse.h`
-
 #define ERROR_MSG(...) do {                                                  \
     char msg[BUFSIZ];                                                        \
     int len;                                                                 \
