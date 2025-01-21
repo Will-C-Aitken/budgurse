@@ -42,12 +42,13 @@
 
 #define MAX_CAT_BYTES 32
 #define MAX_NAME_BYTES 64
-#define MAX_NOTE_BYTES 1024
+#define MAX_NOTE_BYTES 64
 
 #define MAX_AMOUNT_VAL 999999.99
 #define MIN_AMOUNT_VAL -99999.99
 
 #define KEY_ESC 27
+#define KEY_ENTER 27
 
 #define NUM_WINS 4
 
@@ -58,7 +59,7 @@
 #define BROWSER_KEYS 9
 
 #define DATE_STR_LEN 10
-#define NAME_STR_LEN 22
+#define NAME_STR_LEN 21
 #define AMOUNT_STR_LEN 11
 #define CAT_STR_LEN 18
 #define SUBCAT_STR_LEN 18

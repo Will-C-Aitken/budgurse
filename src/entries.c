@@ -70,7 +70,10 @@ void entry_set_cat(entry_t *e, category_t *c) {
 
 void entry_set_note(entry_t *e, const char *note) {
     free(e->note);
-    e->note = strdup(note);
+    if (strlen(note) < 1)
+	e->note = NULL;
+    else
+	e->note = strdup(note);
 }
 
 
@@ -86,4 +89,49 @@ int entry_date_comp_gte(llist_node_t *en1, llist_node_t *en2, int inverse) {
 int entry_cat_cond_eq(llist_node_t *en, category_t *c) {
     entry_t *e = (entry_t *)en->data;
     return (e->cat == c);
+}
+
+
+void entry_view(const entry_t *e) {
+    int row = 1, col = 2;
+    win_t *vw = init_popup_win();
+    box(vw->win, 0, 0);
+
+    // draw date
+    mvwaddstr(vw->win, row, col, "Date: ");
+    draw_date(vw->win, e->date, 0);
+    row++;
+
+    // draw name
+    mvwaddstr(vw->win, row, col, "Name: ");
+    draw_str(vw->win, e->name, vw->w - 9, "", 0);
+    row++;
+
+    // draw amount
+    mvwaddstr(vw->win, row, col, "Amount: ");
+    draw_amount(vw->win, e->amount, AMOUNT_STR_LEN, "", 0, 0);
+    row++;
+
+    // draw category(s)
+    char *cat, *subcat;
+    cat_id_to_names(g_categories, e->cat->id, &cat, &subcat);
+    mvwaddstr(vw->win, row, col, "Category: ");
+    draw_str(vw->win, cat, vw->w - 14, "", 0);
+    row++;
+
+    if (subcat) {
+	mvwaddstr(vw->win, row, col, "Subcategory: ");
+	draw_str(vw->win, subcat, vw->w - 17, "", 0);
+	row++;
+    }
+
+    // draw note
+    if (e->note) {
+	mvwaddstr(vw->win, row, col, "Note: ");
+	draw_str(vw->win, e->note, vw->w - 10, "", 0);
+    }
+
+    wrefresh(vw->win);
+    wgetch(vw->win);
+    free_popup_win(vw);
 }

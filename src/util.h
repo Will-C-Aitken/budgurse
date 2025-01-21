@@ -25,7 +25,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "budgurse.h"
 #include "status.h"
 #include "global.h"
 
@@ -33,11 +32,12 @@ extern const int days_in_mnth[12];
 
 // generic drawing functions
 void draw_amount(WINDOW *w, float amount, int max_width, 
-	const char *delim_str, int attrs);
+	const char *delim_str, int ra, int attrs);
 void draw_ra_string(WINDOW *w, const char *str, int max_width,
 	const char *delim_str, int attrs);
 void draw_str(WINDOW *w, const char *str, int max_width, 
 	const char *delim_str, int attrs);
+void draw_date(WINDOW *w, time_t date, int attrs);
 
 // date time functions
 int check_time_bounds(int day, int month, int year);

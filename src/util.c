@@ -27,7 +27,7 @@
 const int days_in_mnth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 void draw_amount(WINDOW *w, float amount, int max_width, 
-	const char *delim_str, int attrs) {
+	const char *delim_str, int ra, int attrs) {
     waddstr(w, delim_str);
 
     // to right align
@@ -39,15 +39,19 @@ void draw_amount(WINDOW *w, float amount, int max_width,
     // for comma
     if (thousands) 
 	num_spaces--;
-    while (num_spaces-- > 0) 
-	waddch(w, ' ');
+
+    // right align
+    if (ra) {
+	while (num_spaces-- > 0) 
+	    waddch(w, ' ');
+    }
 
     // print negative (if necessary) and dollar sign 
     if (amount < 0) {
 	if (attrs)
 	    wattrset(w, attrs);
 	waddch(w, '-');
-    } else 
+    } else if (ra)
 	waddch(w, ' ');
     if (attrs)
 	wattrset(w, attrs);
@@ -107,9 +111,28 @@ void draw_str(WINDOW *w, const char *str, int max_width,
     // trunacte string
     char trunc_str[max_width+1];
     snprintf(trunc_str, max_width+1, "%-*s", max_width, str);
+    // replace last three char with "..."
+    if (strlen(str) > max_width) {
+	for (int i = 0; i < 3; i++)
+	    trunc_str[max_width - 3 + i] = '.';
+    }
     wprintw(w, "%s", trunc_str);
 
     // turn off attributes
+    if (attrs)
+	wattrset(w, 0);
+}
+
+
+void draw_date(WINDOW *w, time_t date, int attrs) {
+
+    if (attrs)
+	wattrset(w, attrs);
+
+    struct tm *tmp_date = localtime(&date);
+    wprintw(w, "%02d/%02d/%04d", ++(tmp_date->tm_mon), tmp_date->tm_mday, 
+	tmp_date->tm_year + 1900);
+
     if (attrs)
 	wattrset(w, 0);
 }
@@ -140,7 +163,8 @@ int date_part_from_delin(time_t date, delin_t d) {
     int date_part = -1;
     struct tm *tm_from_date = localtime(&date);
     switch (d) {
-	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	case WEEK: 
+	    break;
 	case MONTH: 
 	    date_part = tm_from_date->tm_mon;
 	    break;
@@ -156,7 +180,8 @@ void update_date(time_t *date, delin_t d, int amount) {
     struct tm *tm_from_date = localtime(date);
 
     switch (d) {
-	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
+	case WEEK: 
+	    break;
 	case MONTH:
 	    tm_from_date->tm_mon = tm_from_date->tm_mon + amount;
 	    if (tm_from_date->tm_mon >= 0)

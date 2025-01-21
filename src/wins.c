@@ -81,3 +81,20 @@ win_t init_help_win() {
     keypad(hw.win, true);
     return hw;
 }
+
+win_t* init_popup_win() {
+    win_t *puw = malloc(sizeof(win_t));
+    puw->h = 8;
+    // 64 is max note/name len + 4 for border and 6 for "____: "
+    puw->w = 74;
+    puw->y = (LINES - puw->h)/2;
+    puw->x = (COLS - puw->w)/2;
+    puw->win = newwin(puw->h, puw->w, puw->y, puw->x);
+    keypad(puw->win, true);
+    return puw;
+}
+
+void free_popup_win(win_t *puw) {
+    delwin(puw->win);
+    free(puw);
+}

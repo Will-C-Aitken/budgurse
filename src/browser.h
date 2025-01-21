@@ -64,11 +64,11 @@ void browser_insert(llist_node_t *en);
 void browser_edit_entry();
 void browser_del_entry();
 llist_node_t *browser_pop_sel_entry();
+void browser_view_sel_entry();
 
 // drawing functions
 void browser_draw();
 void browser_draw_header();
 void browser_draw_entry(const entry_t *e, int row);
-void browser_draw_date(time_t date, int max_width);
 
 #endif
