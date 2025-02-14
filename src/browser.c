@@ -75,6 +75,14 @@ browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end,
 }
 
 
+void browser_resize() {
+    llist_node_t *prior_sel = g_browser->sel;
+    free_browser(g_browser);
+    // just move sel to middle of browser
+    g_browser = init_browser(g_entries, prior_sel, -1, -1);
+}
+
+
 int browser_handle_key(int ch) {
 
     EXIT_IF(!g_browser, "Browser not initialized");
@@ -308,7 +316,6 @@ void free_browser(browser_t* b) {
     if (!b)
 	return;
     free(b);
-    b = NULL;
 }
 
 

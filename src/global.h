@@ -40,6 +40,9 @@
 
 #define TIME_T_32 (sizeof(time_t) == 4)
 
+#define MIN_COLS 92
+#define MIN_ROWS 12
+
 #define MAX_CAT_BYTES 32
 #define MAX_NAME_BYTES 64
 #define MAX_NOTE_BYTES 64
@@ -48,7 +51,6 @@
 #define MIN_AMOUNT_VAL -99999.99
 
 #define KEY_ESC 27
-#define KEY_ENTER 27
 
 #define NUM_WINS 4
 

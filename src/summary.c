@@ -29,7 +29,8 @@ const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 
-summary_t* init_summary(time_t max_date, delin_t d, int height, int width) {
+summary_t* init_summary(time_t max_date, delin_t d, int height, int width, 
+	int sel_x, int sel_y) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
     EXIT_IF(d == WEEK, "Week delineation not implemented yet. Exiting\n");
@@ -63,9 +64,11 @@ summary_t* init_summary(time_t max_date, delin_t d, int height, int width) {
     // 1 more for totals
     s->num_rows++;
 
+    s->x_end = s->num_cols - 1;
+    s->y_end = s->num_rows - 1;
     // set starting position to end
-    s->x_sel = s->x_end = s->num_cols - 1;
-    s->y_sel = s->y_end = s->num_rows - 1;
+    s->x_sel = (sel_x == -1) ? s->x_end : sel_x;
+    s->y_sel = (sel_y == -1) ? s->y_end : sel_y;
 
     // limit visible columns to only full columns
     int x_space = ((width - CAT_STR_LEN - 11) / (AMOUNT_STR_LEN + 1));
@@ -185,9 +188,15 @@ int summary_set_date_bounds(time_t *max_date, time_t *min_date, delin_t d) {
 }
 
 
-void summary_reset(time_t max_date, delin_t d) {
+void summary_reset(time_t max_date, delin_t d, int cur_x, int cur_y) {
     free_summary(g_summary);
-    g_summary = init_summary(max_date, d, -1, -1);
+    g_summary = init_summary(max_date, d, -1, -1, cur_x, cur_y);
+}
+
+void summary_resize() {
+    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
+	g_summary->y_sel);
+    summary_calc();
 }
 
 
@@ -475,7 +484,8 @@ void summary_del_category() {
     db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
     cat_del_from_llist(g_categories, sel_cat);
 
-    summary_reset(g_summary->max_date, g_summary->delin);
+    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
+	g_summary->y_sel);
     summary_calc();
 }
 

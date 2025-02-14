@@ -54,7 +54,8 @@ typedef struct summary {
 
 extern summary_t *g_summary;
 
-summary_t* init_summary(time_t n_date, delin_t d, int height, int width);
+summary_t* init_summary(time_t n_date, delin_t d, int height, int width,
+	int sel_x, int sel_y);
 void free_summary(summary_t* s);
 
 void summary_calc();
@@ -62,7 +63,8 @@ int summary_update_on_entry(entry_t *e);
 void summary_inc_cell(int x, int y, float value);
 int summary_set_date_bounds(time_t *n_date, time_t *o_date, delin_t d);
 void summary_clear();
-void summary_reset(time_t max_date, delin_t d);
+void summary_reset(time_t max_date, delin_t d, int cur_x, int cur_y);
+void summary_resize();
 
 void summary_draw();
 void summary_draw_header();
