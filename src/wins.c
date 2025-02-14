@@ -38,6 +38,24 @@ void free_wins() {
 	delwin(g_wins[i].win);
 }
 
+int wins_resize() {
+    int ch;
+
+    while (COLS < MIN_COLS || LINES < MIN_ROWS) {
+	erase();
+	mvaddstr(0, 0, "Terminal too small, resize or press 'q' to quit");
+	ch = getch();
+	if (ch == 'q')
+	    return 0;
+    }
+
+    erase();
+    free_wins();
+    init_wins();
+    refresh();
+    return 1;
+}
+
 win_t init_browser_win() {
     win_t bw;
     bw.h = LINES - 2;

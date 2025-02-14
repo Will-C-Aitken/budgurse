@@ -39,6 +39,7 @@ extern win_t g_wins[NUM_WINS];
 
 void init_wins();
 void free_wins();
+int wins_resize();
 win_t init_browser_win();
 win_t init_prompt_win();
 win_t init_summary_win();

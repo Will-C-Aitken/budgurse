@@ -39,6 +39,7 @@ browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end,
     else
 	b->max_num_entries = max_num_entries;
 
+    fprintf(stderr, "%d\n", b->max_num_entries);
     if (!el || !sel_node || (!el->num_nodes) || (b->max_num_entries < 1)) {
 	b->start = b->sel = b->end = NULL;
 	b->num_entries = 0;
@@ -72,6 +73,14 @@ browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end,
     }
 
     return b;
+}
+
+
+void browser_resize() {
+    llist_node_t *prior_sel = g_browser->sel;
+    free_browser(g_browser);
+    // just move sel to middle of browser
+    g_browser = init_browser(g_entries, prior_sel, -1, -1);
 }
 
 
@@ -308,7 +317,6 @@ void free_browser(browser_t* b) {
     if (!b)
 	return;
     free(b);
-    b = NULL;
 }
 
 

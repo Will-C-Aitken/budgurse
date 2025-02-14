@@ -34,6 +34,12 @@ int main(int argc, char *argv[]) {
     while(1) {
 	draw(state);
 	int ch = wgetch(g_wins[state].win);
+	if (ch == KEY_RESIZE) {
+	    if (!resize())
+		break;
+	    else
+		continue;
+	}
 	if (!handle_input(ch))
 	    break;
     }
@@ -65,8 +71,10 @@ void init_budgurse() {
     free(db_path);
 
     g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
-    g_summary = init_summary(0, MONTH, -1, -1);
+    g_summary = init_summary(0, MONTH, -1, -1, -1, -1);
     summary_calc();
+
+    resize();
 
     state = BROWSER;
 }
@@ -94,6 +102,13 @@ void draw(state_t s) {
     }
 }
 
+int resize() {
+    if (!wins_resize())
+	return 0;
+    browser_resize();
+    summary_resize();
+    return 1;
+}
 
 void end_budgurse(int status) {
     

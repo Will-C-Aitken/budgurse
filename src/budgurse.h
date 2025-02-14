@@ -42,6 +42,7 @@ extern state_t state;
 void init_budgurse();
 int handle_input();
 void draw(state_t s);
+int resize();
 void end_budgurse();
 
 #endif
