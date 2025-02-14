@@ -39,7 +39,6 @@ browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end,
     else
 	b->max_num_entries = max_num_entries;
 
-    fprintf(stderr, "%d\n", b->max_num_entries);
     if (!el || !sel_node || (!el->num_nodes) || (b->max_num_entries < 1)) {
 	b->start = b->sel = b->end = NULL;
 	b->num_entries = 0;
