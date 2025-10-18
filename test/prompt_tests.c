@@ -115,10 +115,10 @@ int amount_proc_test() {
     mu_assert(is_amount_eq(result, -12.00), "Prompt", 21);
 
     // too large and small
-    test_str = "1000000";
+    test_str = "999999.99";
     rc = amount_proc(test_str, &result);
     mu_assert(!rc, "Prompt", 22);
-    test_str = "-100000";
+    test_str = "-999999.99";
     rc = amount_proc(test_str, &result);
     mu_assert(!rc, "Prompt", 23);
 

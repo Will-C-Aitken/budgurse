@@ -39,9 +39,9 @@ int summary_init_test() {
 
     // Uncommenting these lines will cause program to exit
     // g_categories = NULL;
-    // g_summary = init_summary(0, WEEK, 10, 79);
+    // g_summary = init_summary(0, WEEK, 10, 79, -1, -1);
     // g_entries = NULL;
-    // g_summary = init_summary(0, WEEK, 10, 79);
+    // g_summary = init_summary(0, WEEK, 10, 79, -1, -1);
     g_categories = test_dummy_cat_list(5);
 /*
 +------------------------------------79width---------------------------------+
@@ -65,7 +65,7 @@ int summary_init_test() {
 	cur_tm->tm_year--;
     cur_tm->tm_mon %= 12;
     time_t min_date = mktime(cur_tm);
-    g_summary = init_summary(cur_time, MONTH, 8, 77);
+    g_summary = init_summary(cur_time, MONTH, 8, 77, -1, -1);
     mu_assert(g_summary->max_date == max_date, "Summary", 1);
     mu_assert(g_summary->min_date == min_date, "Summary", 2);
     mu_assert(g_summary->delin == MONTH, "Summary", 3);
@@ -83,7 +83,7 @@ int summary_init_test() {
     free_summary(g_summary);
 
     // room for all cats but just not enough for 4 cols
-    g_summary = init_summary(0, MONTH, 18, 76);
+    g_summary = init_summary(0, MONTH, 18, 76, -1, -1);
     mu_assert(g_summary->num_rows == 6, "Summary", 13);
     mu_assert(g_summary->num_cols == 13, "Summary", 14);
     mu_assert(g_summary->x_start == 10, "Summary", 15);
@@ -100,7 +100,7 @@ int summary_init_test() {
 
     // empty cat list 
     g_categories = test_dummy_cat_list(0);
-    g_summary = init_summary(0, MONTH, 18, 76);
+    g_summary = init_summary(0, MONTH, 18, 76, -1, -1);
     mu_assert(g_summary->num_rows == 1, "Summary", 22);
     mu_assert(g_summary->num_cols == 13, "Summary", 23);
     mu_assert(g_summary->x_start == 10, "Summary", 24);
@@ -163,7 +163,7 @@ int summary_calc_test() {
     llist_node_t *en6 = init_llist_node(e6);
     llist_insert_node(g_entries, en6, (llist_comp_fn_t)entry_date_comp_gte);
 
-    g_summary = init_summary(date2, MONTH, 18, 72);
+    g_summary = init_summary(date2, MONTH, 18, 72, -1, -1);
     summary_calc();
     
     mu_assert(is_amount_eq(g_summary->data[0], -12.00), "Summary", 31);
@@ -195,7 +195,7 @@ int summary_scroll_test() {
     // ------------------------------------------------------------------------
    
     // has room for all rows and all cols
-    g_summary = init_summary(0, MONTH, 10, 256);
+    g_summary = init_summary(0, MONTH, 10, 256, -1, -1);
 
     // already at bottom and right, should do nothing
     summary_scroll(1, DOWN);
@@ -250,7 +250,7 @@ int summary_scroll_test() {
 
     g_categories = test_dummy_cat_list(10);
     // only room for 3 visible rows and 4 cols
-    g_summary = init_summary(0, MONTH, 8, 77);
+    g_summary = init_summary(0, MONTH, 8, 77, -1, -1);
 
     // past the top
     summary_scroll(11, UP);
@@ -357,7 +357,7 @@ int update_date_test() {
 
 int summary_clear_test() {
     g_categories = test_dummy_cat_list(5);
-    g_summary = init_summary(0, MONTH, 8, 77);
+    g_summary = init_summary(0, MONTH, 8, 77, -1, -1);
     // max location
     g_summary->data[5*g_summary->num_rows + 12] = 1.00; 
     summary_clear();

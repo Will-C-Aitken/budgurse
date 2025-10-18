@@ -47,8 +47,9 @@
 #define MAX_NAME_BYTES 64
 #define MAX_NOTE_BYTES 64
 
-#define MAX_AMOUNT_VAL 999999.99
-#define MIN_AMOUNT_VAL -99999.99
+// < than 1 million is plenty
+#define MAX_AMOUNT_VAL 999499.99
+#define MIN_AMOUNT_VAL -999499.99
 
 #define KEY_ESC 27
 
@@ -65,6 +66,8 @@
 #define AMOUNT_STR_LEN 11
 #define CAT_STR_LEN 18
 #define SUBCAT_STR_LEN 18
+
+#define SUM_AMOUNT_STR_LEN 6
 
 typedef enum state {
     BROWSER,

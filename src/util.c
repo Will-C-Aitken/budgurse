@@ -35,6 +35,7 @@ void draw_amount(WINDOW *w, float amount, int max_width,
     num_dig = num_places_in_amount((int)amount);
     num_spaces = max_width - 5 - num_dig;
     thousands = abs((int)amount / 1000);
+ 
 
     // for comma
     if (thousands) 
@@ -61,7 +62,7 @@ void draw_amount(WINDOW *w, float amount, int max_width,
 
     // print comma in thousands
     if (thousands) 
-	wprintw(w, "%d,%06.2f", thousands, 
+	wprintw(w, "%d,%03.2f", thousands, 
 		amount - (thousands*1000));
     else
 	wprintw(w, "%0.2f", amount);
@@ -83,8 +84,7 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
     while (num_spaces-- > 0) 
 	waddch(w, ' ');
 
-    if (attrs)
-	wattrset(w, attrs);
+    wattrset(w, attrs);
 
     // trunacte string
     if (sl > max_width) {
@@ -94,9 +94,7 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
     } else
 	wprintw(w, "%s", str);
 
-    // turn off attributes
-    if (attrs)
-	wattrset(w, 0);
+    wattrset(w, 0);
 }
 
 
@@ -201,8 +199,183 @@ void update_date(time_t *date, delin_t d, int amount) {
 }
 
 
+/*  Print the float dollar amount, `amnt` to the string, `str`. Default format
+ *  is "[-]$...x,xxx,xxx.xx". If that format would be greater than `max_len`,
+ *  try format of [-]$Kxxx.xx with the suffix corresponding to what has
+ *  been truncated. e.g. -$123,456,789 would be truncated to -$K123.46. 
+ *  If truncated form is still greater than `max_len`, returns 0 and 
+ *  does not write to `str`. Returns 1 on success
+ *
+ *  Somewhat conflicted on what to do about amount. Floats have ~7.2 decimal
+ *  digits worth of precision. But there isn't much room to display beyond that
+ *  anyway. Hence [K]. But if the values grow far beyond that you'll lose
+ *  information. But if you're making/spending millions does the lower
+ *  precision even matter? nor would a millionaire need to budget like this.
+ *  And if making a corporate budget, likely have to use the tools they provide
+ *  and would want more sophistication.
+ *
+ *  returns length of new string
+ */
+int amnt_to_abrv_str(float amnt, char **str) {
+
+    int k = 0;
+    int neg = (amnt <= -0.5) ? 1 : 0;
+    char dig_str[4];
+
+    if (amnt > MAX_AMOUNT_VAL || amnt < MIN_AMOUNT_VAL) {
+	*str = NULL;
+	return 0;
+    }
+
+    *str = malloc((AMOUNT_STR_LEN+1)*sizeof(char));
+
+    amnt = fabsf(amnt); 
+    if (amnt > 999.49) {
+	k = 1;
+	amnt /= 1000.0;
+    }
+    amnt = roundf(amnt);
+
+    int i = 0;
+    if (neg)
+	*str[i++] = '-';
+    (*str)[i++] = '$';
+
+    // convert to str 
+    snprintf(dig_str, 4, "%.f", amnt);
+
+    char *temp = dig_str;
+    while (*temp != '\0') {
+	(*str)[i++] = *temp;
+	temp++;
+    } 
+
+    if (k)
+	(*str)[i++] = 'K';
+    (*str)[i] = '\0';
+
+    return i;
+}
+
+
 int num_places_in_amount(int n) {
-    if (n < 0) return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
-    if (n < 10) return 1;
+    if (n < 0) 
+	return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
+    if (n < 10) 
+	return 1;
     return 1 + num_places_in_amount(n / 10);
+}
+
+// up to 2 dec_places precision
+bool float_eq_zero(float amnt, uint32_t dec_places) {
+    if (fabsf(amnt) >= 0.5)
+	return false;
+    else {
+	if (dec_places == 0)
+	    return true;
+	else
+	    return float_eq_zero(amnt*10, --dec_places);
+    }
+}
+
+bool make_space_in_amnt_str(int *num_spaces, uint32_t *dec_places) {
+    // already have space
+    if (*num_spaces >= 0)
+	return true;
+
+    while (*dec_places > 0) {
+	// for final decimal
+	*dec_places == 1 ? (*num_spaces) += 2 : (*num_spaces)++;
+	(*dec_places)--;
+	if (*num_spaces >= 0)
+	    return true;
+    } 
+    return false;
+}
+
+int amnt_to_str(float amnt, char **str, uint32_t dec_places, 
+	uint32_t max_len) {
+
+    int cur_len = -1;
+
+    if (amnt > MAX_AMOUNT_VAL || amnt < MIN_AMOUNT_VAL) {
+	*str = NULL;
+	return cur_len;
+    }
+
+    char suffix = ' ';
+    int num_spaces, num_dig;
+    float thousands;
+    num_dig = num_places_in_amount((int)amnt);
+    printf("num_dig: %d\n", num_dig);
+
+    // three extra spaces for possible '$', '-', and '[KMB]' 
+    num_spaces = max_len - num_dig - 3; 
+    // + 1 for dec itself
+    if (dec_places)
+	num_spaces -= dec_places + 1;
+    thousands = fabsf(amnt / 1000.0);
+    // another space for ','
+    if ((int)thousands > 0)
+	--num_spaces;
+
+    printf("num_spaces: %d\n", num_spaces);
+    printf("thousands: %f\n", thousands);
+    // out of space, try converting thousands from comma format to K suffix
+    if (num_spaces < 0) {
+	// add three dig + comma but only if thousands will round up to at
+	// least one, or if there are enough decimal places such that the
+	// result won't be 0 when divided by a thousand
+	if ((thousands > 0.50 || 
+		(dec_places && dec_places < 3 &&
+		 roundf(thousands*powf(10, dec_places)) > 0)) &&
+		(num_spaces += 4) >= 0) {
+	    printf("HERE\n");
+	    suffix = 'K';
+	} else {
+	    *str = NULL;
+	    return cur_len;
+	}
+    }
+
+    // max_len + 1 for null termination
+    *str = malloc((++max_len)*sizeof(char));
+    if (!*str)
+	return cur_len;
+
+    if (float_eq_zero(amnt, dec_places)) {
+	strncpy(*str, "--- ", 5);
+	return 4;
+    }
+
+    **str = (amnt < 0.0) ? '-' : ' ';
+    amnt = fabsf(amnt);
+    *(*str + 1) = '$';
+    cur_len = 2;
+
+    if (suffix == 'K') {
+	printf("%fl\n", thousands);
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%.*fK",
+		dec_places, thousands);
+	printf("%sl\n", *str);
+	return cur_len;
+    } 
+
+    if ((int)thousands) {
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%d,",
+		(int)thousands);
+	amnt = (amnt - 1000*(int)thousands);
+    }
+
+    printf("%d\n", cur_len);
+    printf("%f\n", amnt);
+    if (dec_places > 0)
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%.*f ",
+		dec_places, amnt);
+    else
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%d ",
+		(int)(roundf(amnt)));
+
+    printf("%sl\n", *str);
+    return cur_len;
 }

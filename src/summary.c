@@ -319,7 +319,6 @@ void summary_draw() {
     }
     
     // fill empty rows with just the vertical cat separator
-
     if (row < g_wins[SUMMARY].h - 1) {
 	mvwhline(g_wins[SUMMARY].win, row, 1, ACS_HLINE, 
 	    g_wins[SUMMARY].w - 2);
