@@ -43,17 +43,17 @@ int summary_init_test() {
     // g_entries = NULL;
     // g_summary = init_summary(0, WEEK, 10, 79, -1, -1);
     g_categories = test_dummy_cat_list(5);
-/*
+/* USING SUM_AMOUNT_STR_LEN=8
 +------------------------------------79width---------------------------------+
-|                    | Month 10    Month 11    Month 12      | Total         |
+|                    | Month 09 Month 10 Month 11 Month 12      | TOTAL      |
 +------------------------------------79width---------------------------------+
-| CAT_STR_LEN......  | AMNT_STR_LN AMNT_STR_LN AMNT_STR_LN   | AMNT_STR_LN   |
-|  SUCAT_STR_LEN.... | AMNT_STR_LN AMNT_STR_LN AMNT_STR_LN   | AMNT_STR_LN   |
+| CAT_STR_LEN......  | AMNT_STR AMNT_STR AMNT_STR AMNT_STR AMNT_STR | AMNT_STR |
+|  SUCAT_STR_LEN.... | AMNT_STR AMNT_STR AMNT_STR AMNT_STR      | AMNT_STR   |
 +------------------------------------79width---------------------------------+
-|  TOTAL             | AMNT_STR_LN AMNT_STR_LN AMNT_STR_LN   | AMNT_STR_LN   |
+|  TOTAL             | AMNT_STR AMNT_STR AMNT_STR AMNT_STR      | AMNT_STR   |
 +------------------------------------79width---------------------------------+
 */
-    // Not enough room for all categories and just enough room for 4 col
+    // Not enough room for all categories and just enough room for 5 col
     time_t cur_time = time(NULL);
     struct tm *cur_tm = localtime(&cur_time);
     clean_tm(cur_tm);
@@ -71,7 +71,7 @@ int summary_init_test() {
     mu_assert(g_summary->delin == MONTH, "Summary", 3);
     mu_assert(g_summary->num_rows == 6, "Summary", 4);
     mu_assert(g_summary->num_cols == 13, "Summary", 5);
-    mu_assert(g_summary->x_start == 9, "Summary", 6);
+    mu_assert(g_summary->x_start == 8, "Summary", 6);
     mu_assert(g_summary->x_sel == 12, "Summary", 7);
     mu_assert(g_summary->x_end == 12, "Summary", 8);
     mu_assert(g_summary->y_start == 3, "Summary", 9);
@@ -82,11 +82,11 @@ int summary_init_test() {
 	"Summary", 12);
     free_summary(g_summary);
 
-    // room for all cats but just not enough for 4 cols
-    g_summary = init_summary(0, MONTH, 18, 76, -1, -1);
+    // room for all cats but just not enough for 6 cols
+    g_summary = init_summary(0, MONTH, 18, 80, -1, -1);
     mu_assert(g_summary->num_rows == 6, "Summary", 13);
     mu_assert(g_summary->num_cols == 13, "Summary", 14);
-    mu_assert(g_summary->x_start == 10, "Summary", 15);
+    mu_assert(g_summary->x_start == 8, "Summary", 15);
     mu_assert(g_summary->x_sel == 12, "Summary", 16);
     mu_assert(g_summary->x_end == 12, "Summary", 17);
     mu_assert(g_summary->y_start == 0, "Summary", 18);
@@ -100,10 +100,10 @@ int summary_init_test() {
 
     // empty cat list 
     g_categories = test_dummy_cat_list(0);
-    g_summary = init_summary(0, MONTH, 18, 76, -1, -1);
+    g_summary = init_summary(0, MONTH, 18, 80, -1, -1);
     mu_assert(g_summary->num_rows == 1, "Summary", 22);
     mu_assert(g_summary->num_cols == 13, "Summary", 23);
-    mu_assert(g_summary->x_start == 10, "Summary", 24);
+    mu_assert(g_summary->x_start == 8, "Summary", 24);
     mu_assert(g_summary->x_sel == 12, "Summary", 25);
     mu_assert(g_summary->x_end == 12, "Summary", 26);
     mu_assert(g_summary->y_start == 0, "Summary", 27);
@@ -249,12 +249,12 @@ int summary_scroll_test() {
     // ------------------------------------------------------------------------
 
     g_categories = test_dummy_cat_list(10);
-    // only room for 3 visible rows and 4 cols
-    g_summary = init_summary(0, MONTH, 8, 77, -1, -1);
+    // only room for 3 visible rows and 6 cols
+    g_summary = init_summary(0, MONTH, 8, 81, -1, -1);
 
     // past the top
     summary_scroll(11, UP);
-    mu_assert(g_summary->x_start == 9, "Summary", 73);
+    mu_assert(g_summary->x_start == 7, "Summary", 73);
     mu_assert(g_summary->x_sel == 12, "Summary", 74);
     mu_assert(g_summary->x_end == 12, "Summary", 75);
     mu_assert(g_summary->y_start == 0, "Summary", 76);
@@ -264,7 +264,7 @@ int summary_scroll_test() {
     // down, but not enough to shift context to bottom. the selected row should
     // not move beyond y_end - 1, in effect freezing the bottom row 
     summary_scroll(7, DOWN);
-    mu_assert(g_summary->x_start == 9, "Summary", 79);
+    mu_assert(g_summary->x_start == 7, "Summary", 79);
     mu_assert(g_summary->x_sel == 12, "Summary", 80);
     mu_assert(g_summary->x_end == 12, "Summary", 81);
     mu_assert(g_summary->y_start == 6, "Summary", 82);
@@ -275,7 +275,7 @@ int summary_scroll_test() {
     summary_scroll(7, LEFT);
     mu_assert(g_summary->x_start == 5, "Summary", 85);
     mu_assert(g_summary->x_sel == 5, "Summary", 86);
-    mu_assert(g_summary->x_end == 8, "Summary", 87);
+    mu_assert(g_summary->x_end == 10, "Summary", 87);
     mu_assert(g_summary->y_start == 6, "Summary", 88);
     mu_assert(g_summary->y_sel == 7, "Summary", 89);
     mu_assert(g_summary->y_end == 8, "Summary", 90);
@@ -284,7 +284,7 @@ int summary_scroll_test() {
     summary_scroll(7, LEFT);
     mu_assert(g_summary->x_start == 0, "Summary", 91);
     mu_assert(g_summary->x_sel == 0, "Summary", 92);
-    mu_assert(g_summary->x_end == 3, "Summary", 93);
+    mu_assert(g_summary->x_end == 5, "Summary", 93);
     mu_assert(g_summary->y_start == 6, "Summary", 94);
     mu_assert(g_summary->y_sel == 7, "Summary", 95);
     mu_assert(g_summary->y_end == 8, "Summary", 96);
@@ -292,7 +292,7 @@ int summary_scroll_test() {
     // as with moving down, last col should stay ahead (frozen) when moving 
     // right
     summary_scroll(5, RIGHT);
-    mu_assert(g_summary->x_start == 3, "Summary", 97);
+    mu_assert(g_summary->x_start == 1, "Summary", 97);
     mu_assert(g_summary->x_sel == 5, "Summary", 98);
     mu_assert(g_summary->x_end == 6, "Summary", 99);
     mu_assert(g_summary->y_start == 6, "Summary", 100);

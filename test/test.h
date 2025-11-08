@@ -110,8 +110,6 @@ int summary_clear_test();
 // Misc tests
 int misc_tests();
 int float_eq_zero_test();
-int make_space_in_amnt_str_test();
-// int amnt_to_abrv_str_test();
 int amnt_to_str_test();
 
 // Test utility functions

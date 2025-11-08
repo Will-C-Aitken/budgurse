@@ -32,7 +32,7 @@ extern const int days_in_mnth[12];
 
 // generic drawing functions
 void draw_amount(WINDOW *w, float amount, int max_width, 
-	const char *delim_str, int ra, int attrs);
+	const char *delim_str, int ra, int attrs, uint32_t dec_places);
 void draw_ra_string(WINDOW *w, const char *str, int max_width,
 	const char *delim_str, int attrs);
 void draw_str(WINDOW *w, const char *str, int max_width, 
@@ -46,11 +46,9 @@ int date_part_from_delin(time_t date, delin_t d);
 void update_date(time_t *date, delin_t d, int amount);
 
 // miscellaneous
-int amnt_to_abrv_str(float amnt, char **str);
 int num_places_in_amount(int n);
-bool make_space_in_amnt_str(int *num_spaces, uint32_t *dec_places);
 bool float_eq_zero(float amnt, uint32_t dec_places);
-int amnt_to_str(float amnt, char **str, uint32_t ideal_dec_places, 
+uint32_t amnt_to_str(float amnt, char **str, uint32_t dec_places, 
 	uint32_t max_len);
 
 #endif

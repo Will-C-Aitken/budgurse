@@ -389,7 +389,7 @@ void browser_draw_entry(const entry_t *e, int row) {
     draw_str(g_wins[BROWSER].win, e->name, browser_col_widths[i++], 
 	delim_str, 0);
     draw_amount(g_wins[BROWSER].win, e->amount, browser_col_widths[i++], 
-	delim_str, 1, 0);
+	delim_str, 1, 0, 2);
 
     char* cat;
     char* subcat;

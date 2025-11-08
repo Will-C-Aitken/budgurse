@@ -109,7 +109,7 @@ void entry_view(const entry_t *e) {
 
     // draw amount
     mvwaddstr(vw->win, row, col, "Amount: ");
-    draw_amount(vw->win, e->amount, AMOUNT_STR_LEN, "", 0, 0);
+    draw_amount(vw->win, e->amount, 13, "", 0, 0, 2);
     row++;
 
     // draw category(s)

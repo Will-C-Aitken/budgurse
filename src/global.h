@@ -67,7 +67,7 @@
 #define CAT_STR_LEN 18
 #define SUBCAT_STR_LEN 18
 
-#define SUM_AMOUNT_STR_LEN 6
+#define SUM_AMOUNT_STR_LEN 8
 
 typedef enum state {
     BROWSER,
