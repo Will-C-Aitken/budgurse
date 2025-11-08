@@ -2,7 +2,7 @@
 Makefile
 Makefile.in
 aclocal.m4
-configure
+configure*
 compile
 depcomp
 install-sh
