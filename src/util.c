@@ -27,48 +27,31 @@
 const int days_in_mnth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 void draw_amount(WINDOW *w, float amount, int max_width, 
-	const char *delim_str, int ra, int attrs) {
+	const char *delim_str, int ra, int attrs, uint32_t dec_places) {
+
     waddstr(w, delim_str);
 
-    // to right align
-    int num_spaces, num_dig, thousands;
-    num_dig = num_places_in_amount((int)amount);
-    num_spaces = max_width - 5 - num_dig;
-    thousands = abs((int)amount / 1000);
+    char *amnt_str = NULL;
+    uint32_t amnt_len = amnt_to_str(amount, &amnt_str, dec_places, max_width);
 
-    // for comma
-    if (thousands) 
-	num_spaces--;
+    // turn off attributes
+    if (attrs)
+	wattrset(w, attrs);
 
     // right align
     if (ra) {
-	while (num_spaces-- > 0) 
-	    waddch(w, ' ');
+        while (max_width - amnt_len++ > 0) 
+            waddch(w, ' ');
     }
 
-    // print negative (if necessary) and dollar sign 
-    if (amount < 0) {
-	if (attrs)
-	    wattrset(w, attrs);
-	waddch(w, '-');
-    } else if (ra)
-	waddch(w, ' ');
-    if (attrs)
-	wattrset(w, attrs);
-    waddch(w, '$');
-
-    amount = fabs(amount);
-
-    // print comma in thousands
-    if (thousands) 
-	wprintw(w, "%d,%06.2f", thousands, 
-		amount - (thousands*1000));
-    else
-	wprintw(w, "%0.2f", amount);
+    if (amnt_str)
+	wprintw(w, "%s", amnt_str);
 
     // turn off attributes
     if (attrs)
 	wattrset(w, 0);
+
+    free(amnt_str);
 }
 
 
@@ -83,8 +66,7 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
     while (num_spaces-- > 0) 
 	waddch(w, ' ');
 
-    if (attrs)
-	wattrset(w, attrs);
+    wattrset(w, attrs);
 
     // trunacte string
     if (sl > max_width) {
@@ -94,9 +76,7 @@ void draw_ra_string(WINDOW *w, const char *str, int max_width,
     } else
 	wprintw(w, "%s", str);
 
-    // turn off attributes
-    if (attrs)
-	wattrset(w, 0);
+    wattrset(w, 0);
 }
 
 
@@ -200,9 +180,119 @@ void update_date(time_t *date, delin_t d, int amount) {
     *date = mktime(tm_from_date);
 }
 
-
 int num_places_in_amount(int n) {
-    if (n < 0) return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
-    if (n < 10) return 1;
+    if (n < 0) 
+	return num_places_in_amount((n == INT_MIN) ? INT_MAX: -n);
+    if (n < 10) 
+	return 1;
     return 1 + num_places_in_amount(n / 10);
+}
+
+// up to 2 dec_places precision
+bool float_eq_zero(float amnt, uint32_t dec_places) {
+    if (fabsf(amnt) >= 0.5)
+	return false;
+    else {
+	if (dec_places == 0)
+	    return true;
+	else
+	    return float_eq_zero(amnt*10, --dec_places);
+    }
+}
+
+/* Convert a floating point amnt into a str up to max_len with a specified
+ * number of dec_places. The str argument takes a pointer to a string which
+ * will get a dynamically allocated string assigned to it. Needs to be freed
+ * afterward. If the amount cannot fit within max_len, and is greater than a
+ * thousand, it will be abbreviated with a 'K' suffix. e.g. -$123,456.87 would
+ * be truncated to -$123.46K. Returns the length of the new str not including
+ * the null terminator. i.e. on failure, 0 will be returned.
+ */
+uint32_t amnt_to_str(float amnt, char **str, uint32_t dec_places,
+	uint32_t max_len) {
+
+    uint32_t cur_len = 0;
+
+    // minimum len of amnt str
+    if (max_len < 4) {
+	*str = NULL;
+	return 0;
+    }
+
+    // max_len + 1 for null termination
+    *str = malloc((max_len++)*sizeof(char));
+    if (!*str)
+	return cur_len;
+
+    if (amnt > MAX_AMOUNT_VAL || amnt < MIN_AMOUNT_VAL) {
+	char *max_min_str = (amnt > MAX_AMOUNT_VAL) ? "MAX " : "MIN ";
+	strncpy(*str, max_min_str, strlen(max_min_str) + 1); // +1 for \0
+	return strlen(*str);
+    }
+
+    // + 1 for '.' 
+    uint32_t dec_width = (dec_places) ? dec_places + 1 : 0;
+    uint32_t ones_width = 0;
+    uint32_t num_dig;
+    int num_spaces; 
+    char suffix = ' ';
+    float thousands;
+    num_dig = num_places_in_amount((int)amnt);
+
+    // four extra spaces for possible '$', '-', '[KMB]', and null char 
+    num_spaces = max_len - num_dig - dec_width - 4; 
+    thousands = fabsf(amnt / 1000.0);
+    // another space for ','
+    if ((int)thousands > 0)
+	--num_spaces;
+
+    // out of space, try converting thousands from comma format to K suffix
+    if (num_spaces < 0) {
+	// add three dig + comma but only if thousands will round up to at
+	// least one, or if there are enough decimal places such that the
+	// result won't be 0 when divided by a thousand
+	if ((thousands > 0.50 || 
+		(dec_places && dec_places < 3 &&
+		 roundf(thousands*powf(10, dec_places)) > 0)) &&
+		(num_spaces += 4) >= 0) {
+	    suffix = 'K';
+	} else {
+	    *str = NULL;
+	    return cur_len;
+	}
+    }
+
+    if (float_eq_zero(amnt, dec_places)) {
+	strncpy(*str, "--- ", 5);
+	return strlen(*str);
+    }
+
+    **str = (amnt < 0.0) ? '-' : ' ';
+    amnt = fabsf(amnt);
+    *(*str + 1) = '$';
+    cur_len = 2;
+
+    // Short form
+    if (suffix == 'K') {
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%.*fK",
+		dec_places, thousands);
+	return cur_len;
+    } 
+
+    // Long form. Print just thousands + ',' first
+    if ((int)thousands) {
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%d,",
+		(int)thousands);
+	amnt = (amnt - 1000*(int)thousands);
+	ones_width = 3;
+    }
+
+    if (dec_places > 0)
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%0*.*f ",
+		ones_width + dec_width, dec_places, amnt);
+    else
+	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%0*d ",
+		ones_width + dec_width, (int)(roundf(amnt)));
+
+    return cur_len;
 }

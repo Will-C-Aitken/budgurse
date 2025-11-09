@@ -19,6 +19,10 @@ AC_CHECK_LIB([sqlite3],
 	     [sqlite3_open],
 	     [LIBS="$LIBS -lsqlite3"],
 	     [AC_MSG_ERROR(sqlite3 library not found)])
+AC_CHECK_LIB([m], 
+	     [round],
+	     [LIBS="$LIBS -lm"],
+	     [AC_MSG_ERROR(math library not found)])
 
 # Checks for header files.
 AC_CHECK_HEADERS([time.h stdio.h stdlib.h string.h math.h limits.h \

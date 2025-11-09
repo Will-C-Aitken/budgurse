@@ -71,7 +71,7 @@ summary_t* init_summary(time_t max_date, delin_t d, int height, int width,
     s->y_sel = (sel_y == -1) ? s->y_end : sel_y;
 
     // limit visible columns to only full columns
-    int x_space = ((width - CAT_STR_LEN - 11) / (AMOUNT_STR_LEN + 1));
+    int x_space = ((width - CAT_STR_LEN - 9) / (SUM_AMOUNT_STR_LEN + 1));
     s->x_start = (s->num_cols > x_space) ? s->num_cols - x_space : 0;
 
     // check if room for all categories
@@ -217,7 +217,7 @@ void summary_draw() {
     int nr = g_summary->num_rows;
     int x_idx, y_idx;
     int vert_idx_1 = 21;
-    int vert_idx_2 = 21 + 4 + ((x_end - x_start) * (AMOUNT_STR_LEN + 1));
+    int vert_idx_2 = 21 + 4 + ((x_end - x_start) * (SUM_AMOUNT_STR_LEN + 1));
     int row = 3;
     int row_attrs, col_attrs;
     float amt;
@@ -313,13 +313,12 @@ void summary_draw() {
 	    if (i != y_end && j == x_end)
 		col_attrs |= A_ITALIC;
 
-	    draw_amount(g_wins[SUMMARY].win, amt, AMOUNT_STR_LEN, " ", 
-		1, col_attrs);
+	    draw_amount(g_wins[SUMMARY].win, amt, SUM_AMOUNT_STR_LEN, " ", 
+		1, col_attrs, 1);
 	}
     }
     
     // fill empty rows with just the vertical cat separator
-
     if (row < g_wins[SUMMARY].h - 1) {
 	mvwhline(g_wins[SUMMARY].win, row, 1, ACS_HLINE, 
 	    g_wins[SUMMARY].w - 2);
@@ -364,18 +363,19 @@ void summary_draw_header() {
 
 void summary_draw_mnth_hdr(int m, int ref_m, int y) {
     if (m == 12) {
-	draw_ra_string(g_wins[SUMMARY].win, "12m Total", AMOUNT_STR_LEN, 
+	draw_ra_string(g_wins[SUMMARY].win, "Total", SUM_AMOUNT_STR_LEN, 
 	    " ", A_ITALIC);
 	return;
     }
 
-    char hdr[AMOUNT_STR_LEN];
+    char hdr[SUM_AMOUNT_STR_LEN];
     int hdr_ind = ((m + ref_m + 1) % 12);
     y = (hdr_ind > ref_m) ? y - 1 : y;
+    y %= 100;
     const char **m_str_addr = mnth_hdrs + hdr_ind;
 
-    snprintf(hdr, AMOUNT_STR_LEN, "%s %d", *m_str_addr, y);
-    draw_ra_string(g_wins[SUMMARY].win, hdr, AMOUNT_STR_LEN, " ", 0);
+    snprintf(hdr, SUM_AMOUNT_STR_LEN, "%s %d", *m_str_addr, y);
+    draw_ra_string(g_wins[SUMMARY].win, hdr, SUM_AMOUNT_STR_LEN, " ", 0);
 }
 
 

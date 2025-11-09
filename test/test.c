@@ -37,7 +37,8 @@ int main(int argc, char **argv) {
 	browser_tests() || 
 	categories_tests() ||
 	prompt_tests() ||
-	summary_tests()
+	summary_tests() ||
+	misc_tests()
     ) return 1;
 
     printf("All Tests Passed. Tests run: %d\n", tests_run);
