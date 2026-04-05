@@ -16,6 +16,8 @@ src/*.o
 src/.deps/
 src/.dirstamp
 
+obj
+
 unit_tests
 test-driver
 *.trs
@@ -23,6 +25,7 @@ test/*.o
 test/.dirstamp
 test/.deps/
 test.db
+test/test
 
 TODO
 *.log
