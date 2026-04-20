@@ -375,8 +375,9 @@ int s_cat_proc(char *buf, int *id) {
 	return 1;
     if (!cat_proc(buf, id, 0))
 	return 0;
-    if (!cat_is_sub(g_categories, *id, m_id))
+    if (!cat_is_sub(g_categories, *id, m_id)) {
 	return 0;
+    }
     return 1;
 }
 
@@ -395,12 +396,7 @@ int cat_proc(char *buf, int *id, int is_main_cat) {
     if (*id == 0) {
 	if (curses_mode) {
 	    *id = prompt_add_category(cat_name, p_id);
-	    if (*id == 0) {
-		// reset to parent id for next loop
-		*id = p_id;
-		return 1;
-	    }
-	    return 0;
+	    return (*id != 0);
 	} else
 	    return 0;
     }
