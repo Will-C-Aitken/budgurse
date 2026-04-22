@@ -63,7 +63,7 @@ llist_node_t *prompt_new_entry_node() {
     db_exec(e, (gen_sql_fn_t)entry_to_sql_insert);
     e->id = sqlite3_last_insert_rowid(g_db);
     llist_node_t* en = init_llist_node(e);
-    llist_insert_node(g_entries, en, (llist_comp_fn_t)entry_date_comp_gte);
+    llist_insert_node(g_entry_list->entries, en, (llist_comp_fn_t)entry_date_comp_gte);
     summary_calc();
 
     werase(g_wins[PROMPT].win);
@@ -117,7 +117,7 @@ int prompt_del_category(category_t *c) {
     const char *alt_cat_prompt = "Input another or new category to "
 	"change pre-existing entries with this category to:";
     
-    llist_t *temp_matches = llist_get_matches(g_entries, c,
+    llist_t *temp_matches = llist_get_matches(g_entry_list->entries, c,
 	    (llist_cond_fn_t)entry_cat_cond_eq);
     llist_node_t *temp_nd = temp_matches->head;
 
@@ -165,11 +165,11 @@ void prompt_edit_entry(llist_node_t *cur) {
 		) {
 		    entry_set_date(cur->data, new_date);
 		    int sel_to_end_dist = 
-			llist_dist_between(cur, g_entries->tail);
-		    cur = llist_sort_node(g_entries, cur, 
+			llist_dist_between(cur, g_entry_list->entries->tail);
+		    cur = llist_sort_node(g_entry_list->entries, cur, 
 			(llist_comp_fn_t)entry_date_comp_gte);
 		    free_browser(g_browser);
-		    g_browser = init_browser(g_entries, cur, sel_to_end_dist, 
+		    g_browser = init_browser(g_entry_list->entries, cur, sel_to_end_dist, 
 			-1);
 		}
 		break;

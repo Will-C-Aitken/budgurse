@@ -97,15 +97,15 @@ void free_summary(summary_t* s) {
 
 
 void summary_calc() {
-    EXIT_IF(!g_entries, "Entries must be initialized before calculating "
+    EXIT_IF(!g_entry_list->entries, "Entries must be initialized before calculating "
 	"summary\n");
 
     summary_clear();
 
-    if (g_entries->num_nodes == 0)
+    if (g_entry_list->entries->num_nodes == 0)
 	return;
 
-    llist_node_t *curr_en = g_entries->tail;
+    llist_node_t *curr_en = g_entry_list->entries->tail;
     entry_t *e;
 
     while (curr_en) {

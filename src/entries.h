@@ -31,7 +31,21 @@
 #include "util.h"
 #include "global.h"
 
-extern llist_t *g_entries;
+extern entry_list_t *g_entry_list;
+
+typedef struct entry_list {
+    llist_t *entries;
+    time_t start_date;
+    time_t end_date;
+    bool is_abs_start;
+    bool is_abs_end;
+    delin_t delin;
+} entry_list_t;
+
+// entry list declarations
+entry_list_t *init_entry_list(time_t start_date, time_t end_date, 
+	delin_t delin);
+void free_entry_list(entry_list_t *el);
 
 typedef struct entry {
     int id;

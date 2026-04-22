@@ -24,7 +24,28 @@
 
 #include "entries.h"
 
-llist_t *g_entries = NULL;
+entry_list_t *g_entry_list = NULL;
+
+entry_list_t *init_entry_list() {
+    entry_list_t *el = malloc(sizeof(entry_list_t));
+
+    el->entries = init_llist();
+
+    // load with current date as latest by default
+    el->end_date = time(NULL);
+    // TODO: SET START DAYE
+    el->start_date = start_date;
+
+    load_entries(el);
+
+    // TODO: make functions
+    el->is_abs_start = true;
+    el->is_abs_end = true;
+
+    el->delin = delin;
+
+    return el;
+}
 
 entry_t *init_entry(int id, const char *name, time_t date, float amount, 
 	category_t *c, const char *note) {
