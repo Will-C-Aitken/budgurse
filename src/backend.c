@@ -38,15 +38,16 @@ static int load_categories_callback(void *_, int argc, char **argv,
 }
 
 
-static int load_entries_callback(void *_, int argc, char **argv, 
+static int load_entries_callback(void *ll, int argc, char **argv, 
 	char **azColName) {
 
+    fprintf(stderr, "%ld\n", strtol(argv[2], NULL, 10));
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
 	(time_t)strtol(argv[2], NULL, 10), strtof(argv[3], NULL), 
 	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
 
     llist_node_t *nd = init_llist_node(entry);
-    llist_insert_to_tail(g_entry_list->entries, nd);
+    llist_insert_to_tail(ll, nd);
     return 0;
 }
 
@@ -110,12 +111,6 @@ void init_db(const char *file_name) {
 }
 
 
-void load_db() {
-    load_cat_table();
-    load_entry_list(g_entry_list);
-}
-
-
 void load_entry_table() {
     int rc;
     char *err_msg;
@@ -127,11 +122,13 @@ void load_entry_table() {
 }
 
 
-void load_entry_list(entry_list_t *el) {
+void load_entries(llist_t *ll, time_t start_date, time_t end_date) {
     int rc;
     char *err_msg;
-    char *sql = load_entry_list_to_sql(el);
-    rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
+    char *sql = load_entry_list_to_sql(start_date, end_date);
+    // char *sql = "SELECT * FROM Entries ORDER BY date ASC";
+    printf("%s\n", sql);
+    rc = sqlite3_exec(g_db, sql, load_entries_callback, ll, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
 
     sqlite3_free(err_msg);
@@ -166,19 +163,21 @@ int db_exec(void *data, gen_sql_fn_t gen_sql) {
 }
 
 
-char *load_entry_list_to_sql(entry_list_t *el) {
+char *load_entry_list_to_sql(time_t start_date, time_t end_date) {
     char *sql_to_append = "SELECT * FROM Entries WHERE date BETWEEN ";
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
     char date_str[11];
-    sprintf(date_str, "%ld", el->start_date);
+    // sprintf(date_str, "%ld", 1727758800);
+    sprintf(date_str, "%ld", start_date);
+    append_to_sql(&sql, NULL, date_str, 0);
+
+    sprintf(date_str, "%ld", end_date);
     append_to_sql(&sql, " AND ", date_str, 0);
-
-    sprintf(date_str, "%ld", el->end_date);
-    append_to_sql(&sql, " ORDER BY date ASC;", date_str, 0);
-
+    append_to_sql(&sql, " ORDER BY date ASC;", "", 0);
+    fprintf(stderr, "%s\n", sql);
     return sql;
 }
 

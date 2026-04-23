@@ -31,8 +31,6 @@
 #include "util.h"
 #include "global.h"
 
-extern entry_list_t *g_entry_list;
-
 typedef struct entry_list {
     llist_t *entries;
     time_t start_date;
@@ -42,9 +40,11 @@ typedef struct entry_list {
     delin_t delin;
 } entry_list_t;
 
+extern entry_list_t *g_entry_list;
+
 // entry list declarations
-entry_list_t *init_entry_list(time_t start_date, time_t end_date, 
-	delin_t delin);
+entry_list_t *init_entry_list();
+// TODO:
 void free_entry_list(entry_list_t *el);
 
 typedef struct entry {

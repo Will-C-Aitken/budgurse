@@ -23,6 +23,7 @@
  */
 
 #include "entries.h"
+#include "backend.h"
 
 entry_list_t *g_entry_list = NULL;
 
@@ -31,18 +32,22 @@ entry_list_t *init_entry_list() {
 
     el->entries = init_llist();
 
-    // load with current date as latest by default
+    // load with current date as end by default
     el->end_date = time(NULL);
-    // TODO: SET START DAYE
-    el->start_date = start_date;
 
-    load_entries(el);
+    // and 12 month window
+    struct tm *temp_tm = localtime(&el->end_date);
+    clean_tm(temp_tm);
+    temp_tm->tm_year -= 1;
+    temp_tm->tm_mon += 1;
+    temp_tm->tm_mday = 1;
+    el->start_date = mktime(temp_tm);
+    load_entries(el->entries, el->start_date, el->end_date);
 
-    // TODO: make functions
     el->is_abs_start = true;
     el->is_abs_end = true;
 
-    el->delin = delin;
+    el->delin = MONTH;
 
     return el;
 }

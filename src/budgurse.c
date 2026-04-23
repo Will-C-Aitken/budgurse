@@ -62,13 +62,15 @@ void init_budgurse() {
 
     // init global array g_wins
     init_wins();
-    g_entry_list = init_entry_list();
-    g_categories = init_llist();
 
     init_data_path(&db_path);
     init_db(db_path);
-    load_db();
     free(db_path);
+
+    g_categories = init_llist();
+    load_cat_table();
+
+    g_entry_list = init_entry_list();
 
     g_browser = init_browser(g_entry_list->entries, g_entry_list->entries->tail, 0, -1);
     g_summary = init_summary(0, MONTH, -1, -1, -1, -1);
@@ -115,6 +117,7 @@ void end_budgurse(int status) {
     free_browser(g_browser);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
     free_llist(g_entry_list->entries, (llist_free_data_fn_t)free_entry);
+    free(g_entry_list);
     free_wins(g_wins);
     free_summary(g_summary);
 
