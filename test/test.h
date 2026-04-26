@@ -45,6 +45,7 @@ void print_err_str(const char *test_suite, const char *test_fn_name,
 
 extern int tests_run;
 extern int curses_mode;
+extern llist_t *g_entries;
 
 // Llist Tests
 int llist_tests();
@@ -105,7 +106,6 @@ int summary_calc_test();
 int summary_scroll_test();
 int update_date_test();
 int summary_clear_test();
-
 
 // Misc tests
 int misc_tests();

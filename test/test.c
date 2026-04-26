@@ -26,6 +26,9 @@
 
 int tests_run = 0;
 int curses_mode = 0;
+// for standalong llist of entries independent of db
+// TODO: remove g_entries from tests. deprecated and replaced with g_entry_list
+llist_t *g_entries = NULL;
 state_t state = BROWSER;
 
 int main(int argc, char **argv) {
@@ -51,7 +54,7 @@ void end_budgurse(int status) {
     
     free_browser(g_browser);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
-    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+    free_entry_list(g_entry_list);
     free_wins(g_wins);
     free_summary(g_summary);
     if (sqlite3_close(g_db))

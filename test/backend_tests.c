@@ -63,14 +63,15 @@ int entry_to_sql_insert_test() {
 int load_empty_db_test() {
 
     init_db("test.db");
-    g_entries = init_llist();
     g_categories = init_llist();
-    load_db();
-    mu_assert(g_entries->num_nodes == 0, "Backend", 2);
+    g_entry_list = init_entry_list();
+    load_cat_table();
+    mu_assert(g_entry_list->entries->num_nodes == 0, "Backend", 2);
     mu_assert(g_categories->num_nodes == 0, "Backend", 3);
 
-    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
+    free_entry_list(g_entry_list);
+
     int result = sqlite3_close(g_db);
     mu_assert(result == SQLITE_OK, "Backend", 4);
 
@@ -112,13 +113,13 @@ int load_db_test() {
     // assumes the tests from prior fn have been executed
     
     init_db("test.db");
-    g_entries = init_llist();
     g_categories = init_llist();
-    load_db();
-    mu_assert(g_entries->num_nodes == 2, "Backend", 8);
+    g_entry_list = init_entry_list();
+    load_cat_table();
+    mu_assert(g_entry_list->entries->num_nodes == 2, "Backend", 8);
 
     // check tail
-    entry_t* tail = g_entries->tail->data;
+    entry_t* tail = g_entry_list->entries->tail->data;
     mu_assert(strcmp(tail->name, "Tim Horton's") == 0, "Backend", 9);
     mu_assert(tail->amount == -11.00, "Backend", 10);
 
@@ -126,8 +127,8 @@ int load_db_test() {
     time_t test_time1 = mktime(&test_time_tm1);
     mu_assert(difftime(test_time1, tail->date) == 0.0, "Backend", 11);
 
-    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
+    free_entry_list(g_entry_list);
 
     int result = sqlite3_close(g_db);
     mu_assert(result == SQLITE_OK, "Backend", 12);

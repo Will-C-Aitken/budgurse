@@ -116,8 +116,7 @@ void end_budgurse(int status) {
     
     free_browser(g_browser);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
-    free_llist(g_entry_list->entries, (llist_free_data_fn_t)free_entry);
-    free(g_entry_list);
+    free_entry_list(g_entry_list);
     free_wins(g_wins);
     free_summary(g_summary);
 

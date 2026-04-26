@@ -44,12 +44,18 @@ entry_list_t *init_entry_list() {
     el->start_date = mktime(temp_tm);
     load_entries(el->entries, el->start_date, el->end_date);
 
+    // TODO write functions for
     el->is_abs_start = true;
     el->is_abs_end = true;
 
     el->delin = MONTH;
 
     return el;
+}
+
+void free_entry_list(entry_list_t *el) {
+    free_llist(el->entries, (llist_free_data_fn_t)free_entry);
+    free(el);
 }
 
 entry_t *init_entry(int id, const char *name, time_t date, float amount, 

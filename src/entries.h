@@ -44,7 +44,6 @@ extern entry_list_t *g_entry_list;
 
 // entry list declarations
 entry_list_t *init_entry_list();
-// TODO:
 void free_entry_list(entry_list_t *el);
 
 typedef struct entry {

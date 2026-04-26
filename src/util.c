@@ -220,7 +220,7 @@ uint32_t amnt_to_str(float amnt, char **str, uint32_t dec_places,
     }
 
     // max_len + 1 for null termination
-    *str = malloc((max_len++)*sizeof(char));
+    *str = malloc((max_len + 1)*sizeof(char));
     if (!*str)
 	return cur_len;
 
@@ -293,6 +293,5 @@ uint32_t amnt_to_str(float amnt, char **str, uint32_t dec_places,
     else
 	cur_len += snprintf(*str + cur_len, max_len - cur_len, "%0*d ",
 		ones_width + dec_width, (int)(roundf(amnt)));
-
     return cur_len;
 }

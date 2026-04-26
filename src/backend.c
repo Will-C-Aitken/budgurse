@@ -41,7 +41,6 @@ static int load_categories_callback(void *_, int argc, char **argv,
 static int load_entries_callback(void *ll, int argc, char **argv, 
 	char **azColName) {
 
-    fprintf(stderr, "%ld\n", strtol(argv[2], NULL, 10));
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
 	(time_t)strtol(argv[2], NULL, 10), strtof(argv[3], NULL), 
 	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
@@ -111,26 +110,15 @@ void init_db(const char *file_name) {
 }
 
 
-void load_entry_table() {
-    int rc;
-    char *err_msg;
-    char *sql = "SELECT * FROM Entries ORDER BY date ASC";
-    rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
-    EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
-
-    sqlite3_free(err_msg);
-}
-
-
 void load_entries(llist_t *ll, time_t start_date, time_t end_date) {
     int rc;
     char *err_msg;
     char *sql = load_entry_list_to_sql(start_date, end_date);
     // char *sql = "SELECT * FROM Entries ORDER BY date ASC";
-    printf("%s\n", sql);
     rc = sqlite3_exec(g_db, sql, load_entries_callback, ll, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
 
+    free(sql);
     sqlite3_free(err_msg);
 }
 
@@ -175,9 +163,10 @@ char *load_entry_list_to_sql(time_t start_date, time_t end_date) {
     append_to_sql(&sql, NULL, date_str, 0);
 
     sprintf(date_str, "%ld", end_date);
-    append_to_sql(&sql, " AND ", date_str, 0);
-    append_to_sql(&sql, " ORDER BY date ASC;", "", 0);
-    fprintf(stderr, "%s\n", sql);
+    sql_to_append = " AND ";
+    append_to_sql(&sql, sql_to_append, date_str, 0);
+    sql_to_append = " ORDER BY date ASC;";
+    append_to_sql(&sql, sql_to_append, "", 0);
     return sql;
 }
 
