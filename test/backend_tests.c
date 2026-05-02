@@ -64,7 +64,13 @@ int load_empty_db_test() {
 
     init_db("test.db");
     g_categories = init_llist();
-    g_entry_list = init_entry_list();
+    
+    // make large date context up to current date
+    struct tm test_time_tm1 = {0, 0, 0, 12, 1, 2020 - 1900, 1};
+    time_t test_date = mktime(&test_time_tm1);
+    date_context_t *dc = init_date_context(test_date, 0, MONTH);
+    g_entry_list = init_entry_list(dc);
+
     load_cat_table();
     mu_assert(g_entry_list->entries->num_nodes == 0, "Backend", 2);
     mu_assert(g_categories->num_nodes == 0, "Backend", 3);
@@ -114,7 +120,13 @@ int load_db_test() {
     
     init_db("test.db");
     g_categories = init_llist();
-    g_entry_list = init_entry_list();
+
+    // make large date context up to current date
+    struct tm test_time_tm0 = {0, 0, 0, 12, 1, 2020 - 1900, 1};
+    time_t test_date = mktime(&test_time_tm0);
+    date_context_t *dc = init_date_context(test_date, 0, MONTH);
+    g_entry_list = init_entry_list(dc);
+
     load_cat_table();
     mu_assert(g_entry_list->entries->num_nodes == 2, "Backend", 8);
 

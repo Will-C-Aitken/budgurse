@@ -155,6 +155,7 @@ int llist_insert_node(llist_t *l, llist_node_t *nd, llist_comp_fn_t c_fn) {
 }
 
 void llist_insert_to_tail(llist_t *l, llist_node_t *nd) {
+
     l->num_nodes++;
     if (l->num_nodes == 1) {
         l->tail = nd;

@@ -38,6 +38,7 @@
 #include <sqlite3.h>
 #include <ncurses.h>
 
+#include "status.h"
 #define TIME_T_32 (sizeof(time_t) == 4)
 
 #define MIN_COLS 92
@@ -75,12 +76,6 @@ typedef enum state {
     SUMMARY,
     HELP
 } state_t;
-
-typedef enum delin {
-    WEEK,
-    MONTH,
-    YEAR,
-} delin_t;
 
 typedef enum direction {
     DOWN,

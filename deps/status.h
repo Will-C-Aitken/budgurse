@@ -29,6 +29,10 @@
 
 // the following three macros are adapted from the src code for calcurse,
 // specifically `calcurse/src/calcurse.h`
+
+#ifndef STATUS_H
+#define STATUS_H
+
 #define ERROR_MSG(...) do {                                                  \
     char msg[BUFSIZ];                                                        \
     int len;                                                                 \
@@ -50,3 +54,4 @@
 	EXIT(__VA_ARGS__);                                                   \
 } while (0)
 
+#endif

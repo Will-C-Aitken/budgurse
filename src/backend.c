@@ -110,14 +110,12 @@ void init_db(const char *file_name) {
 }
 
 
-void load_entries(llist_t *ll, time_t start_date, time_t end_date) {
+void load_entries(llist_t *ll, date_context_t *dc) {
     int rc;
     char *err_msg;
-    char *sql = load_entry_list_to_sql(start_date, end_date);
-    // char *sql = "SELECT * FROM Entries ORDER BY date ASC";
+    char *sql = load_entry_list_to_sql(dc);
     rc = sqlite3_exec(g_db, sql, load_entries_callback, ll, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
-
     free(sql);
     sqlite3_free(err_msg);
 }
@@ -151,18 +149,17 @@ int db_exec(void *data, gen_sql_fn_t gen_sql) {
 }
 
 
-char *load_entry_list_to_sql(time_t start_date, time_t end_date) {
+char *load_entry_list_to_sql(date_context_t *dc) {
     char *sql_to_append = "SELECT * FROM Entries WHERE date BETWEEN ";
     char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
     sql[0] = '\0';
     strcat(sql, sql_to_append);
 
     char date_str[11];
-    // sprintf(date_str, "%ld", 1727758800);
-    sprintf(date_str, "%ld", start_date);
+    sprintf(date_str, "%ld", dc->start);
     append_to_sql(&sql, NULL, date_str, 0);
 
-    sprintf(date_str, "%ld", end_date);
+    sprintf(date_str, "%ld", dc->end);
     sql_to_append = " AND ";
     append_to_sql(&sql, sql_to_append, date_str, 0);
     sql_to_append = " ORDER BY date ASC;";

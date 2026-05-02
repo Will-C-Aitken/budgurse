@@ -24,37 +24,30 @@
 
 #include "entries.h"
 #include "backend.h"
+#include "wins.h"
+#include "util.h"
+#include "llist.h"
 
 entry_list_t *g_entry_list = NULL;
 
-entry_list_t *init_entry_list() {
+entry_list_t *init_entry_list(date_context_t *dc) {
     entry_list_t *el = malloc(sizeof(entry_list_t));
 
     el->entries = init_llist();
 
-    // load with current date as end by default
-    el->end_date = time(NULL);
+    if (dc)
+	el->date_context = dc;
+    else
+	el->date_context = init_date_context(0, 0, MONTH);
 
-    // and 12 month window
-    struct tm *temp_tm = localtime(&el->end_date);
-    clean_tm(temp_tm);
-    temp_tm->tm_year -= 1;
-    temp_tm->tm_mon += 1;
-    temp_tm->tm_mday = 1;
-    el->start_date = mktime(temp_tm);
-    load_entries(el->entries, el->start_date, el->end_date);
-
-    // TODO write functions for
-    el->is_abs_start = true;
-    el->is_abs_end = true;
-
-    el->delin = MONTH;
+    load_entries(el->entries, dc);
 
     return el;
 }
 
 void free_entry_list(entry_list_t *el) {
     free_llist(el->entries, (llist_free_data_fn_t)free_entry);
+    free_date_context(el->date_context);
     free(el);
 }
 

@@ -24,8 +24,6 @@
 
 #include "util.h"
 
-const int days_in_mnth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
 void draw_amount(WINDOW *w, float amount, int max_width, 
 	const char *delim_str, int ra, int attrs, uint32_t dec_places) {
 
@@ -118,67 +116,6 @@ void draw_date(WINDOW *w, time_t date, int attrs) {
 }
 
 
-int check_time_bounds(int day, int month, int year) {
-    // If system has 32 bit time_t, year must be less than 2038
-    if (TIME_T_32) 
-	if (year < 1900 || year > 2037) return 1;
-    if (month < 1 || month > 12) 
-	return 1;
-    if (day < 0 || day > days_in_mnth[month-1])
-	return 1;
-    return 0;
-}
-
-
-// set unused date attributes (sec, min, hour, isdst) to 0
-void clean_tm(struct tm *tm_to_clean) {
-    tm_to_clean->tm_sec = 0;
-    tm_to_clean->tm_min = 0;
-    tm_to_clean->tm_hour = 0;
-    tm_to_clean->tm_isdst = 0;
-}
-
-
-int date_part_from_delin(time_t date, delin_t d) { 
-    int date_part = -1;
-    struct tm *tm_from_date = localtime(&date);
-    switch (d) {
-	case WEEK: 
-	    break;
-	case MONTH: 
-	    date_part = tm_from_date->tm_mon;
-	    break;
-	case YEAR: 
-	    date_part = tm_from_date->tm_year + 1900;
-	    break;
-    }
-    return date_part;
-}
-
-
-void update_date(time_t *date, delin_t d, int amount) { 
-    struct tm *tm_from_date = localtime(date);
-
-    switch (d) {
-	case WEEK: 
-	    break;
-	case MONTH:
-	    tm_from_date->tm_mon = tm_from_date->tm_mon + amount;
-	    if (tm_from_date->tm_mon >= 0)
-		tm_from_date->tm_year += tm_from_date->tm_mon/12; 
-	    else
-		tm_from_date->tm_year += (tm_from_date->tm_mon/12) - 1; 
-	    tm_from_date->tm_mon = (tm_from_date->tm_mon + 12) % 12; 
-	    if (tm_from_date->tm_mday > 1)
-		tm_from_date->tm_mday = days_in_mnth[tm_from_date->tm_mon];
-	    break;
-	case YEAR: 
-	    tm_from_date->tm_year += amount;
-	    break;
-    }
-
-    *date = mktime(tm_from_date);
-}
 
 int num_places_in_amount(int n) {
     if (n < 0) 

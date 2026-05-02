@@ -68,7 +68,7 @@ int summary_init_test() {
     g_summary = init_summary(cur_time, MONTH, 8, 77, -1, -1);
     mu_assert(g_summary->max_date == max_date, "Summary", 1);
     mu_assert(g_summary->min_date == min_date, "Summary", 2);
-    mu_assert(g_summary->delin == MONTH, "Summary", 3);
+    mu_assert(g_summary->date_delin == MONTH, "Summary", 3);
     mu_assert(g_summary->num_rows == 6, "Summary", 4);
     mu_assert(g_summary->num_cols == 13, "Summary", 5);
     mu_assert(g_summary->x_start == 8, "Summary", 6);

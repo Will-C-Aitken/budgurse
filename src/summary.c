@@ -29,7 +29,7 @@ const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 
-summary_t* init_summary(time_t max_date, delin_t d, int height, int width, 
+summary_t* init_summary(time_t max_date, date_delin_t d, int height, int width, 
 	int sel_x, int sel_y) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
@@ -45,7 +45,7 @@ summary_t* init_summary(time_t max_date, delin_t d, int height, int width,
 	s->max_date = max_date;
     int num_cols = summary_set_date_bounds(&s->max_date, &s->min_date, d);
 
-    s->delin = d;
+    s->date_delin = d;
 
     if (height == -1)
 	height = g_wins[SUMMARY].h;
@@ -129,7 +129,7 @@ int summary_update_on_entry(entry_t *e) {
     if (e->date > g_summary->max_date)
 	return 1;
 
-    x = date_part_from_delin(e->date, g_summary->delin);
+    x = date_part_from_date_delin(e->date, g_summary->date_delin);
     y = e->cat->sum_idx;
 
     summary_inc_cell(x, y, e->amount);
@@ -159,7 +159,7 @@ void summary_inc_cell(int x, int y, float value) {
 
 
 // returns num cols for between max_date and min_date (inclusive)
-int summary_set_date_bounds(time_t *max_date, time_t *min_date, delin_t d) {
+int summary_set_date_bounds(time_t *max_date, time_t *min_date, date_delin_t d) {
     struct tm max_tm = *localtime(max_date);
     struct tm min_tm;
     int num_cols;
@@ -188,13 +188,13 @@ int summary_set_date_bounds(time_t *max_date, time_t *min_date, delin_t d) {
 }
 
 
-void summary_reset(time_t max_date, delin_t d, int cur_x, int cur_y) {
+void summary_reset(time_t max_date, date_delin_t d, int cur_x, int cur_y) {
     free_summary(g_summary);
     g_summary = init_summary(max_date, d, -1, -1, cur_x, cur_y);
 }
 
 void summary_resize() {
-    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
+    summary_reset(g_summary->max_date, g_summary->date_delin, g_summary->x_sel, 
 	g_summary->y_sel);
     summary_calc();
 }
@@ -240,12 +240,12 @@ void summary_draw() {
     mvwaddch(g_wins[SUMMARY].win, 2, vert_idx_2, ACS_PLUS);
     mvwaddch(g_wins[SUMMARY].win, 2, g_wins[SUMMARY].w - 1, ACS_RTEE);
 
-    switch (g_summary->delin) {
+    switch (g_summary->date_delin) {
 	case WEEK: 
 	    // To be filled in when WEEK is implemented
 	    break;
 	case MONTH: 
-	    date_offset = date_part_from_delin(g_summary->max_date, MONTH);
+	    date_offset = date_part_from_date_delin(g_summary->max_date, MONTH);
 	    break;
 	case YEAR: 
 	    // To be filled in when YEAR is implemented
@@ -338,13 +338,13 @@ void summary_draw() {
 void summary_draw_header() {
     int x_start = g_summary->x_start;
     int x_end = g_summary->x_end;
-    int curr_yr = date_part_from_delin(g_summary->max_date, YEAR);
-    int n_mnth = date_part_from_delin(g_summary->max_date, MONTH);
+    int curr_yr = date_part_from_date_delin(g_summary->max_date, YEAR);
+    int n_mnth = date_part_from_date_delin(g_summary->max_date, MONTH);
 
     mvwaddch(g_wins[SUMMARY].win, 1, CAT_STR_LEN + 3, ACS_VLINE);
 
     for (int i = x_start; i <= x_end; i++) {
-	switch (g_summary->delin) {
+	switch (g_summary->date_delin) {
 	    case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	    case MONTH: 
 		// always print header
@@ -484,7 +484,7 @@ void summary_del_category() {
     db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
     cat_del_from_llist(g_categories, sel_cat);
 
-    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
+    summary_reset(g_summary->max_date, g_summary->date_delin, g_summary->x_sel, 
 	g_summary->y_sel);
     summary_calc();
 }

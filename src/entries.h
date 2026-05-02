@@ -27,23 +27,18 @@
 
 #include "llist.h"
 #include "categories.h"
-#include "wins.h"
-#include "util.h"
+#include "date.h"
 #include "global.h"
 
 typedef struct entry_list {
     llist_t *entries;
-    time_t start_date;
-    time_t end_date;
-    bool is_abs_start;
-    bool is_abs_end;
-    delin_t delin;
+    date_context_t *date_context;
 } entry_list_t;
 
 extern entry_list_t *g_entry_list;
 
 // entry list declarations
-entry_list_t *init_entry_list();
+entry_list_t *init_entry_list(date_context_t *dc);
 void free_entry_list(entry_list_t *el);
 
 typedef struct entry {
