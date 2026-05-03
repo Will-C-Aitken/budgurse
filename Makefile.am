@@ -7,6 +7,8 @@ budgurse_SOURCES = \
 	deps/status.h \
 	src/budgurse.c \
 	src/budgurse.h \
+	src/date.c \
+	src/date.h \
 	src/entries.c \
 	src/entries.h \
 	src/backend.c \
@@ -64,5 +66,7 @@ unit_tests_SOURCES = \
 	src/summary.h \
 	src/util.c \
 	src/util.h \
+	src/date.c \
+	src/date.h \
 	src/wins.c \
 	src/wins.h

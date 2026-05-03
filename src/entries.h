@@ -27,11 +27,19 @@
 
 #include "llist.h"
 #include "categories.h"
-#include "wins.h"
-#include "util.h"
+#include "date.h"
 #include "global.h"
 
-extern llist_t *g_entries;
+typedef struct entry_list {
+    llist_t *entries;
+    date_context_t *date_context;
+} entry_list_t;
+
+extern entry_list_t *g_entry_list;
+
+// entry list declarations
+entry_list_t *init_entry_list(date_context_t *dc);
+void free_entry_list(entry_list_t *el);
 
 typedef struct entry {
     int id;

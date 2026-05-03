@@ -38,7 +38,7 @@ static int load_categories_callback(void *_, int argc, char **argv,
 }
 
 
-static int load_entries_callback(void *_, int argc, char **argv, 
+static int load_entries_callback(void *ll, int argc, char **argv, 
 	char **azColName) {
 
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
@@ -46,7 +46,7 @@ static int load_entries_callback(void *_, int argc, char **argv,
 	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
 
     llist_node_t *nd = init_llist_node(entry);
-    llist_insert_to_tail(g_entries, nd);
+    llist_insert_to_tail(ll, nd);
     return 0;
 }
 
@@ -110,19 +110,13 @@ void init_db(const char *file_name) {
 }
 
 
-void load_db() {
-    load_cat_table();
-    load_entry_table();
-}
-
-
-void load_entry_table() {
+void load_entries(llist_t *ll, date_context_t *dc) {
     int rc;
     char *err_msg;
-    char *sql = "SELECT * FROM Entries ORDER BY date ASC";
-    rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
+    char *sql = load_entry_list_to_sql(dc);
+    rc = sqlite3_exec(g_db, sql, load_entries_callback, ll, &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
-
+    free(sql);
     sqlite3_free(err_msg);
 }
 
@@ -153,6 +147,26 @@ int db_exec(void *data, gen_sql_fn_t gen_sql) {
 
     return rc;
 }
+
+
+char *load_entry_list_to_sql(date_context_t *dc) {
+    char *sql_to_append = "SELECT * FROM Entries WHERE date BETWEEN ";
+    char *sql = malloc(1 + (sizeof(char) * strlen(sql_to_append)));
+    sql[0] = '\0';
+    strcat(sql, sql_to_append);
+
+    char date_str[11];
+    sprintf(date_str, "%ld", dc->start);
+    append_to_sql(&sql, NULL, date_str, 0);
+
+    sprintf(date_str, "%ld", dc->end);
+    sql_to_append = " AND ";
+    append_to_sql(&sql, sql_to_append, date_str, 0);
+    sql_to_append = " ORDER BY date ASC;";
+    append_to_sql(&sql, sql_to_append, "", 0);
+    return sql;
+}
+
 
 char *entry_to_sql_insert(entry_t *e) {
 

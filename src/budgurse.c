@@ -23,6 +23,7 @@
  */
 
 #include "budgurse.h"
+#include "backend.h"
 
 int curses_mode = 1;
 state_t state = BROWSER;
@@ -62,15 +63,20 @@ void init_budgurse() {
 
     // init global array g_wins
     init_wins();
-    g_entries = init_llist();
     g_categories = init_llist();
 
     init_data_path(&db_path);
     init_db(db_path);
-    load_db();
     free(db_path);
 
-    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
+    g_categories = init_llist();
+    load_cat_table();
+
+    date_context_t *dc = init_date_context(0, 0, MONTH);
+    g_entry_list = init_entry_list(dc);
+
+    g_browser = init_browser(g_entry_list->entries, 
+	    g_entry_list->entries->tail, 0, -1);
     g_summary = init_summary(0, MONTH, -1, -1, -1, -1);
     summary_calc();
 
@@ -114,7 +120,7 @@ void end_budgurse(int status) {
     
     free_browser(g_browser);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
-    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+    free_entry_list(g_entry_list);
     free_wins(g_wins);
     free_summary(g_summary);
 

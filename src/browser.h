@@ -28,15 +28,11 @@
 #include "llist.h"
 #include "categories.h"
 #include "entries.h"
-#include "backend.h"
-#include "prompt.h"
-#include "summary.h"
-#include "help.h"
-#include "wins.h"
-#include "util.h"
-#include "status.h"
 #include "global.h"
+#include "wins.h"
 #include "budgurse.h"
+#include "prompt.h"
+#include "backend.h"
 
 static const int browser_col_widths[] = {DATE_STR_LEN, NAME_STR_LEN, 
     AMOUNT_STR_LEN, CAT_STR_LEN, SUBCAT_STR_LEN};

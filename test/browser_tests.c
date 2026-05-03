@@ -203,13 +203,17 @@ int browser_scroll_test() {
 
 int browser_append_to_tail_test() {
 
-    // empty_list
-    g_entries = init_llist();
-    // browser with room for more entries
-    g_browser = init_browser(g_entries, g_entries->tail, 0, 10);
+    // make large date context up to current date
+    init_db("test.db");
+    struct tm test_time_tm0 = {0, 0, 0, 12, 1, 2020 - 1900, 1};
+    time_t test_date = mktime(&test_time_tm0);
+    date_context_t *dc = init_date_context(test_date, 0, MONTH);
+    g_entry_list = init_entry_list(dc);
 
+    // browser with room for more entries
+    g_browser = init_browser(g_entry_list->entries, g_entry_list->entries->tail, 0, 10);
     llist_node_t *en0 = init_llist_node(NULL);
-    llist_insert_to_tail(g_entries, en0);
+    llist_insert_to_tail(g_entry_list->entries, en0);
     browser_insert(en0);
     
     mu_assert(g_browser->end == en0, "Browser", 56);
@@ -220,32 +224,32 @@ int browser_append_to_tail_test() {
 
     // append while at tail
     llist_node_t *en1 = init_llist_node(NULL);
-    llist_insert_to_tail(g_entries, en1);
+    llist_insert_to_tail(g_entry_list->entries, en1);
     browser_insert(en1);
 
     mu_assert(g_browser->end == en1, "Browser", 60);
     mu_assert(g_browser->sel == en1, "Browser", 61);
-    mu_assert(g_browser->start == g_entries->head, "Browser", 62);
+    mu_assert(g_browser->start == g_entry_list->entries->head, "Browser", 62);
     mu_assert(g_browser->num_entries == 2, "Browser", 63);
 
     // append while not at tail i.e. go to tail
     browser_scroll(2, UP); 
     llist_node_t *en2 = init_llist_node(NULL);
-    llist_insert_to_tail(g_entries, en2);
+    llist_insert_to_tail(g_entry_list->entries, en2);
     browser_insert(en2);
 
     mu_assert(g_browser->end == en2, "Browser", 64);
     mu_assert(g_browser->sel == en2, "Browser", 65);
-    mu_assert(g_browser->start == g_entries->head, "Browser", 66);
+    mu_assert(g_browser->start == g_entry_list->entries->head, "Browser", 66);
     mu_assert(g_browser->num_entries == 3, "Browser", 67);
     
     free_browser(g_browser);
     
     // browser smaller than num entries
-    g_browser = init_browser(g_entries, g_entries->tail, 0, 3);
+    g_browser = init_browser(g_entry_list->entries, g_entry_list->entries->tail, 0, 3);
 
     llist_node_t *en3 = init_llist_node(NULL);
-    llist_insert_to_tail(g_entries, en3);
+    llist_insert_to_tail(g_entry_list->entries, en3);
     llist_node_t *temp = g_browser->start;
 
     // append while at tail 
@@ -260,16 +264,20 @@ int browser_append_to_tail_test() {
     // move all context above tail
     browser_scroll(3, UP); 
     llist_node_t *en4 = init_llist_node(NULL);
-    llist_insert_to_tail(g_entries, en4);
+    llist_insert_to_tail(g_entry_list->entries, en4);
     browser_insert(en4);
 
     mu_assert(g_browser->end == en4, "Browser", 72);
     mu_assert(g_browser->sel == en4, "Browser", 73);
-    mu_assert(g_browser->start == g_entries->tail->prev->prev, "Browser", 74);
+    mu_assert(g_browser->start == g_entry_list->entries->tail->prev->prev, "Browser", 74);
     mu_assert(g_browser->num_entries == 3, "Browser", 75);
 
-    free_llist(g_entries, free);
+    free_llist(g_entry_list->entries, free);
+    free_date_context(g_entry_list->date_context);
+    free(g_entry_list);
     free_browser(g_browser);
+    sqlite3_close(g_db);
+    remove("test.db");
 
     return 0;
 }
@@ -277,9 +285,15 @@ int browser_append_to_tail_test() {
 
 int browser_pop_sel_entry_test() {
     // For this series of tests, only delete from browser (i.e. move pointers),
-    // but do not actually delete the entries from the list or db (they're not
-    // written there anyway)
+    // but do not actually delete the entries from the list or db 
     
+    // make large date context up to current date
+    init_db("test.db");
+    struct tm test_time_tm0 = {0, 0, 0, 12, 1, 2020 - 1900, 1};
+    time_t test_date = mktime(&test_time_tm0);
+    date_context_t *dc = init_date_context(test_date, 0, MONTH);
+    g_entry_list = init_entry_list(dc);
+
     llist_node_t *popped_en = NULL;
     g_entries = test_dummy_list(3);
 

@@ -22,38 +22,35 @@
  *
  */
 
-#ifndef BUDGURSE_H
-#define BUDGURSE_H
+#ifndef DATE_H
+#define DATE_H
 
 #include "global.h"
-#include "entries.h"
-#include "categories.h"
-#include "summary.h"
-#include "wins.h"
-#include "browser.h"
-#include "help.h"
-#include "date.h"
 
-extern int curses_mode;
-extern state_t state;
-// TODO: Refactor globals into master struct
-// typedef budgurse {
-//     browser_t *browser;
-//     summary_t *summary;
-//     win_t wins[NUM_WINS];
-//     llist_t *categories;
-//     entry_list_t *entry_list;
-//     sqlite3 *db;
-//     help_t *help;
-// 
-//     int curses_mode;
-//     state_t state;
-// } budgurse_t;
+extern const int days_in_mnth[12]; 
 
-void init_budgurse();
-int handle_input();
-void draw();
-int resize();
-void end_budgurse();
+typedef enum date_delin {
+    WEEK,
+    MONTH,
+    YEAR,
+} date_delin_t;
+
+typedef struct date_context {
+    time_t start;
+    time_t end;
+    bool is_abs_start;
+    bool is_abs_end;
+    date_delin_t date_delin;
+} date_context_t;
+
+date_context_t *init_date_context(time_t start, time_t end, date_delin_t d);
+void free_date_context(date_context_t *dc);
+
+// date time functions
+int check_time_bounds(int day, int month, int year);
+void clean_tm(struct tm *tm_to_clean);
+
+int date_part_from_date_delin(time_t date, date_delin_t d);
+void update_date(time_t *date, date_delin_t d, int amount);
 
 #endif
