@@ -32,16 +32,13 @@
 #include "global.h"
 #include "budgurse.h"
 
-extern sqlite3 *g_db;
-
-void load_entry_table();
-void load_entries(llist_t *ll, date_context_t *dc);
-void load_cat_table();
+void load_entries(sqlite3 *db, llist_t *ll, date_context_t *dc);
+void load_cat_table(sqlite3 *db);
 void init_data_path(char **db_path);
-void init_db(const char *file_name);
+void init_db(sqlite3 **db, const char *file_name);
 
 typedef char *(*gen_sql_fn_t) (void *);
-int db_exec(void *data, gen_sql_fn_t gen_sql);
+int db_exec(sqlite3 *db, void *data, gen_sql_fn_t gen_sql);
 
 char *load_entry_list_to_sql(date_context_t *dc);
 char *entry_to_sql_insert(entry_t *e);

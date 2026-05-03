@@ -53,14 +53,14 @@ browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_pos,
 void free_browser(browser_t* b);
 void browser_resize();
 
-int browser_handle_key(int ch);
+int browser_handle_key(budgurse_t *b, int ch);
 void browser_scroll(int num_times, dir_t dir);
 void browser_to_top();
 void browser_add_entry();
 void browser_insert(llist_node_t *en);
 void browser_edit_entry();
 void browser_del_entry();
-llist_node_t *browser_pop_sel_entry();
+llist_node_t *browser_pop_sel_entry(budgurse_t *b);
 void browser_view_sel_entry();
 
 // drawing functions

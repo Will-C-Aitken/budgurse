@@ -23,14 +23,14 @@
  */
 
 #include "budgurse.h"
-#include "backend.h"
 
 int curses_mode = 1;
 state_t state = BROWSER;
 
 int main(int argc, char *argv[]) {
 
-    init_budgurse();
+    budgurse_t *b = NULL;
+    init_budgurse(&b);
 
     while(1) {
 	draw(state);
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 	    else
 		continue;
 	}
-	if (!handle_input(ch))
+	if (!handle_input(b, ch))
 	    break;
     }
 
@@ -50,9 +50,10 @@ int main(int argc, char *argv[]) {
 }
 
 
-void init_budgurse() {
+void init_budgurse(budgurse_t **b) {
 
     char *db_path = NULL;
+    *b = malloc(sizeof(budgurse_t));
 
     // start ncurses
     initscr();
@@ -66,14 +67,14 @@ void init_budgurse() {
     g_categories = init_llist();
 
     init_data_path(&db_path);
-    init_db(db_path);
+    init_db(&(b->db), db_path);
     free(db_path);
 
     g_categories = init_llist();
-    load_cat_table();
+    load_cat_table(b->db);
 
     date_context_t *dc = init_date_context(0, 0, MONTH);
-    g_entry_list = init_entry_list(dc);
+    g_entry_list = init_entry_list(b, dc);
 
     g_browser = init_browser(g_entry_list->entries, 
 	    g_entry_list->entries->tail, 0, -1);
@@ -86,9 +87,9 @@ void init_budgurse() {
 }
 
 
-int handle_input(int ch) {
+int handle_input(budgurse_t *b, int ch) {
     switch (state) {
-	case BROWSER: return browser_handle_key(ch);
+	case BROWSER: return browser_handle_key(b, ch);
 	case SUMMARY: return summary_handle_key(ch);
 	case HELP: return help_handle_key(ch);
 	// prompt has no need to be selectable for now
@@ -116,7 +117,7 @@ int resize() {
     return 1;
 }
 
-void end_budgurse(int status) {
+void end_budgurse(budgurse_t *b, int status) {
     
     free_browser(g_browser);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
@@ -127,9 +128,10 @@ void end_budgurse(int status) {
     if (g_help)
  	free_help(g_help);
 
-    if (sqlite3_close(g_db))
+    if (sqlite3_close(b->db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",
-	    sqlite3_errmsg(g_db));
+	    sqlite3_errmsg(b->db));
+    free(b);
 
     // stop ncurses
     endwin();

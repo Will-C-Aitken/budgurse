@@ -33,27 +33,28 @@
 #include "browser.h"
 #include "help.h"
 #include "date.h"
+#include "backend.h"
 
 extern int curses_mode;
 extern state_t state;
-// TODO: Refactor globals into master struct
-// typedef budgurse {
+
+typedef budgurse {
 //     browser_t *browser;
 //     summary_t *summary;
 //     win_t wins[NUM_WINS];
 //     llist_t *categories;
 //     entry_list_t *entry_list;
-//     sqlite3 *db;
+    sqlite3 *db;
 //     help_t *help;
 // 
 //     int curses_mode;
 //     state_t state;
-// } budgurse_t;
+} budgurse_t;
 
-void init_budgurse();
-int handle_input();
+void init_budgurse(budgurse_t **b);
+int handle_input(budgurse_t *b);
 void draw();
 int resize();
-void end_budgurse();
+void end_budgurse(budgurse_t *b);
 
 #endif

@@ -24,8 +24,6 @@
 
 #include "backend.h"
 
-sqlite3 *g_db = NULL;
-
 static int load_categories_callback(void *_, int argc, char **argv, 
 	char **azColName) {
 
@@ -75,10 +73,10 @@ void init_data_path(char **db_path) {
 }
 
 
-void init_db(const char *file_name) {
+void init_db(sqlite3 **db, const char *file_name) {
 
     char *err_msg;
-    int rc = sqlite3_open(file_name, &g_db);
+    int rc = sqlite3_open(file_name, db);
     
     EXIT_IF(rc, "Failed to open database with error message: %s\n", 
 	    sqlite3_errstr(rc));
@@ -101,7 +99,7 @@ void init_db(const char *file_name) {
 	    "FOREIGN KEY (parent_id) REFERENCES Categories(id));",
 	MAX_NAME_BYTES, MAX_NOTE_BYTES, MAX_CAT_BYTES);
 
-    rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
+    rc = sqlite3_exec(*db, sql, 0, 0, &err_msg);
 
     EXIT_IF(rc, "Failed to initialize database with error message: %s\n", 
 	err_msg);
@@ -110,22 +108,22 @@ void init_db(const char *file_name) {
 }
 
 
-void load_entries(llist_t *ll, date_context_t *dc) {
+void load_entries(sqlite3 *db, llist_t *ll, date_context_t *dc) {
     int rc;
     char *err_msg;
     char *sql = load_entry_list_to_sql(dc);
-    rc = sqlite3_exec(g_db, sql, load_entries_callback, ll, &err_msg);
+    rc = sqlite3_exec(db, sql, load_entries_callback, , &err_msg);
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
     free(sql);
     sqlite3_free(err_msg);
 }
 
 
-void load_cat_table() {
+void load_cat_table(sqlite3 *db) {
     int rc;
     char *err_msg;
     char *sql = "SELECT * FROM Categories";
-    rc = sqlite3_exec(g_db, sql, load_categories_callback, NULL, &err_msg);
+    rc = sqlite3_exec(db, sql, load_categories_callback, NULL, &err_msg);
     EXIT_IF(rc, "Failed to load categories with error message: %s\n", 
 	err_msg);
     sqlite3_free(err_msg);
@@ -134,11 +132,11 @@ void load_cat_table() {
 
 // takes optional data and a function that generates an sql query which is then
 // executed
-int db_exec(void *data, gen_sql_fn_t gen_sql) {
+int db_exec(sqlite3 *db, void *data, gen_sql_fn_t gen_sql) {
     char *err_msg;
     char *sql = gen_sql(data);
     
-    int rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
+    int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
     EXIT_IF(rc, "Failed to execute sql command with error message:\n%s\n", 
 	err_msg);
 
