@@ -30,7 +30,7 @@
 
 entry_list_t *g_entry_list = NULL;
 
-entry_list_t *init_entry_list(date_context_t *dc) {
+entry_list_t *init_entry_list(budgurse_t *b, date_context_t *dc) {
     entry_list_t *el = malloc(sizeof(entry_list_t));
 
     el->entries = init_llist();
@@ -40,7 +40,7 @@ entry_list_t *init_entry_list(date_context_t *dc) {
     else
 	el->date_context = init_date_context(0, 0, MONTH);
 
-    load_entries(el->entries, dc);
+    load_entries(b->db, el->entries, dc);
 
     return el;
 }

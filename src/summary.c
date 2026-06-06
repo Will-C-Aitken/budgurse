@@ -129,7 +129,7 @@ int summary_update_on_entry(entry_t *e) {
     if (e->date > g_summary->max_date)
 	return 1;
 
-    x = date_part_from_date_delin(e->date, g_summary->date_delin);
+    x = date_part_from_date_delin(e->date, g_summary->delin);
     y = e->cat->sum_idx;
 
     summary_inc_cell(x, y, e->amount);

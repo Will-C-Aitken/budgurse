@@ -45,6 +45,7 @@ unit_tests_SOURCES = \
 	test/prompt_tests.c \
 	test/summary_tests.c \
 	test/misc_tests.c \
+	test/date_tests.c \
 	test/test_utils.c \
 	src/backend.c \
 	src/backend.h \

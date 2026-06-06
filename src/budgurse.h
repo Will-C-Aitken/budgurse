@@ -25,35 +25,23 @@
 #ifndef BUDGURSE_H
 #define BUDGURSE_H
 
-#include "global.h"
 #include "entries.h"
 #include "categories.h"
+#include "date.h"
 #include "summary.h"
 #include "wins.h"
 #include "browser.h"
 #include "help.h"
-#include "date.h"
+#include "backend.h"
+#include "status.h"
 
 extern int curses_mode;
 extern state_t state;
-// TODO: Refactor globals into master struct
-// typedef budgurse {
-//     browser_t *browser;
-//     summary_t *summary;
-//     win_t wins[NUM_WINS];
-//     llist_t *categories;
-//     entry_list_t *entry_list;
-//     sqlite3 *db;
-//     help_t *help;
-// 
-//     int curses_mode;
-//     state_t state;
-// } budgurse_t;
 
 void init_budgurse();
 int handle_input();
 void draw();
 int resize();
-void end_budgurse();
+void end_budgurse(budgurse_t *b);
 
 #endif

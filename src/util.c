@@ -194,6 +194,7 @@ uint32_t amnt_to_str(float amnt, char **str, uint32_t dec_places,
 		(num_spaces += 4) >= 0) {
 	    suffix = 'K';
 	} else {
+	    free(*str);
 	    *str = NULL;
 	    return cur_len;
 	}

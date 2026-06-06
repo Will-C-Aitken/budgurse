@@ -112,6 +112,10 @@ int misc_tests();
 int float_eq_zero_test();
 int amnt_to_str_test();
 
+// Date tests
+int date_tests();
+int init_date_context_test();
+
 // Test utility functions
 llist_t* test_dummy_list(int num_nodes);
 llist_t* test_dummy_cat_list(int num_cats);

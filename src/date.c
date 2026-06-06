@@ -24,6 +24,8 @@
 
 #include "date.h"
 
+date_context_t *g_date_context = NULL;
+
 const int days_in_mnth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 // pass 0, 0 for default start and end
@@ -47,7 +49,7 @@ date_context_t *init_date_context(time_t start, time_t end, date_delin_t d) {
     if (!start) {
 	start_tm = end_tm;
 	start_tm.tm_year -= 1;
-	start_tm.tm_mon -= 1;
+	start_tm.tm_mon = (start_tm.tm_mon - 1) % 12;
     } else
 	start_tm = *localtime(&start);
 

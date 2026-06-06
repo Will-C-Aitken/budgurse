@@ -92,7 +92,7 @@ int browser_handle_key(int ch) {
 	    browser_add_entry();
 	    break;
 	case 'd':
-	    browser_del_entry();
+	    browser_del_entry(b);
 	    break;
 	case 'e':
 	    browser_edit_entry();
@@ -250,7 +250,7 @@ void browser_edit_entry() {
 void browser_del_entry() {
     llist_node_t *en_to_del = browser_pop_sel_entry();
     if (en_to_del) {
-	db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
+	db_exec(b->db, en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
 	llist_del_node(g_entry_list->entries, en_to_del, (llist_free_data_fn_t)free_entry);
     }
 }

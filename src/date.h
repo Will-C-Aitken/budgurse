@@ -43,6 +43,8 @@ typedef struct date_context {
     date_delin_t date_delin;
 } date_context_t;
 
+extern date_context_t *g_date_context;
+
 date_context_t *init_date_context(time_t start, time_t end, date_delin_t d);
 void free_date_context(date_context_t *dc);
 

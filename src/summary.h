@@ -28,13 +28,17 @@
 #include "entries.h"
 #include "categories.h"
 #include "date.h"
+#include "wins.h"
+#include "browser.h"
+#include "util.h"
+#include "status.h"
 #include "global.h"
 #include "budgurse.h"
 
 extern const char *mnth_hdrs[];
 
 typedef struct summary {
-    date_delin_t date_delin;
+    date_delin_t delin;
     int num_cols;
     int num_rows;
     float *data;

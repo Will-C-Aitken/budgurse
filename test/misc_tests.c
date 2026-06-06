@@ -48,7 +48,7 @@ int float_eq_zero_test() {
 int amnt_to_str_test() {
     char *test_str = NULL;
     int dec_places = 2;
-    int max_len = 13;
+    int max_len = 14;
 
     mu_assert(amnt_to_str(0.006, &test_str, dec_places, max_len) == 7, "Misc", 27);
     mu_assert(strcmp(test_str, " $0.01 ") == 0, "Misc", 28);
@@ -99,7 +99,7 @@ int amnt_to_str_test() {
     mu_assert(strcmp(test_str, " $999,489 ") == 0, "Misc", 50);
     free(test_str);
 
-    max_len = 6;
+    max_len = 7;
     mu_assert(amnt_to_str(999488.5, &test_str, dec_places, max_len) == 6, "Misc", 51);
     mu_assert(strcmp(test_str, " $999K") == 0, "Misc", 52);
     free(test_str);
@@ -118,14 +118,16 @@ int amnt_to_str_test() {
 
     // does not round up due to float precision limitations
     mu_assert(amnt_to_str(-500.00, &test_str, 0, 5) == 0, "Misc", 59);
+    free(test_str);
 
     mu_assert(amnt_to_str(-500.01, &test_str, 0, 5) == 4, "Misc", 60);
     mu_assert(strcmp(test_str, "-$1K") == 0, "Misc", 61);
     free(test_str);
 
     mu_assert(amnt_to_str(1.0125, &test_str, 3, 5) == 0, "Misc", 61);
+    free(test_str);
 
-    mu_assert(amnt_to_str(40.25, &test_str, 2, 7) == 7, "Misc", 62);
+    mu_assert(amnt_to_str(40.25, &test_str, 2, 8) == 7, "Misc", 62);
     mu_assert(strcmp(test_str, " $0.04K") == 0, "Misc", 63);
     free(test_str);
 
