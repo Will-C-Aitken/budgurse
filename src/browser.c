@@ -79,7 +79,7 @@ void browser_resize() {
     llist_node_t *prior_sel = g_browser->sel;
     free_browser(g_browser);
     // just move sel to middle of browser
-    g_browser = init_browser(g_entry_list->entries, prior_sel, -1, -1);
+    g_browser = init_browser(g_entries, prior_sel, -1, -1);
 }
 
 
@@ -92,7 +92,7 @@ int browser_handle_key(int ch) {
 	    browser_add_entry();
 	    break;
 	case 'd':
-	    browser_del_entry(b);
+	    browser_del_entry();
 	    break;
 	case 'e':
 	    browser_edit_entry();
@@ -103,7 +103,7 @@ int browser_handle_key(int ch) {
 	    break;
 	case 'G':
 	    free_browser(g_browser);
-	    g_browser = init_browser(g_entry_list->entries, g_entry_list->entries->tail, 0, -1);
+	    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
 	case 'j':
 	case KEY_DOWN:
 	    browser_scroll(1, DOWN);
@@ -163,12 +163,11 @@ void browser_scroll(int num_times, dir_t dir) {
 }
 
 
-// TODO: check if more data
 void browser_to_top() {
-    if (g_browser->num_entries < 2 || g_browser->sel == g_entry_list->entries->head)
+    if (g_browser->num_entries < 2 || g_browser->sel == g_entries->head)
 	return;
 
-    g_browser->start = g_browser->sel = g_browser->end = g_entry_list->entries->head;
+    g_browser->start = g_browser->sel = g_browser->end = g_entries->head;
     for (int i = 0; i < g_browser->num_entries - 1; i++)
 	g_browser->end = g_browser->end->next;
 }
@@ -234,8 +233,8 @@ void browser_insert(llist_node_t *en) {
 	g_browser->num_entries++;
 
 	g_browser->sel = en;
-	g_browser->start = g_entry_list->entries->head;
-	g_browser->end = g_entry_list->entries->tail;
+	g_browser->start = g_entries->head;
+	g_browser->end = g_entries->tail;
 	return;
     }
 }
@@ -250,8 +249,8 @@ void browser_edit_entry() {
 void browser_del_entry() {
     llist_node_t *en_to_del = browser_pop_sel_entry();
     if (en_to_del) {
-	db_exec(b->db, en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
-	llist_del_node(g_entry_list->entries, en_to_del, (llist_free_data_fn_t)free_entry);
+	db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
+	llist_del_node(g_entries, en_to_del, (llist_free_data_fn_t)free_entry);
     }
 }
 
@@ -267,7 +266,7 @@ llist_node_t *browser_pop_sel_entry() {
 
     // check if removed entry will be replaced by another in browser (i.e.
     // there's more nodes that aren't visible). In this case we want to move UP
-    if (g_entry_list->entries->num_nodes > g_browser->num_entries) {
+    if (g_entries->num_nodes > g_browser->num_entries) {
 	// start needs to go up to show next node
 	llist_node_traverse(&g_browser->start, UP);
 

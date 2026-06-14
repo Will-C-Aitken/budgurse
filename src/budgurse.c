@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 	    else
 		continue;
 	}
-	if (!handle_input(b, ch))
+	if (!handle_input(ch))
 	    break;
     }
 
@@ -48,10 +48,9 @@ int main(int argc, char *argv[]) {
 }
 
 
-void init_budgurse(budgurse_t **b) {
+void init_budgurse() {
 
     char *db_path = NULL;
-    *b = malloc(sizeof(budgurse_t));
 
     // start ncurses
     initscr();
@@ -62,7 +61,6 @@ void init_budgurse(budgurse_t **b) {
 
     // init global array g_wins
     init_wins();
-    g_categories = init_llist();
 
     g_date_context = init_date_context(0, 0, MONTH);
     g_entries = init_llist();
@@ -73,14 +71,7 @@ void init_budgurse(budgurse_t **b) {
     load_db(g_date_context);
     free(db_path);
 
-    g_categories = init_llist();
-    load_cat_table(b->db);
-
-    date_context_t *dc = init_date_context(0, 0, MONTH);
-    g_entry_list = init_entry_list(b, dc);
-
-    g_browser = init_browser(g_entry_list->entries, 
-	    g_entry_list->entries->tail, 0, -1);
+    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
     g_summary = init_summary(0, MONTH, -1, -1, -1, -1);
     summary_calc();
 
@@ -90,9 +81,9 @@ void init_budgurse(budgurse_t **b) {
 }
 
 
-int handle_input(budgurse_t *b, int ch) {
+int handle_input(int ch) {
     switch (state) {
-	case BROWSER: return browser_handle_key(b, ch);
+	case BROWSER: return browser_handle_key(ch);
 	case SUMMARY: return summary_handle_key(ch);
 	case HELP: return help_handle_key(ch);
 	// prompt has no need to be selectable for now
@@ -120,21 +111,20 @@ int resize() {
     return 1;
 }
 
-void end_budgurse(budgurse_t *b, int status) {
+void end_budgurse(int status) {
     
     free_browser(g_browser);
     free_llist(g_categories, (llist_free_data_fn_t)free_category);
-    free_entry_list(g_entry_list);
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
     free_wins(g_wins);
     free_summary(g_summary);
 
     if (g_help)
  	free_help(g_help);
 
-    if (sqlite3_close(b->db))
+    if (sqlite3_close(g_db))
 	ERROR_MSG("Failed to properly close database with error message: %s\n",
-	    sqlite3_errmsg(b->db));
-    free(b);
+	    sqlite3_errmsg(g_db));
 
     // stop ncurses
     endwin();

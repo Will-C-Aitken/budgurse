@@ -24,6 +24,8 @@
 
 #include "backend.h"
 
+sqlite3 *g_db = NULL;
+
 static int load_categories_callback(void *_, int argc, char **argv, 
 	char **azColName) {
 
@@ -36,7 +38,7 @@ static int load_categories_callback(void *_, int argc, char **argv,
 }
 
 
-static int load_entries_callback(void *ll, int argc, char **argv, 
+static int load_entries_callback(void *_, int argc, char **argv,
 	char **azColName) {
 
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
@@ -44,7 +46,7 @@ static int load_entries_callback(void *ll, int argc, char **argv,
 	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
 
     llist_node_t *nd = init_llist_node(entry);
-    llist_insert_to_tail(ll, nd);
+    llist_insert_to_tail(g_entries, nd);
     return 0;
 }
 
@@ -73,10 +75,10 @@ void init_data_path(char **db_path) {
 }
 
 
-void init_db(sqlite3 **db, const char *file_name) {
+void init_db(const char *file_name) {
 
     char *err_msg;
-    int rc = sqlite3_open(file_name, db);
+    int rc = sqlite3_open(file_name, &g_db);
     
     EXIT_IF(rc, "Failed to open database with error message: %s\n", 
 	    sqlite3_errstr(rc));
@@ -99,7 +101,7 @@ void init_db(sqlite3 **db, const char *file_name) {
 	    "FOREIGN KEY (parent_id) REFERENCES Categories(id));",
 	MAX_NAME_BYTES, MAX_NOTE_BYTES, MAX_CAT_BYTES);
 
-    rc = sqlite3_exec(*db, sql, 0, 0, &err_msg);
+    rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
 
     EXIT_IF(rc, "Failed to initialize database with error message: %s\n", 
 	err_msg);
@@ -108,7 +110,7 @@ void init_db(sqlite3 **db, const char *file_name) {
 }
 
 
-void load_db() {
+void load_db(date_context_t *dc) {
     load_cat_table();
     load_entry_table(g_date_context);
 }
@@ -118,8 +120,6 @@ void load_entry_table(date_context_t *dc) {
     int rc;
     char *err_msg;
     char *sql = load_entry_list_to_sql(dc);
-    
-    // TODO char *sql = "SELECT * FROM Entries ORDER BY date ASC";
 
     rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
 
@@ -129,7 +129,7 @@ void load_entry_table(date_context_t *dc) {
 }
 
 
-void load_cat_table(sqlite3 *db) {
+void load_cat_table() {
     int rc;
     char *err_msg;
     char *sql = "SELECT * FROM Categories";
@@ -144,11 +144,11 @@ void load_cat_table(sqlite3 *db) {
 
 // takes optional data and a function that generates an sql query which is then
 // executed
-int db_exec(sqlite3 *db, void *data, gen_sql_fn_t gen_sql) {
+int db_exec(void *data, gen_sql_fn_t gen_sql) {
     char *err_msg;
     char *sql = gen_sql(data);
     
-    int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+    int rc = sqlite3_exec(g_db, sql, 0, 0, &err_msg);
     EXIT_IF(rc, "Failed to execute sql command with error message:\n%s\n", 
 	err_msg);
 
@@ -206,7 +206,7 @@ char *entry_to_sql_insert(entry_t *e) {
     sprintf(amount_str, "%0.2f", e->amount);
     append_to_sql(&sql, sql_to_append, amount_str, 0);
 
-    char category_id_str[3];
+    char category_id_str[10];
     sprintf(category_id_str, "%d", e->cat->id);
     append_to_sql(&sql, sql_to_append, category_id_str, 0);
 
@@ -239,7 +239,7 @@ char *edit_entry_to_sql_update(entry_t *e) {
     append_to_sql(&sql, sql_to_append, amount_str, 0);
 
     sql_to_append = ", category_id = ";
-    char category_id_str[3];
+    char category_id_str[10];
     sprintf(category_id_str, "%d", e->cat->id);
     append_to_sql(&sql, sql_to_append, category_id_str, 0);
 

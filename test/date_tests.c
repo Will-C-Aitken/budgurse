@@ -1,6 +1,6 @@
 /* budgurse - budgeting with curses
  *
- * Copyright (c) 2025 W. C. Aitken 
+ * Copyright (c) 2025-2026 W. C. Aitken 
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -22,26 +22,29 @@
  *
  */
 
-#ifndef BUDGURSE_H
-#define BUDGURSE_H
+#include "test.h"
 
-#include "entries.h"
-#include "categories.h"
-#include "date.h"
-#include "summary.h"
-#include "wins.h"
-#include "browser.h"
-#include "help.h"
-#include "backend.h"
-#include "status.h"
+int date_tests() {
+    mu_run_test(init_date_context_test);
+    return 0;
+}
 
-extern int curses_mode;
-extern state_t state;
+int init_date_context_test() {
+    date_context_t *dc = init_date_context(0, 0, MONTH);
+    time_t cur_time = time(NULL);
+    struct tm cur_tm = *localtime(&cur_time);
+    struct tm end_tm = *localtime(&dc->end);
+    struct tm start_tm = *localtime(&dc->start);
 
-void init_budgurse();
-int handle_input();
-void draw();
-int resize();
-void end_budgurse();
+    mu_assert(end_tm.tm_mday == cur_tm.tm_mday, "Date", 1);
+    mu_assert(end_tm.tm_mon == cur_tm.tm_mon, "Date", 2);
+    mu_assert(end_tm.tm_year == cur_tm.tm_year, "Date", 3);
 
-#endif
+    mu_assert(start_tm.tm_mday == 1, "Date", 4);
+    mu_assert(start_tm.tm_mon == (end_tm.tm_mon - 1) % 12, "Date", 5);
+    mu_assert(start_tm.tm_year == cur_tm.tm_year - 1, "Date", 6);
+
+    free_date_context(dc);
+
+    return 0;
+}

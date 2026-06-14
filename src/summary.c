@@ -45,7 +45,7 @@ summary_t* init_summary(time_t max_date, date_delin_t d, int height, int width,
 	s->max_date = max_date;
     int num_cols = summary_set_date_bounds(&s->max_date, &s->min_date, d);
 
-    s->date_delin = d;
+    s->delin = d;
 
     if (height == -1)
 	height = g_wins[SUMMARY].h;
@@ -97,15 +97,15 @@ void free_summary(summary_t* s) {
 
 
 void summary_calc() {
-    EXIT_IF(!g_entry_list->entries, "Entries must be initialized before calculating "
+    EXIT_IF(!g_entries, "Entries must be initialized before calculating "
 	"summary\n");
 
     summary_clear();
 
-    if (g_entry_list->entries->num_nodes == 0)
+    if (g_entries->num_nodes == 0)
 	return;
 
-    llist_node_t *curr_en = g_entry_list->entries->tail;
+    llist_node_t *curr_en = g_entries->tail;
     entry_t *e;
 
     while (curr_en) {
@@ -194,7 +194,7 @@ void summary_reset(time_t max_date, date_delin_t d, int cur_x, int cur_y) {
 }
 
 void summary_resize() {
-    summary_reset(g_summary->max_date, g_summary->date_delin, g_summary->x_sel, 
+    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
 	g_summary->y_sel);
     summary_calc();
 }
@@ -240,7 +240,7 @@ void summary_draw() {
     mvwaddch(g_wins[SUMMARY].win, 2, vert_idx_2, ACS_PLUS);
     mvwaddch(g_wins[SUMMARY].win, 2, g_wins[SUMMARY].w - 1, ACS_RTEE);
 
-    switch (g_summary->date_delin) {
+    switch (g_summary->delin) {
 	case WEEK: 
 	    // To be filled in when WEEK is implemented
 	    break;
@@ -344,7 +344,7 @@ void summary_draw_header() {
     mvwaddch(g_wins[SUMMARY].win, 1, CAT_STR_LEN + 3, ACS_VLINE);
 
     for (int i = x_start; i <= x_end; i++) {
-	switch (g_summary->date_delin) {
+	switch (g_summary->delin) {
 	    case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	    case MONTH: 
 		// always print header
@@ -484,7 +484,7 @@ void summary_del_category() {
     db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
     cat_del_from_llist(g_categories, sel_cat);
 
-    summary_reset(g_summary->max_date, g_summary->date_delin, g_summary->x_sel, 
+    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
 	g_summary->y_sel);
     summary_calc();
 }
