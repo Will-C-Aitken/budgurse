@@ -17,6 +17,7 @@ src/.deps/
 src/.dirstamp
 
 obj
+build
 
 unit_tests
 test-driver
