@@ -31,40 +31,56 @@ const int days_in_mnth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 // pass 0, 0 for default start and end
 date_context_t *init_date_context(time_t start, time_t end, date_delin_t d) {
 
+    struct tm curr_tm, end_tm, start_tm;
+    time_t curr_time = time(NULL);
+
     date_context_t *dc = malloc(sizeof(date_context_t));
-
     dc->date_delin = d;
+    curr_tm = *localtime(&curr_time);
 
-    // default to current date
-    if (!end)
-	end = time(NULL);
+    // Default end if neither parameter is current day. Default range is 1 year
+    if (!end) {
+	if (!start) {
+	    end_tm = curr_tm;
+	} else {
+	    start_tm = *localtime(&start);
+	    end_tm = start_tm;
+	    end_tm.tm_year += 1;
+	    end_tm.tm_mon = (end_tm.tm_mon - 1) % 12;
+	}
+    } else {
+	end_tm = *localtime(&end);
+    }
 
-    struct tm end_tm = *localtime(&end);
-    clean_tm(&end_tm);
-    dc->end = mktime(&end_tm);
-
-    struct tm start_tm;
-
-    // default to 12 months
     if (!start) {
 	start_tm = end_tm;
 	start_tm.tm_year -= 1;
-	start_tm.tm_mon = (start_tm.tm_mon - 1) % 12;
-    } else
+	start_tm.tm_mon = (start_tm.tm_mon + 1) % 12;
+    } else {
 	start_tm = *localtime(&start);
+    }
 
-    clean_tm(&start_tm);
 
     switch (d) {
-	// trim to first day of start month
+	// trim to first day of start month and last day of end month
 	case MONTH: 
 	    start_tm.tm_mday = 1;
+	    end_tm.tm_mday = days_in_mnth[end_tm.tm_mon];
 	    break;
 	default: 
 	    break;
     }
 
+    clean_tm(&start_tm);
+    clean_tm(&end_tm);
+
     dc->start = mktime(&start_tm);
+    dc->end = mktime(&end_tm);
+
+    if (dc->start > dc->end) {
+	free(dc);
+	return NULL;
+    }
 
     // TODO write functions for
     dc->is_abs_start = true;
