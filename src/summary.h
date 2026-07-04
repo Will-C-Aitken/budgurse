@@ -38,7 +38,6 @@
 extern const char *mnth_hdrs[];
 
 typedef struct summary {
-    date_delin_t delin;
     int num_cols;
     int num_rows;
     float *data;
@@ -48,23 +47,20 @@ typedef struct summary {
     int y_start;
     int y_sel;
     int y_end;
-    time_t min_date;
-    time_t max_date;
     category_t **cat_array;
 } summary_t;
 
 extern summary_t *g_summary;
 
-summary_t* init_summary(time_t n_date, date_delin_t d, int height, int width,
-	int sel_x, int sel_y);
+summary_t* init_summary(int height, int width, int sel_x, int sel_y);
 void free_summary(summary_t* s);
 
 void summary_calc();
 int summary_update_on_entry(entry_t *e);
 void summary_inc_cell(int x, int y, float value);
-int summary_set_date_bounds(time_t *n_date, time_t *o_date, date_delin_t d);
+int summary_set_cols();
 void summary_clear();
-void summary_reset(time_t max_date, date_delin_t d, int cur_x, int cur_y);
+void summary_reset(int cur_x, int cur_y);
 void summary_resize();
 
 void summary_draw();

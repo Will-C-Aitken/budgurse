@@ -62,7 +62,10 @@ void init_budgurse() {
     // init global array g_wins
     init_wins();
 
-    g_date_context = init_date_context(0, 0, MONTH);
+    struct tm tm1 = {.tm_sec=0, .tm_min=0, .tm_hour=0, .tm_mday=12, 
+	.tm_mon=6, .tm_year=2026 - 1900, .tm_isdst=1}; 
+    time_t t = mktime(&tm1);
+    g_date_context = init_date_context(0, t, MONTH);
     g_entries = init_llist();
     g_categories = init_llist();
 
@@ -72,7 +75,7 @@ void init_budgurse() {
     free(db_path);
 
     g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
-    g_summary = init_summary(0, MONTH, -1, -1, -1, -1);
+    g_summary = init_summary(-1, -1, -1, -1);
     summary_calc();
 
     resize();

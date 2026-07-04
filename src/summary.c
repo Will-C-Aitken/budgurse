@@ -29,23 +29,20 @@ const char *mnth_hdrs[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 
-summary_t* init_summary(time_t max_date, date_delin_t d, int height, int width, 
-	int sel_x, int sel_y) {
+summary_t* init_summary(int height, int width, int sel_x, int sel_y) {
 
     EXIT_IF(!g_categories, "Categories must be initialized before summary\n");
-    EXIT_IF(d == WEEK, "Week delineation not implemented yet. Exiting\n");
-    EXIT_IF(d == YEAR, "Year delineation not implemented yet. Exiting\n");
+    EXIT_IF(!g_date_context, 
+	    "Date context must be initialized before summary\n");
+    EXIT_IF(g_date_context->date_delin == WEEK, 
+	    "Week delineation not implemented yet. Exiting\n");
+    EXIT_IF(g_date_context->date_delin == YEAR, 
+	    "Year delineation not implemented yet. Exiting\n");
 
     summary_t *s = malloc(sizeof(summary_t));
 
-    // if no supplied date, use current date as newest in summary
-    if (!max_date)
-	s->max_date = time(NULL);
-    else
-	s->max_date = max_date;
-    int num_cols = summary_set_date_bounds(&s->max_date, &s->min_date, d);
-
-    s->delin = d;
+    int num_cols = summary_set_cols();
+    EXIT_IF(num_cols == 0, "Invalid summary config Number of Columns\n");
 
     if (height == -1)
 	height = g_wins[SUMMARY].h;
@@ -110,26 +107,18 @@ void summary_calc() {
 
     while (curr_en) {
 	e = (entry_t*)curr_en->data;
-	// end early if past earliest date in sum 
-	if (summary_update_on_entry(e) == -1)
-	    return;
+	summary_update_on_entry(e);
 	curr_en = curr_en->prev; 
     }
 }
 
 
-// returns -1 if entry is before summary bounds, 1 if beyond, and 0 if in
 int summary_update_on_entry(entry_t *e) {
     int x, y;
     int max_x = g_summary->num_cols - 1;
     int max_y = g_summary->num_rows - 1;
 
-    if (e->date < g_summary->min_date)
-	return -1; 
-    if (e->date > g_summary->max_date)
-	return 1;
-
-    x = date_part_from_date_delin(e->date, g_summary->delin);
+    x = date_part_from_date_delin(e->date, g_date_context->date_delin);
     y = e->cat->sum_idx;
 
     summary_inc_cell(x, y, e->amount);
@@ -158,44 +147,34 @@ void summary_inc_cell(int x, int y, float value) {
 }
 
 
-// returns num cols for between max_date and min_date (inclusive)
-int summary_set_date_bounds(time_t *max_date, time_t *min_date, date_delin_t d) {
-    struct tm max_tm = *localtime(max_date);
-    struct tm min_tm;
-    int num_cols;
+// returns num cols within g_date_context
+int summary_set_cols() {
+    struct tm end_tm = *localtime(&g_date_context->end);
+    struct tm start_tm = *localtime(&g_date_context->start);
+    date_delin_t d = g_date_context->date_delin;
+
+    int num_cols = 0;
 
     switch (d) {
 	case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	case MONTH:
-	    num_cols = 12; 
-	    max_tm.tm_mday=days_in_mnth[max_tm.tm_mon];
-	    min_tm = max_tm;
-	    min_tm.tm_mon = max_tm.tm_mon + 1;
-	    min_tm.tm_year = max_tm.tm_year - 1;
-	    if (min_tm.tm_mon > 11)
-		min_tm.tm_year++;
-	    min_tm.tm_mon %= 12;
-	    min_tm.tm_mday = 1;
+	    num_cols = (12 * (end_tm.tm_year - start_tm.tm_year)) + 
+		        (end_tm.tm_mon - start_tm.tm_mon) + 1; 
 	    break;
 	case YEAR: EXIT("Year delineation not implemented yet. Exiting\n");
     }
 
-    clean_tm(&max_tm);
-    clean_tm(&min_tm);
-    *max_date = mktime(&max_tm);
-    *min_date = mktime(&min_tm);
     return num_cols; 
 }
 
 
-void summary_reset(time_t max_date, date_delin_t d, int cur_x, int cur_y) {
+void summary_reset(int cur_x, int cur_y) {
     free_summary(g_summary);
-    g_summary = init_summary(max_date, d, -1, -1, cur_x, cur_y);
+    g_summary = init_summary(-1, -1, cur_x, cur_y);
 }
 
 void summary_resize() {
-    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
-	g_summary->y_sel);
+    summary_reset(g_summary->x_sel, g_summary->y_sel);
     summary_calc();
 }
 
@@ -240,12 +219,13 @@ void summary_draw() {
     mvwaddch(g_wins[SUMMARY].win, 2, vert_idx_2, ACS_PLUS);
     mvwaddch(g_wins[SUMMARY].win, 2, g_wins[SUMMARY].w - 1, ACS_RTEE);
 
-    switch (g_summary->delin) {
+    switch (g_date_context->date_delin) {
 	case WEEK: 
 	    // To be filled in when WEEK is implemented
 	    break;
 	case MONTH: 
-	    date_offset = date_part_from_date_delin(g_summary->max_date, MONTH);
+	    date_offset = date_part_from_date_delin(g_date_context->end, 
+						    MONTH);
 	    break;
 	case YEAR: 
 	    // To be filled in when YEAR is implemented
@@ -338,13 +318,13 @@ void summary_draw() {
 void summary_draw_header() {
     int x_start = g_summary->x_start;
     int x_end = g_summary->x_end;
-    int curr_yr = date_part_from_date_delin(g_summary->max_date, YEAR);
-    int n_mnth = date_part_from_date_delin(g_summary->max_date, MONTH);
+    int curr_yr = date_part_from_date_delin(g_date_context->end, YEAR);
+    int n_mnth = date_part_from_date_delin(g_date_context->end, MONTH);
 
     mvwaddch(g_wins[SUMMARY].win, 1, CAT_STR_LEN + 3, ACS_VLINE);
 
     for (int i = x_start; i <= x_end; i++) {
-	switch (g_summary->delin) {
+	switch (g_date_context->date_delin) {
 	    case WEEK: EXIT("Week delineation not implemented yet. Exiting\n");
 	    case MONTH: 
 		// always print header
@@ -484,14 +464,14 @@ void summary_del_category() {
     db_exec(sel_cat, (gen_sql_fn_t)del_cat_to_sql);
     cat_del_from_llist(g_categories, sel_cat);
 
-    summary_reset(g_summary->max_date, g_summary->delin, g_summary->x_sel, 
-	g_summary->y_sel);
+    summary_reset(g_summary->x_sel, g_summary->y_sel);
     summary_calc();
 }
 
 
 int summary_handle_key(int ch) {
     EXIT_IF(!g_summary, "Summary not initialized");
+    date_context_t *new_dc = NULL;
 
     switch (ch) {
 	case '0':
@@ -530,25 +510,27 @@ int summary_handle_key(int ch) {
 	    summary_scroll(1, RIGHT);
 	    break;
 	case 'm':
-	    update_date(&g_summary->min_date, MONTH, 1);
-	    update_date(&g_summary->max_date, MONTH, 1);
+	    new_dc = update_date_context(MONTH, 1);
+	    browser_update_context(new_dc);
+	    free(g_date_context);
+	    g_date_context = new_dc;
 	    summary_calc();
 	    break;
 	case 'M':
-	    update_date(&g_summary->min_date, MONTH, -1);
-	    update_date(&g_summary->max_date, MONTH, -1);
+	    new_dc = update_date_context(MONTH, -1);
+	    browser_update_context(new_dc);
+	    free(g_date_context);
+	    g_date_context = new_dc;
 	    summary_calc();
 	    break;
 	case 'q':
 	    return 0;
 	case 'y':
-	    update_date(&g_summary->min_date, YEAR, 1);
-	    update_date(&g_summary->max_date, YEAR, 1);
+	    update_date_context(YEAR, 1);
 	    summary_calc();
 	    break;
 	case 'Y':
-	    update_date(&g_summary->min_date, YEAR, -1);
-	    update_date(&g_summary->max_date, YEAR, -1);
+	    update_date_context(YEAR, -1);
 	    summary_calc();
 	    break;
 	case '?':

@@ -75,6 +75,13 @@ browser_t* init_browser(llist_t *el, llist_node_t *sel_node, int sel_to_end,
 }
 
 
+void free_browser(browser_t* b) {
+    if (!b)
+	return;
+    free(b);
+}
+
+
 void browser_resize() {
     llist_node_t *prior_sel = g_browser->sel;
     free_browser(g_browser);
@@ -134,9 +141,6 @@ int browser_handle_key(int ch) {
 
 
 void browser_scroll(int num_times, dir_t dir) {
-
-    if (g_browser->num_entries < 1)
-	return;
 
     while (num_times > 0) {
 
@@ -247,7 +251,9 @@ void browser_edit_entry() {
 
 
 void browser_del_entry() {
+
     llist_node_t *en_to_del = browser_pop_sel_entry();
+
     if (en_to_del) {
 	db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
 	llist_del_node(g_entries, en_to_del, (llist_free_data_fn_t)free_entry);
@@ -313,10 +319,93 @@ void browser_view_sel_entry() {
 }
 
 
-void free_browser(browser_t* b) {
-    if (!b)
+void browser_update_context(const date_context_t *new_dc) {
+
+    // If new context does not overlap with existing, reinit
+    if (new_dc->start > g_date_context->end ||
+	new_dc->end < g_date_context->start) {
+	free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+	free_browser(g_browser);
+	// load with new context for fresh g_entries
+	load_entry_table(g_date_context);
+
+	if (new_dc->start > g_date_context->end) 
+	    g_browser = init_browser(g_entries, g_entries->head, 0, -1);
+	else
+	    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
+
 	return;
-    free(b);
+    }
+
+    // Otherwise preserve prior sel and pos if possible
+    // llist_node_t *prior_sel = g_browser->sel;
+
+    if (new_dc->start > g_date_context->start) {
+        while(g_entries->num_nodes) {
+            entry_t *head_entry = (entry_t *)g_entries->head->data;
+            if (head_entry->date < new_dc->start) {
+         	// shift browser down if deleting from start
+         	if (g_entries->head == g_browser->start) {
+		    // At end. destroy browser
+		    if (!g_entries->head->next) {
+			llist_del_head(g_entries, 
+				       (llist_free_data_fn_t)free_entry);
+			free_browser(g_browser);
+			g_browser=init_browser(NULL, NULL, -1, -1);
+			break;
+		    }
+
+		    llist_node_traverse(&g_browser->start, DOWN);
+
+		    // At end of entries
+		    if (g_browser->end == g_entries->tail)
+			g_browser->num_entries--;
+		    else 
+			llist_node_traverse(&g_browser->end, DOWN);
+
+         	    // only update sel if it is start
+         	    if (g_entries->head == g_browser->sel)
+			llist_node_traverse(&g_browser->sel, DOWN);
+         	}
+        	llist_del_head(g_entries, (llist_free_data_fn_t)free_entry);
+            } else
+		break;
+        }
+    }
+    
+
+    if (new_dc->end < g_date_context->end) {
+        while(g_entries->num_nodes) {
+            entry_t *tail_entry = (entry_t *)g_entries->tail->data;
+            if (tail_entry->date > new_dc->end) {
+         	// shift browser up if deleting from end
+         	if (g_entries->tail == g_browser->end) {
+		    // down to one entry. delete it and reinit as empty
+		    if (!g_entries->tail->prev) {
+			llist_del_tail(g_entries, 
+				       (llist_free_data_fn_t)free_entry);
+			free_browser(g_browser);
+			g_browser=init_browser(NULL, NULL, -1, -1);
+			break;
+		    }
+
+		    llist_node_traverse(&g_browser->end, UP);
+
+		    // At top of entries
+		    if (g_browser->start == g_entries->head)
+			g_browser->num_entries--;
+		    else 
+			llist_node_traverse(&g_browser->start, UP);
+
+         	    // only update sel if it is start
+         	    if (g_entries->tail == g_browser->sel)
+			llist_node_traverse(&g_browser->sel, UP);
+         	}
+        	llist_del_tail(g_entries, (llist_free_data_fn_t)free_entry);
+            } else
+		break;
+        }
+    }
 }
 
 

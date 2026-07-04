@@ -47,12 +47,13 @@ extern date_context_t *g_date_context;
 
 date_context_t *init_date_context(time_t start, time_t end, date_delin_t d);
 void free_date_context(date_context_t *dc);
+date_context_t *update_date_context(date_delin_t d, int amount);
+void date_update_tm(struct tm *tm, date_delin_t d, int amount);
 
 // date time functions
 int check_time_bounds(int day, int month, int year);
 void clean_tm(struct tm *tm_to_clean);
 
 int date_part_from_date_delin(time_t date, date_delin_t d);
-void update_date(time_t *date, date_delin_t d, int amount);
 
 #endif

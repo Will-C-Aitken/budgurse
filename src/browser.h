@@ -62,6 +62,7 @@ void browser_edit_entry();
 void browser_del_entry();
 llist_node_t *browser_pop_sel_entry();
 void browser_view_sel_entry();
+void browser_update_context(const date_context_t *new_dc);
 
 // drawing functions
 void browser_draw();

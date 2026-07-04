@@ -131,26 +131,39 @@ int date_part_from_date_delin(time_t date, date_delin_t d) {
 }
 
 
-void update_date(time_t *date, date_delin_t d, int amount) { 
-    struct tm *tm_from_date = localtime(date);
+date_context_t *update_date_context(date_delin_t d, int amount) { 
+    struct tm new_start_tm = *localtime(&g_date_context->start);
+    struct tm new_end_tm = *localtime(&g_date_context->end);
+    time_t new_start, new_end;
+
+    date_update_tm(&new_start_tm, d, amount);
+    date_update_tm(&new_end_tm, d, amount);
+
+    new_start = mktime(&new_start_tm);
+    new_end = mktime(&new_end_tm);
+    date_context_t *new_dc = init_date_context(new_start, new_end,
+					       g_date_context->date_delin);
+    return new_dc;
+}
+
+
+void date_update_tm(struct tm *tm, date_delin_t d, int amount) {
 
     switch (d) {
        case WEEK: 
            break;
        case MONTH:
-           tm_from_date->tm_mon = tm_from_date->tm_mon + amount;
-           if (tm_from_date->tm_mon >= 0)
-               tm_from_date->tm_year += tm_from_date->tm_mon/12; 
+           tm->tm_mon = tm->tm_mon + amount;
+           if (tm->tm_mon >= 0)
+               tm->tm_year += tm->tm_mon/12; 
            else
-               tm_from_date->tm_year += (tm_from_date->tm_mon/12) - 1; 
-           tm_from_date->tm_mon = (tm_from_date->tm_mon + 12) % 12; 
-           if (tm_from_date->tm_mday > 1)
-               tm_from_date->tm_mday = days_in_mnth[tm_from_date->tm_mon];
+               tm->tm_year += (tm->tm_mon/12) - 1; 
+           tm->tm_mon = (tm->tm_mon + 12) % 12; 
+           if (tm->tm_mday > 1)
+               tm->tm_mday = days_in_mnth[tm->tm_mon];
            break;
        case YEAR: 
-           tm_from_date->tm_year += amount;
+           tm->tm_year += amount;
            break;
     }
-
-    *date = mktime(tm_from_date);
 }
