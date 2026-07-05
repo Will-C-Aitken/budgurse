@@ -27,12 +27,12 @@
 
 #include "entries.h"
 #include "categories.h"
+#include "backend.h"
 #include "date.h"
 #include "summary.h"
 #include "wins.h"
 #include "browser.h"
 #include "help.h"
-#include "backend.h"
 #include "status.h"
 
 extern int curses_mode;

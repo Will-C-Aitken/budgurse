@@ -23,6 +23,8 @@
  */
 
 #include "date.h"
+#include "entries.h"
+#include "browser.h"
 
 date_context_t *g_date_context = NULL;
 
@@ -131,19 +133,44 @@ int date_part_from_date_delin(time_t date, date_delin_t d) {
 }
 
 
-date_context_t *update_date_context(date_delin_t d, int amount) { 
+void update_date_context(date_delin_t d, int amount) { 
     struct tm new_start_tm = *localtime(&g_date_context->start);
     struct tm new_end_tm = *localtime(&g_date_context->end);
     time_t new_start, new_end;
+
+    if (!amount)
+	return;
 
     date_update_tm(&new_start_tm, d, amount);
     date_update_tm(&new_end_tm, d, amount);
 
     new_start = mktime(&new_start_tm);
     new_end = mktime(&new_end_tm);
-    date_context_t *new_dc = init_date_context(new_start, new_end,
-					       g_date_context->date_delin);
-    return new_dc;
+
+    date_delin_t cur_d = g_date_context->date_delin;
+    g_date_context = init_date_context(new_start, new_end, cur_d);
+
+    // reset browser and entry list, preserving sel
+    int sel_id = ((entry_t *)g_browser->sel->data)->id;
+    g_browser->sel = NULL;
+    free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+
+    // g_browser now has garbage data, EXCEPT for sel which is node in new
+    // table. Save it
+    g_entries = init_llist();
+    load_entry_table(g_date_context, sel_id);
+
+    llist_node_t *new_sel = g_browser->sel;
+
+    free_browser(g_browser);
+    // could not find sel in new entry list
+    if (!new_sel) {
+	if (amount > 0)
+	    g_browser = init_browser(g_entries, g_entries->head, 0, -1);
+	else
+	    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
+    } else
+	g_browser = init_browser(g_entries, new_sel, 0, -1);
 }
 
 

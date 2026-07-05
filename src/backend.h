@@ -35,7 +35,7 @@
 extern sqlite3 *g_db;
 
 void load_db(date_context_t *dc);
-void load_entry_table(date_context_t *dc);
+void load_entry_table(date_context_t *dc, int sel_id);
 void load_cat_table();
 void init_data_path(char **db_path);
 void init_db(const char *file_name);

@@ -32,20 +32,31 @@ static int load_categories_callback(void *_, int argc, char **argv,
     category_t *c = init_category(strtol(argv[0], NULL, 10),
 	strtol(argv[1], NULL, 10), argv[2]);
 
+    fprintf(stderr, "from cats: cat_id: %s\n", argv[1]);
     llist_node_t *nd = init_llist_node(c);
     llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
     return 0;
 }
 
 
-static int load_entries_callback(void *_, int argc, char **argv,
+static int load_entries_callback(void *sel_id, int argc, char **argv,
 	char **azColName) {
 
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
 	(time_t)strtol(argv[2], NULL, 10), strtof(argv[3], NULL), 
 	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
 
+    if (entry->id == 169)
+	fprintf(stderr, "cat_id: %s\n", argv[4]);
+
     llist_node_t *nd = init_llist_node(entry);
+
+    // save sel node to re-init browser on
+    if (*(int *)sel_id >= 0 && g_browser) {
+        if (entry->id == *(int *)sel_id)
+            g_browser->sel = nd;
+    }
+
     llist_insert_to_tail(g_entries, nd);
     return 0;
 }
@@ -112,16 +123,16 @@ void init_db(const char *file_name) {
 
 void load_db(date_context_t *dc) {
     load_cat_table();
-    load_entry_table(g_date_context);
+    load_entry_table(g_date_context, -1);
 }
 
 
-void load_entry_table(date_context_t *dc) {
+void load_entry_table(date_context_t *dc, int sel_id) {
     int rc;
     char *err_msg;
     char *sql = load_entry_list_to_sql(dc);
 
-    rc = sqlite3_exec(g_db, sql, load_entries_callback, NULL, &err_msg);
+    rc = sqlite3_exec(g_db, sql, load_entries_callback, &sel_id, &err_msg);
 
     EXIT_IF(rc, "Failed to load entries with error message: %s\n", err_msg);
     free(sql);

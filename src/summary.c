@@ -119,6 +119,7 @@ int summary_update_on_entry(entry_t *e) {
     int max_y = g_summary->num_rows - 1;
 
     x = date_part_from_date_delin(e->date, g_date_context->date_delin);
+    fprintf(stderr, "id: %d\n", e->id);
     y = e->cat->sum_idx;
 
     summary_inc_cell(x, y, e->amount);
@@ -471,7 +472,6 @@ void summary_del_category() {
 
 int summary_handle_key(int ch) {
     EXIT_IF(!g_summary, "Summary not initialized");
-    date_context_t *new_dc = NULL;
 
     switch (ch) {
 	case '0':
@@ -510,17 +510,11 @@ int summary_handle_key(int ch) {
 	    summary_scroll(1, RIGHT);
 	    break;
 	case 'm':
-	    new_dc = update_date_context(MONTH, 1);
-	    browser_update_context(new_dc);
-	    free(g_date_context);
-	    g_date_context = new_dc;
+	    update_date_context(MONTH, 1);
 	    summary_calc();
 	    break;
 	case 'M':
-	    new_dc = update_date_context(MONTH, -1);
-	    browser_update_context(new_dc);
-	    free(g_date_context);
-	    g_date_context = new_dc;
+	    update_date_context(MONTH, -1);
 	    summary_calc();
 	    break;
 	case 'q':

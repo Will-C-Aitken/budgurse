@@ -331,57 +331,54 @@ void browser_view_sel_entry() {
 }
 
 
-void browser_update_context(const date_context_t *new_dc) {
-
-    // If new context does not overlap with existing, reinit
-    if (new_dc->start > g_date_context->end ||
-	new_dc->end < g_date_context->start) {
-	free_llist(g_entries, (llist_free_data_fn_t)free_entry);
-	free_browser(g_browser);
-	// load with new context for fresh g_entries
-	load_entry_table(g_date_context);
-
-	if (new_dc->start > g_date_context->end) 
-	    g_browser = init_browser(g_entries, g_entries->head, 0, -1);
-	else
-	    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
-
-	return;
-    }
-
-    // remove entries before new date context
-    if (new_dc->start > g_date_context->start) {
-	// remove entries before new date context
-        while(g_entries->num_nodes) {
-            entry_t *head_entry = (entry_t *)g_entries->head->data;
-            if (head_entry->date < new_dc->start) {
-		// only change browser state if entry is within it
-		if (llist_is_head(g_browser->start))
-		    browser_pop_entry(g_entries->head);
-        	llist_del_head(g_entries, (llist_free_data_fn_t)free_entry);
-            } else
-		break;
-        }
-	
-    }
-
-    if (new_dc->end < g_date_context->end) {
-	// remove entries after new date context
-        while(g_entries->num_nodes) {
-            entry_t *tail_entry = (entry_t *)g_entries->tail->data;
-            if (tail_entry->date > new_dc->end) {
-		// only change browser state if entry is within it
-         	if (llist_is_tail(g_browser->end))
-		    browser_pop_entry(g_entries->tail);
-        	llist_del_tail(g_entries, (llist_free_data_fn_t)free_entry);
-            } else
-		break;
-        }
-    }
-
-
-
-}
+// void browser_update_context(const date_context_t *new_dc) {
+// 
+//     // If new context does not overlap with existing, reinit
+//     if (new_dc->start > g_date_context->end ||
+// 	new_dc->end < g_date_context->start) {
+// 	free_llist(g_entries, (llist_free_data_fn_t)free_entry);
+// 	free_browser(g_browser);
+// 	// load with new context for fresh g_entries
+// 	load_entry_table(g_date_context);
+// 
+// 	if (new_dc->start > g_date_context->end) 
+// 	    g_browser = init_browser(g_entries, g_entries->head, 0, -1);
+// 	else
+// 	    g_browser = init_browser(g_entries, g_entries->tail, 0, -1);
+// 
+// 	return;
+//     }
+// 
+//     // remove entries before new date context
+//     if (new_dc->start > g_date_context->start) {
+// 	// remove entries before new date context
+//         while(g_entries->num_nodes) {
+//             entry_t *head_entry = (entry_t *)g_entries->head->data;
+//             if (head_entry->date < new_dc->start) {
+// 		// only change browser state if entry is within it
+// 		if (llist_is_head(g_browser->start))
+// 		    browser_pop_entry(g_entries->head);
+//         	llist_del_head(g_entries, (llist_free_data_fn_t)free_entry);
+//             } else
+// 		break;
+//         }
+// 	
+//     }
+// 
+//     if (new_dc->end < g_date_context->end) {
+// 	// remove entries after new date context
+//         while(g_entries->num_nodes) {
+//             entry_t *tail_entry = (entry_t *)g_entries->tail->data;
+//             if (tail_entry->date > new_dc->end) {
+// 		// only change browser state if entry is within it
+//          	if (llist_is_tail(g_browser->end))
+// 		    browser_pop_entry(g_entries->tail);
+//         	llist_del_tail(g_entries, (llist_free_data_fn_t)free_entry);
+//             } else
+// 		break;
+//         }
+//     }
+// }
 
 
 void browser_draw() {

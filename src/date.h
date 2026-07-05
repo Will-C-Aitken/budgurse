@@ -47,7 +47,7 @@ extern date_context_t *g_date_context;
 
 date_context_t *init_date_context(time_t start, time_t end, date_delin_t d);
 void free_date_context(date_context_t *dc);
-date_context_t *update_date_context(date_delin_t d, int amount);
+void update_date_context(date_delin_t d, int amount);
 void date_update_tm(struct tm *tm, date_delin_t d, int amount);
 
 // date time functions
