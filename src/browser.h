@@ -59,8 +59,8 @@ void browser_to_top();
 void browser_add_entry();
 void browser_insert(llist_node_t *en);
 void browser_edit_entry();
-void browser_del_entry();
-llist_node_t *browser_pop_sel_entry();
+void browser_del_entry(llist_node_t *en);
+void browser_pop_entry(llist_node_t *en);
 void browser_view_sel_entry();
 void browser_update_context(const date_context_t *new_dc);
 

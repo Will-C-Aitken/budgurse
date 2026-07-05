@@ -99,7 +99,7 @@ int browser_handle_key(int ch) {
 	    browser_add_entry();
 	    break;
 	case 'd':
-	    browser_del_entry();
+	    browser_del_entry(g_browser->sel);
 	    break;
 	case 'e':
 	    browser_edit_entry();
@@ -250,37 +250,51 @@ void browser_edit_entry() {
 }
 
 
-void browser_del_entry() {
+void browser_del_entry(llist_node_t *en) {
 
-    llist_node_t *en_to_del = browser_pop_sel_entry();
+    if (!en)
+	return;
 
-    if (en_to_del) {
-	db_exec(en_to_del->data, (gen_sql_fn_t)del_entry_to_sql);
-	llist_del_node(g_entries, en_to_del, (llist_free_data_fn_t)free_entry);
-    }
+    browser_pop_entry(en);
+    db_exec(en->data, (gen_sql_fn_t)del_entry_to_sql);
+    llist_del_node(g_entries, en, (llist_free_data_fn_t)free_entry);
 }
 
 
-
-llist_node_t *browser_pop_sel_entry() {
+void browser_pop_entry(llist_node_t *en) {
 
     // if already empty, cannot delete
     if (g_browser->num_entries == 0)
-	return NULL;
+	return;
 
-    llist_node_t *temp = g_browser->sel;
+    // if en is not between start and end, browser state should not change
+    if (llist_dist_between(g_browser->start, en) >= g_browser->num_entries ||
+	llist_dist_between(en, g_browser->end) >= g_browser->num_entries) {
+	fprintf(stderr, "HERE\n");
+	return;
+    }
 
     // check if removed entry will be replaced by another in browser (i.e.
-    // there's more nodes that aren't visible). In this case we want to move UP
+    // there's more nodes that aren't visible). In this case we want to
+    // priorize moving start UP
     if (g_entries->num_nodes > g_browser->num_entries) {
-	// start needs to go up to show next node
-	llist_node_traverse(&g_browser->start, UP);
 
-	// tail only moves up if it's being deleted
-	if (g_browser->sel == g_browser->end) 
-	    llist_node_traverse(&g_browser->end, UP);
-	
-	llist_node_traverse(&g_browser->sel, UP);
+	// can't move start up
+	if (llist_is_head(g_browser->start)) {
+	    llist_node_traverse(&g_browser->end, DOWN);
+	    if (en == g_browser->sel)
+		llist_node_traverse(&g_browser->sel, DOWN);
+	    if (en == g_browser->start)
+		llist_node_traverse(&g_browser->start, DOWN);
+	} 
+
+	else {
+	    llist_node_traverse(&g_browser->start, UP);
+	    if (en == g_browser->end)
+		llist_node_traverse(&g_browser->end, UP);
+	    if (en == g_browser->sel)
+		llist_node_traverse(&g_browser->sel, UP);
+	} 
     }
 
     // otherwise all nodes are visible and deleting should move sel DOWN 
@@ -289,22 +303,20 @@ llist_node_t *browser_pop_sel_entry() {
 	g_browser->num_entries--;
 
 	// only touch start if it's being deleted
-	if (g_browser->sel == g_browser->start)
+	if (g_browser->sel == g_browser->start) {
 	    llist_node_traverse(&g_browser->start, DOWN);
-	
-	// tail (and sel now) only moves up if it's being deleted 
-	if (g_browser->sel == g_browser->end) {
+	    llist_node_traverse(&g_browser->sel, DOWN);
+	} else if (g_browser->sel == g_browser->end) {
 	    llist_node_traverse(&g_browser->end, UP);
 	    llist_node_traverse(&g_browser->sel, UP);
+	} else {
+	    if (en == g_browser->sel)
+		llist_node_traverse(&g_browser->sel, DOWN);
 	}
-	else
-	    llist_node_traverse(&g_browser->sel, DOWN);
     }
     
     if (g_browser->num_entries == 0)
 	g_browser->sel = g_browser->end = g_browser->start = NULL;
-
-    return temp;
 }
 
 
@@ -337,75 +349,38 @@ void browser_update_context(const date_context_t *new_dc) {
 	return;
     }
 
-    // Otherwise preserve prior sel and pos if possible
-    // llist_node_t *prior_sel = g_browser->sel;
-
+    // remove entries before new date context
     if (new_dc->start > g_date_context->start) {
+	// remove entries before new date context
         while(g_entries->num_nodes) {
             entry_t *head_entry = (entry_t *)g_entries->head->data;
             if (head_entry->date < new_dc->start) {
-         	// shift browser down if deleting from start
-         	if (g_entries->head == g_browser->start) {
-		    // At end. destroy browser
-		    if (!g_entries->head->next) {
-			llist_del_head(g_entries, 
-				       (llist_free_data_fn_t)free_entry);
-			free_browser(g_browser);
-			g_browser=init_browser(NULL, NULL, -1, -1);
-			break;
-		    }
-
-		    llist_node_traverse(&g_browser->start, DOWN);
-
-		    // At end of entries
-		    if (g_browser->end == g_entries->tail)
-			g_browser->num_entries--;
-		    else 
-			llist_node_traverse(&g_browser->end, DOWN);
-
-         	    // only update sel if it is start
-         	    if (g_entries->head == g_browser->sel)
-			llist_node_traverse(&g_browser->sel, DOWN);
-         	}
+		// only change browser state if entry is within it
+		if (llist_is_head(g_browser->start))
+		    browser_pop_entry(g_entries->head);
         	llist_del_head(g_entries, (llist_free_data_fn_t)free_entry);
             } else
 		break;
         }
+	
     }
-    
 
     if (new_dc->end < g_date_context->end) {
+	// remove entries after new date context
         while(g_entries->num_nodes) {
             entry_t *tail_entry = (entry_t *)g_entries->tail->data;
             if (tail_entry->date > new_dc->end) {
-         	// shift browser up if deleting from end
-         	if (g_entries->tail == g_browser->end) {
-		    // down to one entry. delete it and reinit as empty
-		    if (!g_entries->tail->prev) {
-			llist_del_tail(g_entries, 
-				       (llist_free_data_fn_t)free_entry);
-			free_browser(g_browser);
-			g_browser=init_browser(NULL, NULL, -1, -1);
-			break;
-		    }
-
-		    llist_node_traverse(&g_browser->end, UP);
-
-		    // At top of entries
-		    if (g_browser->start == g_entries->head)
-			g_browser->num_entries--;
-		    else 
-			llist_node_traverse(&g_browser->start, UP);
-
-         	    // only update sel if it is start
-         	    if (g_entries->tail == g_browser->sel)
-			llist_node_traverse(&g_browser->sel, UP);
-         	}
+		// only change browser state if entry is within it
+         	if (llist_is_tail(g_browser->end))
+		    browser_pop_entry(g_entries->tail);
         	llist_del_tail(g_entries, (llist_free_data_fn_t)free_entry);
             } else
 		break;
         }
     }
+
+
+
 }
 
 
