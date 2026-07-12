@@ -79,7 +79,7 @@ int browser_tests();
 int browser_init_test();
 int browser_scroll_test();
 int browser_append_to_tail_test();
-int browser_pop_sel_entry_test();
+int browser_pop_entry_test();
 int browser_insert_after_date_test();
 
 // Categories tests
@@ -104,7 +104,7 @@ int summary_tests();
 int summary_init_test();
 int summary_calc_test();
 int summary_scroll_test();
-int update_date_test();
+// int update_date_test();
 int summary_clear_test();
 
 // Misc tests

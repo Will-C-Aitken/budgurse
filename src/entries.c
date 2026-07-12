@@ -50,6 +50,8 @@ entry_t *init_entry(int id, const char *name, time_t date, float amount,
 }   
 
 void free_entry(entry_t *e) {
+    if (!e)
+	return;
     free(e->name);
     free(e->note);
     free(e);

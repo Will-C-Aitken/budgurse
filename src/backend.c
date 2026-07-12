@@ -32,7 +32,6 @@ static int load_categories_callback(void *_, int argc, char **argv,
     category_t *c = init_category(strtol(argv[0], NULL, 10),
 	strtol(argv[1], NULL, 10), argv[2]);
 
-    fprintf(stderr, "from cats: cat_id: %s\n", argv[1]);
     llist_node_t *nd = init_llist_node(c);
     llist_insert_node(g_categories, nd, (llist_comp_fn_t)cat_comp);
     return 0;
@@ -45,9 +44,6 @@ static int load_entries_callback(void *sel_id, int argc, char **argv,
     entry_t *entry = init_entry(strtol(argv[0], NULL, 10), argv[1], 
 	(time_t)strtol(argv[2], NULL, 10), strtof(argv[3], NULL), 
 	cat_get_from_id(g_categories, strtol(argv[4], NULL, 10)), argv[5]);
-
-    if (entry->id == 169)
-	fprintf(stderr, "cat_id: %s\n", argv[4]);
 
     llist_node_t *nd = init_llist_node(entry);
 

@@ -118,25 +118,26 @@ void clean_tm(struct tm *tm_to_clean) {
 
 int date_part_from_date_delin(time_t date, date_delin_t d) { 
     int date_part = -1;
-    struct tm *tm_from_date = localtime(&date);
+    struct tm tm_from_date = *localtime(&date);
     switch (d) {
        case WEEK: 
            break;
        case MONTH: 
-           date_part = tm_from_date->tm_mon;
+           date_part = tm_from_date.tm_mon;
            break;
        case YEAR: 
-           date_part = tm_from_date->tm_year + 1900;
+           date_part = tm_from_date.tm_year + 1900;
            break;
     }
     return date_part;
 }
 
 
-void update_date_context(date_delin_t d, int amount) { 
+void update_date_context(date_delin_t d, int amount) {
     struct tm new_start_tm = *localtime(&g_date_context->start);
     struct tm new_end_tm = *localtime(&g_date_context->end);
     time_t new_start, new_end;
+    int sel_id = -1;
 
     if (!amount)
 	return;
@@ -151,15 +152,17 @@ void update_date_context(date_delin_t d, int amount) {
     g_date_context = init_date_context(new_start, new_end, cur_d);
 
     // reset browser and entry list, preserving sel
-    int sel_id = ((entry_t *)g_browser->sel->data)->id;
+    if (g_browser && g_browser->sel)
+	sel_id = ((entry_t *)g_browser->sel->data)->id;
+
     g_browser->sel = NULL;
     free_llist(g_entries, (llist_free_data_fn_t)free_entry);
 
-    // g_browser now has garbage data, EXCEPT for sel which is node in new
-    // table. Save it
     g_entries = init_llist();
     load_entry_table(g_date_context, sel_id);
 
+    // g_browser now has garbage data, EXCEPT for sel which is node in new
+    // list. Save it
     llist_node_t *new_sel = g_browser->sel;
 
     free_browser(g_browser);
